@@ -232,6 +232,11 @@ function SidePanel(props: Record<string, unknown>) {
                 index={i}
                 role={msg.role}
                 content={msg.content}
+                interaction={
+                  msg.role === "assistant"
+                    ? agent.getConversation().getInteraction(msg)
+                    : undefined
+                }
                 name={msg.name}
               ></Message>
             ))}

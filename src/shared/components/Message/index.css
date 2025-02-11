@@ -57,6 +57,23 @@
   margin-left: 12px;
 }
 
+.interaction-goal {
+  color: #6b7280;
+  font-style: italic;
+  margin-left: 12px;
+  display: block;
+}
+
+div.ant-collapse-header {
+  align-items: center !important;
+  font-size: 12px;
+  padding: 12px 0px 0px 0px !important;
+}
+
+div.ant-collapse-content-box {
+  padding-block: 0px !important;
+}
+
 .user-avatar {
   border: 1px solid #e5e7eb;
   border-radius: calc(.5rem - 2px);

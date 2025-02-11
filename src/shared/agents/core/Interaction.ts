@@ -12,7 +12,7 @@ type InteractionStatus =
 class Interaction {
   private readonly uuid: string;
   private readonly datetime: string;
-  goal: string; // State is the description of user intents, for example: "Searching", "Viewing", etc.
+  private goal: string; // State is the description of user intents, for example: "Searching", "Viewing", etc.
   intent: string; // The specific intent, for example: "google_search", "open_url", etc.
   intentArguments?: any; // The arguments of the intent
   status: InteractionStatus; // the status of agent
@@ -55,8 +55,13 @@ class Interaction {
     return this.statusMessage;
   }
 
+  public getGoal(): string {
+    return this.goal;
+  }
+
   public setGoal(goal: string) {
     this.goal = goal;
+    this.notify();
   }
 
   public setIntent(intent: string, intentArguments: any) {

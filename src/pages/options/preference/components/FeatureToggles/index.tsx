@@ -3,6 +3,7 @@ import { Button, Form, Input, Layout, Switch } from "antd";
 import "./index.css";
 import { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
+import { locale } from "@src/shared/utils/i18n";
 
 interface FeatureTogglesProps {
   config: GluonConfigure;
@@ -14,6 +15,7 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
   onSaveSettings,
 }) => {
   const [form] = Form.useForm();
+  const l = locale(config.language);
 
   const onSave = async () => {
     onSaveSettings(await form.validateFields());
@@ -25,7 +27,7 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
         <div className="form-container">
           <Form
             name="feature-toggle"
-            labelCol={{ span: 3 }}
+            labelCol={{ span: l === "zh" ? 3 : 6 }}
             layout="horizontal"
             initialValues={config}
             form={form}

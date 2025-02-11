@@ -116,6 +116,7 @@
   "preview": "Preview",
   "save": "Save",
   "sensitive_topic": "Sensitive topic detected.",
+  "side_panel_interaction_goal": "Thought",
   "toolsCallModel": "Tools Call Model",
   "tooltip_assistant_shortcut": "is glad to help you, type `Alt + Enter` can also open side panel.",
   "tooltip_side_panel": "Type Alt + Enter can also open side panel",

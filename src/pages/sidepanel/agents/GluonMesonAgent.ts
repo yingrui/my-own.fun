@@ -92,7 +92,6 @@ The links are: ${JSON.stringify(content.links)}`;
    * @returns {Promise<any>} ChatCompletion
    */
   async autocomplete(args: object, messages: ChatMessage[]): Promise<Thought> {
-    console.log("autocomplete args", args);
     const content = await get_content();
     const userInput = args["userInput"];
     const text = args["text"];
@@ -196,7 +195,7 @@ Links:
 ${JSON.stringify(content.links)}
 
 ## Output Instruction
-User's goal: ${this.getCurrentInteraction().goal}
+User's goal: ${this.getCurrentInteraction().getGoal()}
 
 First, please think about the user's goal.
 Second, decide to call different tools, and if the tool parameter userInput is empty, please think about the user's goal as userInput. 

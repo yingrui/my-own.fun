@@ -116,6 +116,7 @@
   "preview": "预览",
   "save": "保存",
   "sensitive_topic": "检测到敏感话题！",
+  "side_panel_interaction_goal": "深度思考",
   "toolsCallModel": "Agent AI模型",
   "tooltip_assistant_shortcut": "在当你输入快捷键`Alt + Enter`的时候就会出现！",
   "tooltip_side_panel": "输入`Alt + Enter`也可以打开侧边栏",

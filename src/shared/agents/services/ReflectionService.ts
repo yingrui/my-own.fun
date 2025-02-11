@@ -20,7 +20,11 @@ interface ReflectionService {
    * @param conversation
    * @returns {Promise<string>}
    */
-  goal(env: Environment, conversation: Conversation): Promise<string>;
+  goal(
+    env: Environment,
+    conversation: Conversation,
+    notifyMessageChanged: (msg: string) => void,
+  ): Promise<string>;
 
   /**
    * Reflection

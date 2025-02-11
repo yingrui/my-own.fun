@@ -24,7 +24,11 @@ class PromptReflectionService implements ReflectionService {
     this.enableChainOfThoughts = enableChainOfThoughts;
   }
 
-  async goal(env: Environment, conversation: Conversation): Promise<string> {
+  async goal(
+    env: Environment,
+    conversation: Conversation,
+    notifyMessageChanged: (msg: string) => void = undefined,
+  ): Promise<string> {
     const thought = await this.modelService.chatCompletion(
       [
         new ChatMessage({
@@ -40,7 +44,7 @@ class PromptReflectionService implements ReflectionService {
       false,
       "text",
     );
-    return thought.getMessage();
+    return thought.getMessage(notifyMessageChanged);
   }
 
   async reflection(

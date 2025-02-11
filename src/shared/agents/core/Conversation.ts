@@ -53,9 +53,20 @@ class Conversation {
   }
 
   public getInteraction(message: ChatMessage): Interaction {
-    return this.interactions.findLast((interaction) => {
-      return interaction.inputMessage === message;
+    const found = this.interactions.findLast((interaction) => {
+      if (message.role === "user") {
+        return (
+          interaction.inputMessage.getContentText() === message.getContentText()
+        );
+      } else if (message.role === "assistant" && interaction.outputMessage) {
+        return (
+          interaction.outputMessage.getContentText() ===
+          message.getContentText()
+        );
+      }
+      return false;
     });
+    return found;
   }
 
   reset(messages: ChatMessage[]): Conversation {
@@ -83,7 +94,7 @@ class Conversation {
   public toString(): string {
     return this.interactions
       .map(
-        (i) => `user goal: ${i.goal}
+        (i) => `user goal: ${i.getGoal()}
 user: ${i.inputMessage.getContentText()}
 assistant: ${i.outputMessage?.getContentText()}
 `,

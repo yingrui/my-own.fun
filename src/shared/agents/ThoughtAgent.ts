@@ -96,15 +96,6 @@ class ThoughtAgent implements Agent {
       this.notifyMessageChanged(msg);
     });
 
-    this.getConversation().appendMessage(
-      new ChatMessage({
-        role: "assistant",
-        content: message,
-        name: this.getName(),
-      }),
-    );
-    await this.record();
-
     let thought = await this.reflection();
     while (thought && thought.type === "actions") {
       await this.execute(thought.actions);
@@ -116,6 +107,15 @@ class ThoughtAgent implements Agent {
         this.notifyMessageChanged(msg);
       });
     }
+
+    this.getConversation().appendMessage(
+      new ChatMessage({
+        role: "assistant",
+        content: message,
+        name: this.getName(),
+      }),
+    );
+    await this.record();
 
     this.getCurrentInteraction().setStatus("Completed", "");
     return message;
@@ -287,12 +287,12 @@ class ThoughtAgent implements Agent {
 
   private async guessGoal(interaction: Interaction) {
     if (this.enableReflection && this.reflectionService) {
-      interaction.setGoal(
-        await this.reflectionService.goal(
-          this.getCurrentEnvironment(),
-          this.getConversation(),
-        ),
+      const goal = await this.reflectionService.goal(
+        this.getCurrentEnvironment(),
+        this.getConversation(),
+        (msg) => interaction.setGoal(msg),
       );
+      interaction.setGoal(goal);
     }
   }
 
