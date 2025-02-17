@@ -29,6 +29,7 @@
     "copy-to-clipboard": "3.3.3",
     "jotai": "2.8.3",
     "jquery": "3.7.1",
+    "liquidjs": "^10.20.3",
     "lodash": "4.17.21",
     "mermaid": "11.4.0",
     "openai": "4.39.0",

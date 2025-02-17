@@ -60,12 +60,28 @@ Reply sorry and ask user to refresh webpage, so you can get information from web
         ? content.text.slice(0, maxContentLength)
         : content.text;
 
-    const prompt = `You're an assistant and good at summarization,
-Please summarize the content in: ${this.language}, and consider the language of user input.
+    const template = this.promptTemplate(
+      "Summary",
+      `You're an assistant and good at summarization,
+Please summarize the content in: {{language}}, and consider the language of user input.
 The output should be short & clear, and in markdown format, if it need be diagram, please use mermaid format.
-The user is reading an article: ${content.title}.
-The content text is: ${text}
-The links are: ${JSON.stringify(content.links)}`;
+The user is reading an article: {{title}}.
+The content text is: {{text}}
+The links are: {{links}}`,
+      [
+        { name: "language" },
+        { name: "title" },
+        { name: "text" },
+        { name: "links" },
+      ],
+    );
+
+    const prompt = await this.renderPrompt(template.id, {
+      language: this.language,
+      title: content.title,
+      text: text,
+      links: JSON.stringify(content.links),
+    });
 
     const userInput = this.get(
       args,

@@ -10,6 +10,8 @@ import ReflectionService from "./services/ReflectionService";
 import ConversationRepository from "@src/shared/agents/ConversationRepository";
 import Agent from "./core/Agent";
 import Interaction from "./core/Interaction";
+import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
+import Template from "@src/shared/agents/services/Template";
 
 interface ThoughtAgentProps {
   language: string;
@@ -19,6 +21,7 @@ interface ThoughtAgentProps {
   enableChainOfThoughts: boolean;
   modelService: ModelService;
   reflectionService?: ReflectionService;
+  templateEngine?: TemplateEngine;
 }
 
 class ThoughtAgent implements Agent {
@@ -34,6 +37,7 @@ class ThoughtAgent implements Agent {
   private readonly reflectionService: ReflectionService;
   private receiveStreamMessageListener: (msg: string) => void;
   private repo: ConversationRepository;
+  private templateEngine: TemplateEngine;
 
   constructor(
     props: ThoughtAgentProps,
@@ -43,6 +47,7 @@ class ThoughtAgent implements Agent {
     this.language = props.language;
     this.conversation = props.conversation;
     this.modelService = props.modelService;
+    this.templateEngine = props.templateEngine;
     this.reflectionService = props.reflectionService;
     this.enableMultimodal = props.enableMultimodal;
     this.enableReflection = props.enableReflection;
@@ -470,6 +475,28 @@ class ThoughtAgent implements Agent {
       stream,
       responseType,
     );
+  }
+
+  protected promptTemplate(
+    name: string,
+    template: string,
+    parameters: any,
+  ): Template {
+    const t = new Template({
+      name: name,
+      template: template,
+      agent: this.getName(),
+      parameters: parameters,
+    });
+    this.templateEngine.add(t);
+    return t;
+  }
+
+  protected async renderPrompt(
+    templateId: string,
+    parameters: any,
+  ): Promise<string> {
+    return this.templateEngine.render(templateId, parameters);
   }
 }
 

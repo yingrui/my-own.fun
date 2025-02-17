@@ -4,6 +4,9 @@ import style from "./CodeBlock.module.scss";
 import { message } from "antd";
 import copy from "copy-to-clipboard";
 
+const rehypePlugins = [];
+const remarkPlugins = [];
+
 function CodeBlock(props: HTMLAttributes<HTMLElement> & { loading?: boolean }) {
   const { children, className, loading, ...rest } = props;
   const match = /language-(\w+)/.exec(className || "");
@@ -31,3 +34,4 @@ CodeBlock.defaultProps = {
 };
 
 export default CodeBlock;
+export { rehypePlugins, remarkPlugins };

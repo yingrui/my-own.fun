@@ -2,10 +2,7 @@ import { message, Spin, Collapse } from "antd";
 import type { CollapseProps } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import "./index.css";
-import CodeBlock from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
-import ReactMarkdown from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
+import MarkdownPreview from "@src/shared/components/Message/MarkdownPreview";
 import copy from "copy-to-clipboard";
 import Interaction from "@src/shared/agents/core/Interaction";
 import React, { useState } from "react";
@@ -21,9 +18,6 @@ interface MessageProps {
   loading?: boolean;
   interaction?: Interaction;
 }
-
-const rehypePlugins = [rehypeKatex];
-const remarkPlugins = [remarkGfm];
 
 const getChainOfThoughts = (
   interaction: Interaction,
@@ -122,17 +116,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
         {hasChainOfThought() && !shouldSpin() && (
           <Collapse accordion items={chainOfThoughts} ghost={true} />
         )}
-        <ReactMarkdown
-          components={{
-            code: (props) => {
-              return <CodeBlock {...props} loading={loading} />;
-            },
-          }}
-          rehypePlugins={rehypePlugins as any}
-          remarkPlugins={remarkPlugins as any}
-        >
-          {getContent()}
-        </ReactMarkdown>
+        <MarkdownPreview loading={loading} content={getContent()} />
         {isAssistant && !loading && index > 0 && (
           <div>
             <CopyOutlined className="copy-icon" onClick={handleCopy} />

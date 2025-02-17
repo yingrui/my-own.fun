@@ -1,4 +1,5 @@
 interface UserJourneyRecord {
+  id: string;
   userJourney: string;
   details: string;
   boardUrl: string;

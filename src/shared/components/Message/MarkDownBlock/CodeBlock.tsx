@@ -6,6 +6,11 @@ import style from "./CodeBlock.module.scss";
 import { message } from "antd";
 import Mermaid from "./MermaidBlock";
 import copy from "copy-to-clipboard";
+import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
+
+const rehypePlugins = [rehypeKatex];
+const remarkPlugins = [remarkGfm];
 
 function CodeBlock(props: HTMLAttributes<HTMLElement> & { loading?: boolean }) {
   const { children, className, loading, ...rest } = props;
@@ -49,3 +54,4 @@ CodeBlock.defaultProps = {
 };
 
 export default CodeBlock;
+export { rehypePlugins, remarkPlugins };

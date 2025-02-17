@@ -5,6 +5,7 @@ import ThoughtAgent, {
 import Conversation from "@src/shared/agents/core/Conversation";
 import Agent from "@src/shared/agents/core/Agent";
 import ConversationRepository from "@src/shared/agents/ConversationRepository";
+import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
 import intl from "react-intl-universal";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import { locale } from "@src/shared/utils/i18n";
@@ -16,6 +17,8 @@ import GPTModelService from "@src/shared/agents/services/GPTModelService";
 import ReflectionService from "@src/shared/agents/services/ReflectionService";
 import PromptReflectionService from "@src/shared/agents/services/PromptReflectionService";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
+import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 
 class BaseAgentFactory {
   private repository: ConversationRepository;
@@ -32,6 +35,10 @@ class BaseAgentFactory {
           enableChainOfThoughts,
         )
       : null;
+    const templateEngine = new LiquidTemplateEngine(
+      {},
+      new TemplateRepository(chrome.storage.local),
+    );
     return {
       language: language,
       conversation: new Conversation(),
@@ -40,6 +47,7 @@ class BaseAgentFactory {
       enableChainOfThoughts: enableChainOfThoughts,
       modelService: modelService,
       reflectionService: reflectionService,
+      templateEngine: templateEngine,
     };
   }
 
