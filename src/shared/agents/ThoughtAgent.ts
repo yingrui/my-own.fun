@@ -12,6 +12,7 @@ import Agent from "./core/Agent";
 import Interaction from "./core/Interaction";
 import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
 import Template from "@src/shared/agents/services/Template";
+import ThoughtService from "@src/shared/agents/services/ThoughtService";
 
 interface ThoughtAgentProps {
   language: string;
@@ -21,6 +22,7 @@ interface ThoughtAgentProps {
   enableChainOfThoughts: boolean;
   modelService: ModelService;
   reflectionService?: ReflectionService;
+  thoughtService?: ThoughtService;
   templateEngine?: TemplateEngine;
 }
 
@@ -35,6 +37,7 @@ class ThoughtAgent implements Agent {
   private readonly conversation: Conversation;
   private readonly modelService: ModelService;
   private readonly reflectionService: ReflectionService;
+  private readonly thoughtService: ThoughtService;
   private receiveStreamMessageListener: (msg: string) => void;
   private repo: ConversationRepository;
   private templateEngine: TemplateEngine;
@@ -49,6 +52,7 @@ class ThoughtAgent implements Agent {
     this.modelService = props.modelService;
     this.templateEngine = props.templateEngine;
     this.reflectionService = props.reflectionService;
+    this.thoughtService = props.thoughtService;
     this.enableMultimodal = props.enableMultimodal;
     this.enableReflection = props.enableReflection;
     this.enableChainOfThoughts = props.enableChainOfThoughts;
@@ -291,8 +295,8 @@ class ThoughtAgent implements Agent {
   }
 
   private async guessGoal(interaction: Interaction) {
-    if (this.enableReflection && this.reflectionService) {
-      const goal = await this.reflectionService.goal(
+    if (this.enableChainOfThoughts && this.thoughtService) {
+      const goal = await this.thoughtService.goal(
         this.getCurrentEnvironment(),
         this.getConversation(),
         (msg) => interaction.setGoal(msg),

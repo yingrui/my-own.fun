@@ -15,7 +15,7 @@ import ModelService from "@src/shared/agents/services/ModelService";
 import DefaultModelService from "@src/shared/agents/services/DefaultModelService";
 import GPTModelService from "@src/shared/agents/services/GPTModelService";
 import ReflectionService from "@src/shared/agents/services/ReflectionService";
-import PromptReflectionService from "@src/shared/agents/services/PromptReflectionService";
+import PromptChainOfThoughtService from "@src/shared/agents/services/PromptChainOfThoughtService";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
@@ -28,13 +28,14 @@ class BaseAgentFactory {
     const modelService = this.createModelService(config);
     const language = intl.get(locale(config.language)).d("English");
     const enableChainOfThoughts = config.enableChainOfThoughts ?? false;
-    const reflectionService = config.enableReflection
-      ? this.createReflectionService(
-          modelService,
-          language,
-          enableChainOfThoughts,
-        )
-      : null;
+    const chainOfThoughtService =
+      config.enableReflection || config.enableChainOfThoughts
+        ? this.createReflectionService(
+            modelService,
+            language,
+            enableChainOfThoughts,
+          )
+        : null;
     const templateEngine = new LiquidTemplateEngine(
       {},
       new TemplateRepository(chrome.storage.local),
@@ -46,7 +47,8 @@ class BaseAgentFactory {
       enableReflection: config.enableReflection ?? false,
       enableChainOfThoughts: enableChainOfThoughts,
       modelService: modelService,
-      reflectionService: reflectionService,
+      reflectionService: chainOfThoughtService,
+      thoughtService: chainOfThoughtService,
       templateEngine: templateEngine,
     };
   }
@@ -115,8 +117,8 @@ class BaseAgentFactory {
     modelService: ModelService,
     language: string,
     enableChainOfThoughts: boolean,
-  ): ReflectionService {
-    return new PromptReflectionService(
+  ): PromptChainOfThoughtService {
+    return new PromptChainOfThoughtService(
       modelService,
       language,
       enableChainOfThoughts,

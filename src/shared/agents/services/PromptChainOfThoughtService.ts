@@ -8,8 +8,9 @@ import ModelService from "./ModelService";
 import Environment from "../core/Environment";
 import Conversation from "../core/Conversation";
 import Tool from "../core/Tool";
+import ThoughtService from "@src/shared/agents/services/ThoughtService";
 
-class PromptReflectionService implements ReflectionService {
+class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   private readonly modelService: ModelService;
   private readonly language: string;
   private enableChainOfThoughts: boolean;
@@ -328,4 +329,4 @@ ${conversationContent}
   }
 }
 
-export default PromptReflectionService;
+export default PromptChainOfThoughtService;
