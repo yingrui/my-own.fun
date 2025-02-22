@@ -61,6 +61,7 @@ const UserJourneyApp: React.FC<UserJourneyProps> = ({ config }) => {
   const handleSave = async () => {
     await contextRef.current
       .save({
+        id: "userJourney", // Not necessary to set this, context will handle it
         details: details,
         boardUrl: boardUrl,
         feedback: feedback,
