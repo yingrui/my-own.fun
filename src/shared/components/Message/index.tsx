@@ -78,11 +78,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
 
   function hasChainOfThought(): boolean {
     const hasGoal = !!interaction && !!interaction.getGoal();
-    return (
-      isAssistant &&
-      interaction &&
-      (interaction.getStatus() === "Planning" || hasGoal)
-    );
+    return isAssistant && interaction && hasGoal;
   }
 
   return (
