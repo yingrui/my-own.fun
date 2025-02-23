@@ -130,13 +130,13 @@ Use markdown format to beautify output.`;
     const board = await this.get_board();
     if (!board) return this.handleCannotGetBoardError();
     if (this.baCopilotApi) {
-      return this.generateStoryWithGluonMesonAgent(board, userInput);
+      return this.generateStoryWithRemoteAgent(board, userInput);
     } else {
       return this.generateStoryWithGPTModel(board, userInput);
     }
   }
 
-  async generateStoryWithGluonMesonAgent(
+  async generateStoryWithRemoteAgent(
     board: any,
     userInput: string,
   ): Promise<Thought> {

@@ -42,11 +42,7 @@ class ThoughtAgent implements Agent {
   private repo: ConversationRepository;
   private templateEngine: TemplateEngine;
 
-  constructor(
-    props: ThoughtAgentProps,
-    name: string = "Guru",
-    description: string = "Guru",
-  ) {
+  constructor(props: ThoughtAgentProps, name: string, description: string) {
     this.language = props.language;
     this.conversation = props.conversation;
     this.modelService = props.modelService;

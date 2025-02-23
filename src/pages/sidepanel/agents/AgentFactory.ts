@@ -1,6 +1,6 @@
 import ThoughtAgent from "@src/shared/agents/ThoughtAgent";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import GluonMesonAgent from "./GluonMesonAgent";
+import Gru from "./Gru";
 import BACopilotAgent from "./BACopilotAgent";
 import TranslateAgent from "./TranslateAgent";
 import UiTestAgent from "./UiTestAgent";
@@ -37,10 +37,10 @@ class AgentFactory extends BaseAgentFactory {
       ),
     ];
 
-    const agent = new GluonMesonAgent(
+    const agent = new Gru(
       props,
-      "Guru",
-      intl.get("agent_description_guru").d("Guru, your browser assistant"),
+      intl.get("assistant_name").d("Gru"),
+      intl.get("agent_description_gru").d("Gru, your browser assistant"),
       agents,
     );
 

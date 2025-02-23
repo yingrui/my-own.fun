@@ -12,14 +12,14 @@ import ChatMessage, {
 } from "@src/shared/agents/core/ChatMessage";
 
 /**
- * GluonMeson Agent
+ * Gru Agent
  * @extends {CompositeAgent} - Agent with tools
  */
-class GluonMesonAgent extends CompositeAgent {
+class Gru extends CompositeAgent {
   constructor(
     props: ThoughtAgentProps,
-    name: string = "Guru",
-    description: string = "Guru",
+    name: string = "Gru",
+    description: string = "Gru",
     agents: ThoughtAgent[] = [],
   ) {
     super(props, name, description, agents);
@@ -38,7 +38,7 @@ class GluonMesonAgent extends CompositeAgent {
   }
 
   private async handleCannotGetContentError(): Promise<Thought> {
-    const prompt = `You're an assistant or chrome copilot provided by GluonMeson, Guru Mason is your name.
+    const prompt = `You're an assistant or chrome copilot named Gru.
 The user is viewing the page, but you cannot get any information, it's possible because the you're detached from the webpage.
 Reply sorry and ask user to refresh webpage, so you can get information from webpage.`;
     return await this.chatCompletion([
@@ -195,7 +195,7 @@ Do not repeat the content before and after caret position.
           : content.text;
       return {
         systemPrompt: () => `## Role
-As a web browser assistant or chrome copilot, named Guru Mason.
+As a web browser assistant or chrome copilot, named Gru.
 You're good at data extraction, data analysis, summarization, wikipedia, and many kinds of internet tools or websites.
 
 ## Context
@@ -242,10 +242,10 @@ Output format should be in markdown format, and use mermaid format for diagram g
   }
 
   getInitialSystemMessage(): string {
-    return `As an assistant or chrome copilot provided by GluonMeson, named Guru Mason.
+    return `As an assistant or chrome copilot named Gru.
 You can decide to call different tools or directly answer questions in ${this.language}, should not add assistant in answer.
 Output format should be in markdown format, and use mermaid format for diagram generation.`;
   }
 }
 
-export default GluonMesonAgent;
+export default Gru;

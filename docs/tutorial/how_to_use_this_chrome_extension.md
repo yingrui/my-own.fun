@@ -40,13 +40,5 @@ When you are viewing a Trello card, you can use the `/tasking` command to genera
 
 <img src="../images/generate_tasking_without_examples.png"/>
 
-When you have tasking examples, the generated tasking results will be more useful.
-
-<img src="../images/generate_tasking_with_examples.png"/>
-
-The tasking examples are imported to GluonMeson knowledge base like below:
-
-<img src="../images/import_tasking_examples_to_knowledge_base.png"/>
-
 ## Conclusion
 This Chrome extension is designed to provide a seamless experience for users, offering a range of features to enhance your browsing experience. By following the steps outlined in this document, you can make the most of the extension's capabilities and enjoy a more efficient and productive browsing experience. If you have any questions or need further assistance, please feel free to reach out to us. We are here to help you make the most of this extension and ensure you have a positive experience. Happy browsing!

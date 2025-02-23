@@ -24,14 +24,14 @@ const WriterApp: React.FC<WriterAppProps> = ({ config }) => {
   const initMessages = [
     new ChatMessage({
       role: "system",
-      content: `As an assistant named Guru Mason. You can help users writing with given information.`,
+      content: `As an assistant named Gru. You can help users writing with given information.`,
     }),
     new ChatMessage({
       role: "assistant",
       content: intl
         .get("options_app_writer_assistant_greeting")
         .d("Ask me anything about writing!"),
-      name: "Guru",
+      name: "Gru",
     }),
   ];
 

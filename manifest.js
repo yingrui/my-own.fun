@@ -13,9 +13,10 @@ const manifest = {
    * if you want to support multiple languages, you can use the following reference
    * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Internationalization
    */
-  name: "格鲁 Guru Mason",
+  name: "格鲁 Gru",
   version: packageJson.version,
-  description: "GluonMeson Chrome Extension",
+  description:
+    "The gru.ai is your personal browser AI agent that run as an extension",
   host_permissions: ["<all_urls>"],
   permissions: [
     "storage",

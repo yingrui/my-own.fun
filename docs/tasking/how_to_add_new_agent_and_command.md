@@ -1,6 +1,6 @@
 ## Add an Agent and Command for Google Search
 
-This document will guide you on how to add a new agent and command to the GluonMeson Chrome Extension. 
+This document will guide you on how to add a new agent and command to the gru.ai. 
 
 The new agent will be used to search on Google, and user can use the `/google` command to trigger the agent.
 
@@ -14,7 +14,7 @@ The new agent will be used to search on Google, and user can use the `/google` c
 3. Be able to check and open google webpage and get search result in `search` method.
 4. Send prompt to gpt service and get result in `search` method.
 5. Add the agent to the agent list in the `AgentFactory` class.
-6. Add the `/google` command to the `GluonMesonAgent` commands list.
+6. Add the `/google` command to the `Gru` commands list.
 7. Test the new agent and command in side panel.
 
 ### Step 1: Add a new agent
@@ -73,10 +73,11 @@ class AgentFactory {
 }
 ```
 
-### Step 5: Add the `/google` command to GluonMesonAgent
-* Add command `google` to GluonMesonAgent commands list. So when use type `/google` command, the agent can recognize it as command and then trigger the GoogleAgent.
+### Step 5: Add the `/google` command to Gru
+* Add command `google` to Gru commands list. So when use type `/google` command, the agent can recognize it as command and then trigger the GoogleAgent.
+
 ```typescript
-class GluonMesonAgent extends AgentWithTools {
+class Gru extends ThoughtAgent {
   ...
   commands = [
     "ask_page",

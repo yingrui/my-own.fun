@@ -1,5 +1,5 @@
 # Set up Configurations
-The GluonMeson Chrome Extension can be configured with [OpenAI](https://platform.openai.com/docs/overview), [Zhipu.AI](https://open.bigmodel.cn/dev/api), [Baichuan](https://www.baichuan-ai.com/home) or GluonMeson (thoughtworks GenAI platform). This document will guide you on how to set up configurations in the extension popup page.
+The gru.ai can be configured with [OpenAI](https://platform.openai.com/docs/overview), [Zhipu.AI](https://open.bigmodel.cn/dev/api), [Baichuan](https://www.baichuan-ai.com/home) or Ollama. This document will guide you on how to set up configurations in the extension popup page.
 
 ## Basic Configurations
 As shown in the image below, you can set up the following configurations in the extension popup page:
@@ -8,7 +8,7 @@ As shown in the image below, you can set up the following configurations in the 
 Above image shows the example configurations with Zhipu.AI:
 * **API Key**: The API Key is from Zhipu.AI
 * **Base URL**: Base url is Zhipu.AI, please check [docs](https://open.bigmodel.cn/dev/api#glm-4) to get Request URL, and notice that the base url needs to remove the `/chat/completions` at the end. Because the sdk will add it automatically.
-* **Organization**: Optional configuration in OpenAI client. For Zhipu.AI, this configuration is useless. In GluonMeson Platform, this configuration could be used to identify the teams or use cases.
+* **Organization**: Optional configuration in OpenAI client. For Zhipu.AI, this configuration is useless. In some Enterprise GenAI Platform, this configuration could be useful for identifying the teams or use cases.
 * **GPT Model**: For Zhipu.AI, you could choose glm-4 or glm-3-turbo
 * **Tools Call Model**: For Zhipu.AI, you could choose glm-4 or glm-3-turbo. This configuration is optional, if it's empty, will not use tools call to recognize user intents.
 * **Language**: The language you want to use, default is English.
@@ -23,7 +23,7 @@ You can also switch features on like below:
 
 These are parameters and supported LLM providers that you need to set up in the extension popup page.
 
-| Configuration   | OpenAI                    | Zhipu.AI                             | Baichuan                        | GluonMeson                                               |
+| Configuration   | OpenAI                    | Zhipu.AI                             | Baichuan                        | Ollama                                                   |
 |-----------------|---------------------------|--------------------------------------|---------------------------------|----------------------------------------------------------|
 | API Key         | Provide key by yourself   | Provide key by yourself              | Provide key by yourself         | Create your own key in your environment                  |
 | Base URL        | https://api.openai.com/v1 | https://open.bigmodel.cn/api/paas/v4 | https://api.baichuan-ai.com/v1  | on-premise deploy environment                            |
@@ -40,7 +40,7 @@ If you need to add more configurations, you can add a new tab popup window. For 
 
 You can configure the following parameters:
 * **Knowledge Api**: The API URL to search project documents.
-* **Copilot Api**: The URL to specify the Copilot created by GluonMeson.
+* **Copilot Api**: The URL to specify the BackendCopilot which created by other tools.
 * **Technical Description**: The technical description of current project, this is useful for GPT to understand what are you working on.
 
 #### Usecase 
@@ -53,11 +53,9 @@ The LLM models don't know the details of your project, so the generated tasking 
 If you can provide an API to get some tasking examples of the project, then the generate tasking result will be more useful.
 
 #### External Knowledge
-You can find out all the tasking examples are in the `docs/tasking` folder. if you can import them to GluonMeson knowledge base, and create a semantic search api. 
+You can find out all the tasking examples are in the `docs/tasking` folder. if you can import them to Backend knowledge base, and create a semantic search api. 
 
 Then you need let Agent know this search api url, and then use this API to get the tasking examples.
-
-***Note:*** *The Knowledge Api Url configurations only support when you have GluonMeson deployed in your environment.*
 
 *If there is no tasking example, then the generate tasking result will be less useful.*
 <img src="../images/generate_tasking_without_examples.png"/>

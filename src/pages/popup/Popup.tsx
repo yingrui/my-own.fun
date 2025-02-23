@@ -91,8 +91,8 @@ const Popup: React.FC<PopupProps> = ({ config, copilot }) => {
         </Button>
       </div>
       <p style={{ textAlign: "center" }}>
-        <a href="https://github.com/yingrui/gluonmeson-chrome-extension">
-          {intl.get("assistant_name").d("Guru Mason")}
+        <a href="https://github.com/yingrui/gru.ai">
+          {intl.get("assistant_name").d("Gru")}
         </a>{" "}
         {intl
           .get("tooltip_assistant_shortcut")

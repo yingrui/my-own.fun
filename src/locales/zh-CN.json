@@ -1,6 +1,6 @@
 {
   "agent_description_ba_copilot": "BACopilot, BA助手",
-  "agent_description_guru": "格鲁, 浏览器助手",
+  "agent_description_gru": "格鲁, 浏览器助手",
   "agent_description_qa_copilot": "QACopilot, QA助手",
   "agent_description_seeker": "Seeker, 搜索助手",
   "agent_description_translator": "Translator, 翻译助手",
@@ -54,8 +54,8 @@
   "enableReflection": "反思",
   "enableWriting": "写作工具",
   "feature_toggles": "功能开关",
-  "guru_greeting": "您好! 请问需要什么帮助？",
-  "guru_initial_system_prompt": "我是格鲁，您的浏览器助手。\n您可以决定调用不同的工具或直接用 {language} 回答问题。\n输出格式应为 markdown 格式，如果可能的话可以使用 mermaid 格式生成图表。",
+  "gru_greeting": "您好! 请问需要什么帮助？",
+  "gru_initial_system_prompt": "我是格鲁，您的浏览器助手。\n您可以决定调用不同的工具或直接用 {language} 回答问题。\n输出格式应为 markdown 格式，如果可能的话可以使用 mermaid 格式生成图表。",
   "language": "语言",
   "multimodalModel": "多模态模型",
   "open_more_tools": "更多工具",

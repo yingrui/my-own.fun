@@ -10,7 +10,7 @@ class WriterAgent extends ThoughtAgent {
   context: WriterContext;
 
   constructor(props: ThoughtAgentProps, context: WriterContext) {
-    super(props);
+    super(props, "Gru", "I am good at write an article.");
     this.context = context;
     this.addTool(
       "autocomplete",
@@ -70,7 +70,7 @@ ${userInput}
       if (title) {
         resolve({
           systemPrompt:
-            () => `As an article writer assistant by GluonMeson, named Guru Mason. Here’s how you can help users:
+            () => `As an article writer assistant named Gru. Here’s how you can help users:
 
 * Title: you can help users with the title of the article.
 * Outline: you can help users with the structure of the article.
@@ -85,7 +85,7 @@ ${content}.`,
       } else {
         resolve({
           systemPrompt: () =>
-            `As an assistant named Guru Mason. You can help users writing with given information.`,
+            `As an assistant named Gru. You can help users writing with given information.`,
           screenshot,
         });
       }

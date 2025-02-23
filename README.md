@@ -1,6 +1,6 @@
-# <img src="public/icons/gm_logo.png" width="45" align="left"> GluonMeson Chrome Extension
+# <img src="public/icons/gm_logo.png" width="45" align="left"> Gru.ai
 
-GluonMeson Chrome Extension is a Chrome Web Browser Copilot, his name is Guru Mason.
+Gru.ai is a browser copilot and Chrome extension.
 
 ## Features
 As a Web browser Copilot, it can:
@@ -27,7 +27,7 @@ For users from software development teams, it can:
 3. Follow steps 2 to 5 in [Install from Package](#install-from-package).
 
 ### Install from Package
-1. Download & unzip the latest release zip file from [releases page](https://github.com/yingrui/gluonmeson-chrome-extension/releases).
+1. Download & unzip the latest release zip file from [releases page](https://github.com/yingrui/gru.ai/releases).
 2. Open in browser - `chrome://extensions`
 3. Check - `Developer mode`
 4. Find and Click - `Load unpacked extension`
@@ -41,8 +41,8 @@ For users from software development teams, it can:
 
 ### Setup Configurations
 Please set up below configurations in the extension popup page: 
-* **API Key**: Set api key from OpenAI, Zhipu AI, Baichuan or GluonMeson Platform
-* **Base URL**: base url from OpenAI, Zhipu AI, Baichuan or GluonMeson Platform
+* **API Key**: Set api key from OpenAI, Zhipu AI, Baichuan or Ollama
+* **Base URL**: base url from OpenAI, Zhipu AI, Baichuan or Ollama
 * **Organization**: Your Organization Name
 * **GPT Model**: gpt-3.5-turbo is default
 * **Tools Call Model**: If it's empty, will not use tools call to recognize user intents.
@@ -51,11 +51,11 @@ Please set up below configurations in the extension popup page:
 
 Please refer to [How to setup configurations](docs/tutorial/how_to_setup_configurations.md) for more details.
 
-***NOTE:*** *GluonMeson Platform is a GenAI Service PaaS product, which provide OpenAI compactible GPT model services.*
+***NOTE:*** *Any OpenAI compatible GPT model API should work.*
 
 ## For Users
 For who want to use this extension, please refer to below documents:
-* [An Introduction to GluonMeson Chrome Extension](docs/tutorial/an_introduction_to_gluonmeson_chrome_extension.md)
+* [An Introduction to Gru](docs/tutorial/an_introduction_to_gru.md)
 * [How to setup configurations](docs/tutorial/how_to_setup_configurations.md)
 * [How to use this chrome extension](docs/tutorial/how_to_use_this_chrome_extension.md)
 * [Interesting Use Cases](docs/tutorial/interesting_usecases.md)

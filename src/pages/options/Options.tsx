@@ -87,7 +87,7 @@ const Logo: React.FC<{
   <div className="logo">
     <div className="logo-and-name" onClick={onClick}>
       <img src="/icons/gm_logo.png" alt="Logo" />
-      <h6>{intl.get("assistant_name").d("Guru Mason")}</h6>
+      <h6>{intl.get("assistant_name").d("Gru")}</h6>
     </div>
     {!!query && <NavSearch query={query} onQueryChange={setQuery} />}
   </div>

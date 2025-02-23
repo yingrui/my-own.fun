@@ -10,7 +10,7 @@ You looked at the web application the team developed, you imagine if the webpage
 
 <img src="../images/usecases/cypress_generate_test.png"/>
 
-Imagine that you're building a weather forecast widget in google search. Above image shows that the browser copilot (Guru Mason) can generate the test cases for you, you can copy the test cases and paste it to the Cypress test file.
+Imagine that you're building a weather forecast widget in google search. Above image shows that the browser copilot (Gru) can generate the test cases for you, you can copy the test cases and paste it to the Cypress test file.
 
 <img src="../images/usecases/cypress_save_and_modify_script.png"/>
 
@@ -26,7 +26,7 @@ Then the test case would be correct and below is the test result.
 
 If you want to build such copilot from 0 to 1, it will be very hard. You need to know how to develop `Chrome Extension`, and how to build AI agent to generate the test cases, how to provide enterprise-level security and compliance solution, etc.
 
-But based on GluonMeson Chrome Extension, you can easily build such copilot. You just need to develop a new agent and command, then the copilot can generate the test cases for you.
+But based on gru.ai, you can easily build such copilot. You just need to develop a new agent and command, then the copilot can generate the test cases for you.
 
 ### Add a new agent
 Add a new agent to the `src/pages/sidepanel/agents` directory. This agent should declare that it can handle the `generate_test` command in constructor.
@@ -81,20 +81,20 @@ ${page.html}`;
 3. Be able to get html from current page in `generate_test` method.
 4. Send prompt to gpt service and get result in `generate_test` method.
 5. Add the agent to the agent list in the `AgentFactory` class.
-6. Add the `/generate_test` command to the `GluonMesonAgent` commands list.
+6. Add the `/generate_test` command to the `Gru` commands list.
 7. Test the new agent and command in side panel.
 
-All the changes are in this commit: [Add E2E Test Generation Tool `b51555c`](https://github.com/yingrui/gluonmeson-chrome-extension/commit/b51555c2192b2b60a9a01f6466f94a96bb302677)
+All the changes are in this commit: [Add E2E Test Generation Tool `b51555c`](https://github.com/yingrui/gru.ai/commit/b51555c2192b2b60a9a01f6466f94a96bb302677)
 
 I spent only 2 hours to develop this feature, there are only 5 files need to be changed or added:
 1. `src/pages/sidepanel/agents/UiTestAgent.ts`
 2. `src/pages/sidepanel/agents/agents.ts`
-3. `src/pages/sidepanel/agents/GluonMesonAgent.ts`
+3. `src/pages/sidepanel/agents/Gru.ts`
 4. `src/pages/sidepanel/utils/index.ts`
 5. `src/pages/content/injected/listeners/common/commands.ts`
 
 ## Do it yourself
-Based on this GluonMeson Chrome Extension, you can easily extend more tools as you wish. For example: 
+Based on gru.ai, you can easily extend more tools as you wish. For example: 
 * **Generate your performance review**, because this copilot can understand your current objectives from your review system. 
 * **Generate the SQL** while using superset, because this copilot can understand your metadata from webpage. 
 * **Generate Report** for operation & maintenance, because this copilot can get CI/CD logs and understand the error message.

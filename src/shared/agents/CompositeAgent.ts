@@ -15,8 +15,8 @@ class CompositeAgent extends ThoughtAgent {
 
   constructor(
     props: ThoughtAgentProps,
-    name: string = "Guru",
-    description: string = "Guru, your browser assistant",
+    name: string,
+    description: string,
     agents: ThoughtAgent[] = [],
   ) {
     super(props, name, description);

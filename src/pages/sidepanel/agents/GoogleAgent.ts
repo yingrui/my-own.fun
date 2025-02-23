@@ -261,7 +261,7 @@ The links are: ${JSON.stringify(content.links)}`,
 
   getInitialSystemMessage(): string {
     return `## Role
-As an assistant or chrome copilot provided by GluonMeson, named ${this.getName()}.
+As an assistant or chrome copilot named ${this.getName()}.
 You're good at search and extract information, and also summarize insights from search results.
 
 ## Instructions

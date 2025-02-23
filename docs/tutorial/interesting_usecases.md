@@ -1,5 +1,5 @@
 # Interesting Use Cases
-There are many interesting use cases for the GluonMeson Chrome extension. In this document, we will explore some of the most common and useful use cases for the extension, including information extraction and business analysis. By following the steps outlined in this document, you can make the most of the extension's capabilities and enjoy a more efficient and productive browsing experience.
+There are many interesting gru.ai use cases. In this document, we will explore some of the most common and useful use cases for the extension, including information extraction and business analysis. By following the steps outlined in this document, you can make the most of the extension's capabilities and enjoy a more efficient and productive browsing experience.
 
 ## Use Cases Categories
 
@@ -29,15 +29,15 @@ When you're analyzing the sentiment of company news, you can use the `/ask_page`
 ### 3. Data Analysis
 
 #### 3.1 Data Visualization in Spreadsheet
-When you're analysis data in google spreadsheet, and you don't know how to insert chart, you can use the `/ask_page` command to ask Guru Mason.
+When you're analysis data in google spreadsheet, and you don't know how to insert chart, you can use the `/ask_page` command to ask Gru.
 
 <img src="../images/usecases/insert_pie_chart_in_google_spreadsheet.png"/>
 
-In this case, many users may don't the formula `=QUERY(E:I, "SELECT E, SUM(I) GROUP BY E")` before. Guru Mason can help you to learn new formula.
+In this case, many users may don't the formula `=QUERY(E:I, "SELECT E, SUM(I) GROUP BY E")` before. Gru can help you to learn new formula.
 
 #### 3.2 Generate SQL in Superset
-When you're analyzing data in Superset, and if you would like to generate SQL for the data analysis, you can use the `/ask_page` command to ask Guru Mason.
+When you're analyzing data in Superset, and if you would like to generate SQL for the data analysis, you can use the `/ask_page` command to ask Gru.
 
 <img src="../images/usecases/generate_sql_when_use_superset.png"/>
 
-In this case, the user asked Guru Mason to generate SQL to count the name and group by version.
+In this case, the user asked Gru to generate SQL to count the name and group by version.

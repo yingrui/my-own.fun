@@ -90,7 +90,7 @@ const WriterAssistant: React.FC<WriterAssistantProps> = ({
     if (role === "user") {
       name = "You";
     } else if (role === "assistant") {
-      name = "Guru";
+      name = "Gru";
     }
 
     const message = new ChatMessage({
