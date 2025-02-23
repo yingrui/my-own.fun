@@ -1,20 +1,21 @@
-# <img src="public/icons/gm_logo.png" width="45" align="left"> Gru.ai
+# <img src="public/icons/gm_logo.png" width="45" align="left"> gru.ai
 
-Gru.ai is a browser copilot and Chrome extension.
+**TL;DR** The gru.ai is a prototype of On-Device AI Agent, run in browser as an extension.
 
-## Features
-As a Web browser Copilot, it can:
-* **Question Answer**: Answer questions based on the opened web pages.
-* **Summary**: Quickly list the main points according to your instructions.
-* **Search**: Find out the answer by searching.
-* **Translate**: translate content between Chinese and English or into other specified languages.
+## Project Goal
+**For:** Geeky application software engineers
 
-For users from software development teams, it can: 
-* **Generate User Story**: Automatically create engaging narrative content for new Trello board cards.
-* **Generate Tasking**: Generate tasking results based on the description of the trello card you are currently viewing.
-* **Generate UI Test**: Generate test script against current web page.
+**Who:** Want to build intelligent applications for themselves or others, but there seems to be a lot to learn that holds them back, such as various AI models, knowledge graphs, MLOps, LLMOps, etc. Meanwhile, many of them are extremely care about the privacy.
 
-... and more you can define by yourself!
+**The** gru.ai
+
+**IS A** Prototype of On Device AI agent.
+
+**THAT** Provide an examples of how to build intelligent applications with minimal AI knowledge and simple technology, it can be quickly adopted to other projects.
+
+**UNLIKE** ChatGPT, DeepSeek, Kimi, [Sider.AI](https://sider.ai/), [Monica AI](https://monica.im/), and other AI assistants.
+
+**OUR PRODUCT** is focusing on On-Device AI Agent (which is a complex intelligent application), and make software engineers easier to learn and build their own applications.
 
 ## Build or Install
 
