@@ -1,2 +1,2 @@
 * [Home](/)
-* [Introduction](tutorial/an_introduction_to_gru.md)
+* [Introduction](/tutorial/an_introduction_to_gru.md)
