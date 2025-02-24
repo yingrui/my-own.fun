@@ -8,11 +8,11 @@ Imagine that you're a new QA in the team, you need to write E2E test cases for t
 
 You looked at the web application the team developed, you imagine if the webpage can tell you how to test itself will be wonderful. Just like this:
 
-<img src="../images/usecases/cypress_generate_test.png"/>
+![usecases/cypress_generate_test.png](../images/usecases/cypress_generate_test.png)
 
 Imagine that you're building a weather forecast widget in google search. Above image shows that the browser copilot (Gru) can generate the test cases for you, you can copy the test cases and paste it to the Cypress test file.
 
-<img src="../images/usecases/cypress_save_and_modify_script.png"/>
+![usecases/cypress_save_and_modify_script.png](../images/usecases/cypress_save_and_modify_script.png)
 
 There is only two places need to be changed:
 1. the generate result is `input[name="q"]`, it needs to be changed to `textarea[name="q"]`.
@@ -20,7 +20,7 @@ There is only two places need to be changed:
 
 Then the test case would be correct and below is the test result.
 
-<img src="../images/usecases/cypress_weather_forecast_test_case.png"/>
+![usecases/cypress_weather_forecast_test_case.png](../images/usecases/cypress_weather_forecast_test_case.png)
 
 ## Is it hard to develop such copilot?
 

@@ -3,7 +3,7 @@ The gru.ai can be configured with [OpenAI](https://platform.openai.com/docs/over
 
 ## Basic Configurations
 As shown in the image below, you can set up the following configurations in the extension popup page:
-<img src="../images/configure_in_popup_window.png"/>
+![configure_in_popup_window.png](../images/configure_in_popup_window.png)
 
 Above image shows the example configurations with Zhipu.AI:
 * **API Key**: The API Key is from Zhipu.AI
@@ -19,7 +19,7 @@ You can also switch features on like below:
 * **Reflection**: If it's true, then the agent would reflect the given answer, and think what he can do more.
 * **Writing Tools**: If it's true, then there will be writing app showing in options page.
 
-<img src="../images/configure_features_in_popup_window.png"/>
+![configure_features_in_popup_window.png](../images/configure_features_in_popup_window.png)
 
 These are parameters and supported LLM providers that you need to set up in the extension popup page.
 
@@ -36,7 +36,7 @@ These are parameters and supported LLM providers that you need to set up in the 
 ### BA Copilot for Trello
 If you need to add more configurations, you can add a new tab popup window. For example, there is a Trello tab in the popup page.
 
-<img src="../images/configure_ba_copilot.png"/>
+![configure_ba_copilot.png](../images/configure_ba_copilot.png)
 
 You can configure the following parameters:
 * **Knowledge Api**: The API URL to search project documents.
@@ -58,10 +58,10 @@ You can find out all the tasking examples are in the `docs/tasking` folder. if y
 Then you need let Agent know this search api url, and then use this API to get the tasking examples.
 
 *If there is no tasking example, then the generate tasking result will be less useful.*
-<img src="../images/generate_tasking_without_examples.png"/>
+![generate_tasking_without_examples.png](../images/generate_tasking_without_examples.png)
 
 *If there are tasking examples, then the generate tasking result will be very useful.*
-<img src="../images/generate_tasking_with_examples.png"/>
+![generate_tasking_with_examples.png](../images/generate_tasking_with_examples.png)
 
 Above pictures are the older version of the extension, so the configuration is still called `Search Api Url`.
 

@@ -41,7 +41,7 @@ Command `/clear` is used to clear the chat history, it does not belong to any ag
 
 You can also type `@` to directly send instructions to specific agent. Below shows 4 current existed agents:
 
-<img src="../images/type_at_show_agents.png"/>
+![type_at_show_agents.png](../images/type_at_show_agents.png)
 
 Next, we will introduce the agents and the tools provided by them.
 
@@ -145,7 +145,7 @@ When the first time you installed the extension, after you open a new tab or ref
 
 You will see the floating ball on the right side of the webpage, you can click it to open side panel, then you can chat with Gru.
 
-<img src="../images/floating_ball.png"/>
+![floating_ball.png](../images/floating_ball.png)
 
 If it doesn't work, please refresh the webpage or reload the extension.
 
@@ -182,13 +182,13 @@ document.addEventListener("keydown", (event) => {
 
 You can click the extension icon in the toolbar to open the side panel. In this way, you need click 3 times to open the side panel.
 
-<img src="../images/open_side_panel_from_toolbar.png"/>
+![open_side_panel_from_toolbar.png](../images/open_side_panel_from_toolbar.png)
 
 ## 3. Context Menus
 
 When you right-click the mouse in an `editable` text area, the context menu will show up. If you click the action item, then the command will be executed in sidepanel.
 
-<img src="../images/generate_text_action_item_in_context_menu.png"/>
+![generate_text_action_item_in_context_menu.png](../images/generate_text_action_item_in_context_menu.png)
 
 Currently, it only supports the `Generate Text` action. But you can add more context menu by yourself, for example:
 
@@ -219,16 +219,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 ## 5. Options Page
 You can click the `Other Tools` button in the popup window to open the options page.
 
-<img src="../images/options_page_entrance.png"/>
+![options_page_entrance.png](../images/options_page_entrance.png)
 
 Then you can home page like below:
 
-<img src="../images/options_page_home_page.png"/>
+![options_page_home_page.png](../images/options_page_home_page.png)
 
 ### 5.1. Search App
 You can just type keyword in the search box, then you will get search results and answer from the search engine.
 
-<img src="../images/options_page_search_result.png"/>
+![options_page_search_result.png](../images/options_page_search_result.png)
 
 ### 5.2. More Tools are Coming Soon
 We can build many tools in the options page, please wait for the next version.
