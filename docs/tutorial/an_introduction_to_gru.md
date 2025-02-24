@@ -35,7 +35,7 @@ graph TD;
 
 The `Gru` will try to understand your intent and call the tools provided by other agents. And you can also directly send command to execute. Here are the commands when you type `/` in the chat box, you will see:
 
-<img src="../images/type_slash_show_commands.png"/>
+![type_slash_show_commands.png](../images/type_slash_show_commands.png)
 
 Command `/clear` is used to clear the chat history, it does not belong to any agent.
 

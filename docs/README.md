@@ -1,4 +1,4 @@
-# <img src="./images/icons/gm_logo.svg" width="45" align="left"> gru.ai
+# ![icon](./images/icons/gm_logo.svg "gru.ai") gru.ai
 
 **TL;DR** The gru.ai is a prototype of On-Device AI Agent, run in browser as an extension.
 
