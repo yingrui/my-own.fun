@@ -7,22 +7,26 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="icon" href="images/icons/gm_logo.svg" type="image/x-icon">
 </head>
 <body>
   <div id="app"></div>
   <script>
     window.$docsify = {
       name: 'gru.ai docs',
+      // sidebar
       loadSidebar: true,
       subMaxLevel: 2,
+      // image path
+      relativePath: true,
+      auto2top: true,
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md', // Use a common sidebar for all pages
       },
+      // mermaid support
       mermaidConfig: {
         querySelector: ".mermaid"
       },
-      relativePath: true,
-      auto2top: true,
     }
   </script>
   <!-- Docsify v4 -->
