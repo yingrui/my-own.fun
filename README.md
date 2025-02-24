@@ -17,6 +17,8 @@
 
 **OUR PRODUCT** is focusing on On-Device AI Agent (which is a complex intelligent application), and make software engineers easier to learn and build their own applications.
 
+[More Details](docs/README.md)
+
 ## Build or Install
 
 ### Build from Source Code
