@@ -36,7 +36,7 @@
 4. Find and Click - `Load unpacked extension`
 5. Select - unzipped file folder or `dist` folder if you build from source code
 
-<img src="docs/images/setup_chrome_extension.png"/>
+<img src="docs/images/setup_chrome_extension1.png"/>
 
 6. Pin extension in Google Chrome toolbar
 <img src="docs/images/pin_chrome_extension.png"/>

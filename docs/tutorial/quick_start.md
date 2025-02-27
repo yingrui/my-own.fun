@@ -19,14 +19,21 @@
 
 ![setup chrome extension](../images/setup_chrome_extension.png)
 
-6. Pin extension in Google Chrome toolbar
+You can pin extension in Google Chrome toolbar if you want.
 ![pin chrome extension](../images/pin_chrome_extension.png)
-
+ 
 
 ## Configure gru.ai
-Please set up below configurations in options page:
+Please entrance options page as below, and set up configurations.
+![options_chrome_extension](../images/options_chrome_extension.png)
+
+In options page, you can see configuration page as below.
+![configure in options_page](../images/configure_in_options_page.png)
+
+The key configurations are:
 * **API Key**: Set api key from OpenAI, Zhipu AI, Baichuan or Ollama
 * **Base URL**: base url from OpenAI, Zhipu AI, Baichuan or Ollama
 * **Organization**: Your Organization Name
 * **GPT Model**: gpt-3.5-turbo is default
 * **Tools Call Model**: If it's empty, will not use tools call to recognize user intents.
+
