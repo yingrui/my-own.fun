@@ -34,6 +34,7 @@ The key configurations are:
 * **API Key**: Set api key from OpenAI, Zhipu AI, Baichuan or Ollama
 * **Base URL**: base url from OpenAI, Zhipu AI, Baichuan or Ollama
 * **Organization**: Your Organization Name
-* **GPT Model**: gpt-3.5-turbo is default
+* **GPT Model**: glm-4-plus is default
 * **Tools Call Model**: If it's empty, will not use tools call to recognize user intents.
 
+Note: Since China is not supported by OpenAI, it's difficult to ensure the compatibility, you may need to implement `agents.services.ModelService`.

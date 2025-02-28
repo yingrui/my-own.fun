@@ -36,21 +36,27 @@
 4. Find and Click - `Load unpacked extension`
 5. Select - unzipped file folder or `dist` folder if you build from source code
 
-<img src="docs/images/setup_chrome_extension1.png"/>
+<img src="docs/images/setup_chrome_extension.png"/>
 
-6. Pin extension in Google Chrome toolbar
+You can pin extension in Google Chrome toolbar if you want.
 <img src="docs/images/pin_chrome_extension.png"/>
 
 
-### Setup Configurations
-Please set up below configurations in the extension popup page: 
+## Configure gru.ai
+Please entrance options page as below, and set up configurations.
+![options_chrome_extension](docs/images/options_chrome_extension.png)
+
+In options page, you can see configuration page as below.
+![configure in options_page](docs/images/configure_in_options_page.png)
+
+The key configurations are:
 * **API Key**: Set api key from OpenAI, Zhipu AI, Baichuan or Ollama
 * **Base URL**: base url from OpenAI, Zhipu AI, Baichuan or Ollama
 * **Organization**: Your Organization Name
-* **GPT Model**: gpt-3.5-turbo is default
+* **GPT Model**: glm-4-plus is default
 * **Tools Call Model**: If it's empty, will not use tools call to recognize user intents.
 
-<img src="docs/images/configure_in_popup_window.png"/>
+Note: Since China is not supported by OpenAI, it's difficult to ensure the compatibility, you may need to implement `agents.services.ModelService`.
 
 Please refer to [How to setup configurations](docs/tutorial/how_to_setup_configurations.md) for more details.
 
