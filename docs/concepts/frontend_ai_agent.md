@@ -104,3 +104,10 @@ If you want to write some professional documents, usually you need to view some 
 * Some references are confidential, the cloud AI agent can't get it. 
 
 Frontend AI agent can get information from other opened tabs, but Notion.ai can't.
+
+## How to Get Started
+***The frontend AI agent is a new opportunity that is worth exploring and learning for all application software engineers.***
+
+gru.ai is built with TypeScript. It is a good example to learn how to build frontend AI agent, welcome to try and contribute!
+
+
