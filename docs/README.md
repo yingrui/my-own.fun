@@ -9,7 +9,7 @@
 
 **The** gru.ai
 
-**IS A** Prototype of On Device AI agent.
+**IS A** Prototype of frontend AI agent (on device AI agent).
 
 **THAT** Provide an examples of how to build intelligent applications with minimal AI knowledge and simple technology, it can be quickly adopted to other projects.
 
@@ -17,7 +17,7 @@
 
 **OUR PRODUCT** is focusing on On-Device AI Agent (which is a complex intelligent application), and make software engineers easier to learn and build their own applications.
 
-## Why Browser AI Agent
+## Why Frontend AI Agent
 
 1. **Trend:** The AI Agent is shifting the way of working.
 2. **Audience:** The majority of the application software engineers are frontend engineers or fullstack engineers.
@@ -27,11 +27,11 @@
 6. **Feasible:** As long as you have a PC, you can start learning & building intelligent application.
 
 ### Differentiation
-***Browser AI Agent are the embodied intelligence of the World Wide Web.***
+***Frontend AI Agent are the embodied intelligence of the World Wide Web.***
 1. The browser is the eye of Web, the AI Agent can see the web pages*.
 2. The AI Agent can interact with multiple web pages, like a human.
 
-| Perspective     | gru.ai (Browser AI Agent)        | AI PC & AI Phone                            | AI Agent in Professional Software | Backend AI Agent                   |
+| Perspective     | gru.ai (Frontend AI Agent)       | AI PC & AI Phone                            | AI Agent in Professional Software | Backend AI Agent                   |
 |-----------------|----------------------------------|---------------------------------------------|-----------------------------------|------------------------------------|
 | **Privacy**     | Under control                    | The best they can do is Siri                | Out of control                    | You can trust what you build       |
 | **Experience**  | It can see more than you can see | It's harder to get information from browser | Depends on use cases              | You need to told them              |
