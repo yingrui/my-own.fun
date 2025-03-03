@@ -29,7 +29,7 @@ const ARCHITECT_MENU_KEYS = {
 const ArchitectApp: React.FC<ArchitectAppProps> = ({ config }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string>(
-    ARCHITECT_MENU_KEYS.UserJourney,
+    ARCHITECT_MENU_KEYS.ElevatorPitch,
   );
 
   const menuItems: MenuProps["items"] = [
@@ -86,7 +86,7 @@ const ArchitectApp: React.FC<ArchitectAppProps> = ({ config }) => {
         <Menu
           theme="light"
           mode="inline"
-          defaultSelectedKeys={[ARCHITECT_MENU_KEYS.UserJourney]}
+          defaultSelectedKeys={[ARCHITECT_MENU_KEYS.ElevatorPitch]}
           defaultOpenKeys={["1"]}
           items={menuItems}
           style={{ height: "89vh", borderRight: 0 }}

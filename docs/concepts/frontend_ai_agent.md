@@ -4,10 +4,12 @@
 There are several types of AI agent (or AI Assistant) we've seen, such as:
  * **AI PC & AI Phone:** Siri, Microsoft Cortana, Huawei Celia (小艺), etc.
  * **AI Agent in Professional Software:** Github Copilot, Jira, Office 365, etc.
- * **Cloud AI Agent:** ChatGPT, DeepSeek, Gemini, etc.
- * **AI Agent in Browser:** Sider.AI, Monica, Kimi, etc.
+ * **Cloud AI Agent:** ChatGPT, DeepSeek, Gemini, etc., or other AI agents that run on cloud (eg. AI Apps developed with Dify.ai).
+ * **AI Agent in Browser:** Sider.AI, Monica, Kimi, etc. 
 
-When we talk about AI agent, we usually think of cloud AI agent, but it is not the only choice. There are many of AI agents are running on device side.
+*`AI Agent in Browser` is similar to `AI Agent in Professional Software` (Web Browser), but the difference is that `AI Agents in Professional Software` cannot access other applications. For example, Github Copilot should not control Microsoft Office 365.*
+
+`Cloud AI Agent` is probably the hottest topic right now. Considering that there are many of AI agents are running on device side, it is necessary to clarify the concept of `Frontend AI Agent`.
 
 ### On-Device AI Agent
 The on-device AI agent is a kind of AI agent that runs on the device side, such as PC, Phone, or IoT devices. Usually, it looks like below:
@@ -53,7 +55,7 @@ graph TD;
     end
 ```
 
-There are some frontend AI agents has been built for study, and here is a demo called WebGLM:
+There are some frontend AI agents has been built for study, and here is a demo called AutoGLM:
 <video width="640" height="480" controls="">
     <source src="https://xiao9905.github.io/AutoGLM/static/videos/web_overall_video.mp4" type="video/mp4">
 </video>

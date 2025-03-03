@@ -9,13 +9,14 @@
 
 **The** gru.ai
 
-**IS A** Prototype of On Device AI agent.
+**IS A** Prototype of frontend AI agent (on device AI agent).
 
 **THAT** Provide an examples of how to build intelligent applications with minimal AI knowledge and simple technology, it can be quickly adopted to other projects.
 
 **UNLIKE** ChatGPT, DeepSeek, Kimi, [Sider.AI](https://sider.ai/), [Monica AI](https://monica.im/), and other AI assistants.
 
-**OUR PRODUCT** is focusing on On-Device AI Agent (which is a complex intelligent application), and make software engineers easier to learn and build their own applications.
+**OUR PRODUCT** is focusing on On-Device AI Agent (which is a complex intelligent application), and make software engineers easier to learn and build their own applications. It is open-source, free of charge, with a focus on enterprise cybersecurity, privacy
+protection, and compliance requirements.
 
 [More Details](docs/README.md)
 
@@ -62,16 +63,6 @@ Please refer to [How to setup configurations](docs/tutorial/how_to_setup_configu
 
 ***NOTE:*** *Any OpenAI compatible GPT model API should work.*
 
-## For Users
-For who want to use this extension, please refer to below documents:
-* [An Introduction to Gru](docs/tutorial/an_introduction_to_gru.md)
-* [How to setup configurations](docs/tutorial/how_to_setup_configurations.md)
-* [How to use this chrome extension](docs/tutorial/how_to_use_this_chrome_extension.md)
-* [Interesting Use Cases](docs/tutorial/interesting_usecases.md)
-
-## For Developers
-For who want to contribute to this extension, please refer to below documents:
-* [How to get web page content](docs/tasking/how_to_get_web_page_content.md)
-* [How to add new agent and command](docs/tasking/how_to_add_new_agent_and_command.md)
-* [How to update popup window for configuration](docs/tasking/how_to_update_popup_window_for_configuration.md)
-* [How to develop test generation tool](docs/tasking/how_to_develop_test_generation_tool.md)
+## Others
+* **Docs:** [Github Pages](https://yingrui.github.io/gru.ai/)
+* **Stay tuned for more updates:** By starring the gru.ai project, GitHub will automatically receive and notify you of the latest updates through your GitHub account.
