@@ -9,7 +9,7 @@ There are several types of AI agent (or AI Assistant) we've seen, such as:
 
 *`AI Agent in Browser` is similar to `AI Agent in Professional Software` (Web Browser), but the difference is that `AI Agents in Professional Software` cannot access other applications. For example, Github Copilot should not control Microsoft Office 365.*
 
-`Cloud AI Agent` is probably the hottest topic right now. Considering that there are many of AI agents are running on device side, it is necessary to clarify the concept of `Frontend AI Agent`.
+`Cloud AI Agent` is probably the hottest topic right now, but considering that many AI Agents run on the device side, it is necessary to focus on `Front-end AI Agent`. At the same time, let us clarify this concept at first.
 
 ### On-Device AI Agent
 The on-device AI agent is a kind of AI agent that runs on the device side, such as PC, Phone, or IoT devices. Usually, it looks like below:

@@ -36,6 +36,7 @@
   background: #f3f4f6;
   border-radius: 14px;
   padding: 4px 14px;
+  word-break: break-word;
 }
 
 .message-spin {

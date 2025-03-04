@@ -52,10 +52,8 @@ In the future, we plan to have more features, such as:
 * Native AI: Explore the possibility of using WebAssembly to run AI model in browser.
 * AI Agent: Understand the web page, and operate the web page like a human.
 
-It also in order to help software engineers to learn and build intelligent applications.
-
 ## Call for Participation
-The gru.ai is an open source project for geek application software engineers, we welcome all kinds of contributions.
+The gru.ai is an open source project for geek application software engineers. In order to help software engineers to learn and build intelligent applications, we are also planning other features.
 
 ### For More Frontend Engineers
 * Wait for your contribution to support Vue.js.
