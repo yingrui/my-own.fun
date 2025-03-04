@@ -1,13 +1,13 @@
-# ![icon](./images/icons/gm_logo.svg "gru.ai") gru.ai
+# ![icon](./images/icons/logo.svg "my-own.fun") my-own.fun (myFun for short)
 
-**TL;DR** The gru.ai is a prototype of On-Device AI Agent, run in browser as an extension.
+**TL;DR** The myFun is a prototype of On-Device AI Agent, run in browser as an extension.
 
 ## Project Goal
 **For:** Geeky application software engineers
 
 **Who:** Want to build intelligent applications for themselves or others, but there seems to be a lot to learn that holds them back, such as various AI models, knowledge graphs, MLOps, LLMOps, etc. Meanwhile, many of them are extremely care about the privacy.
 
-**The** gru.ai
+**The** myFun
 
 **IS A** Prototype of frontend AI agent (on device AI agent).
 
@@ -28,11 +28,11 @@ protection, and compliance requirements.
 6. **Feasible:** As long as you have a PC, you can start learning & building intelligent application.
 
 ### Differentiation
-***Frontend AI Agent are the embodied intelligence of the World Wide Web.***
+***Frontend AI Agent is the embodied intelligence of the World Wide Web.***
 1. The browser is the eye of Web, the AI Agent can see the web pages*.
 2. The AI Agent can interact with multiple web pages, like a human.
 
-|         Dimension         | gru.ai (Frontend AI Agent)       | AI PC & AI Phone                            | AI Agent in Professional Software | Backend AI Agent                   |
+|         Dimension         | myFun (Frontend AI Agent)        | AI PC & AI Phone                            | AI Agent in Professional Software | Backend AI Agent                   |
 |:-------------------------:|----------------------------------|---------------------------------------------|-----------------------------------|------------------------------------|
 |        **Privacy**        | Under control                    | The best they can do is Siri                | Noticed, bur cannot control       | You can trust what you build       |
 |      **Experience**       | It can see more than you can see | It's harder to get information from browser | Depends on use cases              | You need to told them              |
@@ -53,7 +53,7 @@ In the future, we plan to have more features, such as:
 * AI Agent: Understand the web page, and operate the web page like a human.
 
 ## Call for Participation
-The gru.ai is an open source project for geek application software engineers. In order to help software engineers to learn and build intelligent applications, we are also planning other features.
+The myFun is an open source project for geek application software engineers. In order to help software engineers to learn and build intelligent applications, we are also planning other features.
 
 ### For More Frontend Engineers
 * Wait for your contribution to support Vue.js.

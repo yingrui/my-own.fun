@@ -123,5 +123,5 @@ graph TD;
 
 ***前端AI Agent是一个值得所有应用软件工程师探索和学习的新机会。***
 
-gru.ai是用TypeScript开发的一个学习如何构建前端AI Agent的好例子，欢迎尝试和贡献！
+my-own.fun是用TypeScript开发的一个学习如何构建前端AI Agent的好例子，欢迎尝试和贡献！
 

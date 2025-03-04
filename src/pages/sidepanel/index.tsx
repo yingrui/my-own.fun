@@ -12,7 +12,7 @@ import ChatMessage from "@src/shared/agents/core/ChatMessage";
 refreshOnUpdate("pages/sidepanel");
 
 function getInitialSystemMessage(language: string): string {
-  return intl.get("gru_initial_system_prompt", { language: language })
+  return intl.get("myfun_initial_system_prompt", { language: language })
     .d(`As an assistant or chrome copilot named Gru.
 You can decide to call different tools or directly answer questions in ${language}, should not add assistant in answer.
 Output format should be in markdown format, and use mermaid format for diagram generation.`);
@@ -26,7 +26,9 @@ function getInitialMessages(language: string): ChatMessage[] {
     }),
     new ChatMessage({
       role: "assistant",
-      content: intl.get("gru_greeting").d("Hello! How can I assist you today?"),
+      content: intl
+        .get("myfun_greeting")
+        .d("Hello! How can I assist you today?"),
     }),
   ];
   return messages;

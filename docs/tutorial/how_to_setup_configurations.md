@@ -1,5 +1,5 @@
 # Set up Configurations
-The gru.ai can be configured with [OpenAI](https://platform.openai.com/docs/overview), [Zhipu.AI](https://open.bigmodel.cn/dev/api), [Baichuan](https://www.baichuan-ai.com/home) or Ollama. This document will guide you on how to set up configurations in the extension popup page.
+The my-own.fun can be configured with [OpenAI](https://platform.openai.com/docs/overview), [Zhipu.AI](https://open.bigmodel.cn/dev/api), [Baichuan](https://www.baichuan-ai.com/home) or Ollama. This document will guide you on how to set up configurations in the extension popup page.
 
 ## Basic Configurations
 As shown in the image below, you can set up the following configurations in the extension popup page:

@@ -13,10 +13,10 @@ const manifest = {
    * if you want to support multiple languages, you can use the following reference
    * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Internationalization
    */
-  name: "格鲁 Gru",
+  name: "趣趣 myFun",
   version: packageJson.version,
   description:
-    "The gru.ai is your personal browser AI agent that run as an extension",
+    "The my-own.fun is your personal frontend AI agent that run as an extension",
   host_permissions: ["<all_urls>"],
   permissions: [
     "storage",
@@ -36,10 +36,10 @@ const manifest = {
   options_page: "src/pages/options/index.html",
   action: {
     default_popup: "src/pages/popup/index.html",
-    default_icon: "icons/gm_logo.png",
+    default_icon: "icons/logo.png",
   },
   icons: {
-    128: "icons/gm_logo.png",
+    128: "icons/logo.png",
   },
   content_scripts: [
     {

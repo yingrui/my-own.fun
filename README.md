@@ -1,13 +1,13 @@
-# <img src="public/icons/gm_logo.svg" width="45" align="left"> gru.ai
+# <img src="public/icons/logo.svg" width="45" align="left"> my-own.fun (myFun for short)
 
-**TL;DR** The gru.ai is a prototype of On-Device AI Agent, run in browser as an extension.
+**TL;DR** The myFun is a prototype of On-Device AI Agent, run in browser as an extension.
 
 ## Project Goal
 **For:** Geeky application software engineers
 
 **Who:** Want to build intelligent applications for themselves or others, but there seems to be a lot to learn that holds them back, such as various AI models, knowledge graphs, MLOps, LLMOps, etc. Meanwhile, many of them are extremely care about the privacy.
 
-**The** gru.ai
+**The** myFun
 
 **IS A** Prototype of frontend AI agent (on device AI agent).
 
@@ -31,7 +31,7 @@ protection, and compliance requirements.
 3. Follow steps 2 to 5 in [Install from Package](#install-from-package).
 
 ### Install from Package
-1. Download & unzip the latest release zip file from [releases page](https://github.com/yingrui/gru.ai/releases).
+1. Download & unzip the latest release zip file from [releases page](https://github.com/yingrui/my-own.fun/releases).
 2. Open in browser - `chrome://extensions`
 3. Check - `Developer mode`
 4. Find and Click - `Load unpacked extension`
@@ -43,7 +43,7 @@ You can pin extension in Google Chrome toolbar if you want.
 <img src="docs/images/pin_chrome_extension.png"/>
 
 
-## Configure gru.ai
+## Configure myFun
 Please entrance options page as below, and set up configurations.
 ![options_chrome_extension](docs/images/options_chrome_extension.png)
 
@@ -64,5 +64,5 @@ Please refer to [How to setup configurations](docs/tutorial/how_to_setup_configu
 ***NOTE:*** *Any OpenAI compatible GPT model API should work.*
 
 ## Others
-* **Docs:** [Github Pages](https://yingrui.github.io/gru.ai/)
-* **Stay tuned for more updates:** By starring the gru.ai project, GitHub will automatically receive and notify you of the latest updates through your GitHub account.
+* **Docs:** [Github Pages](https://yingrui.github.io/my-own.fun/)
+* **Stay tuned for more updates:** By starring the myFun project, GitHub will automatically receive and notify you of the latest updates through your GitHub account.

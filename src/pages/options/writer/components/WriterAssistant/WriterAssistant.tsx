@@ -90,7 +90,7 @@ const WriterAssistant: React.FC<WriterAssistantProps> = ({
     if (role === "user") {
       name = "You";
     } else if (role === "assistant") {
-      name = "Gru";
+      name = "myFun";
     }
 
     const message = new ChatMessage({
@@ -122,7 +122,7 @@ const WriterAssistant: React.FC<WriterAssistantProps> = ({
         <div className="chat-sider-header">
           {chatCollapsed ? null : (
             <>
-              <img src="/icons/gm_logo.png" />
+              <img src="/icons/logo.png" />
               <h6>
                 {intl.get("options_app_writer_assistant_header").d("Chat")}
               </h6>
@@ -131,11 +131,7 @@ const WriterAssistant: React.FC<WriterAssistantProps> = ({
           <Button
             type="text"
             icon={
-              chatCollapsed ? (
-                <img src="/icons/gm_logo.png" />
-              ) : (
-                <CloseOutlined />
-              )
+              chatCollapsed ? <img src="/icons/logo.png" /> : <CloseOutlined />
             }
             onClick={() => setChatCollapsed(!chatCollapsed)}
             style={{

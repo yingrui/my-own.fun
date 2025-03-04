@@ -110,6 +110,6 @@ Frontend AI agent can get information from other opened tabs, but Notion.ai can'
 ## How to Get Started
 ***The frontend AI agent is a new opportunity that is worth exploring and learning for all application software engineers.***
 
-gru.ai is built with TypeScript. It is a good example to learn how to build frontend AI agent, welcome to try and contribute!
+my-own.fun is built with TypeScript. It is a good example to learn how to build frontend AI agent, welcome to try and contribute!
 
 

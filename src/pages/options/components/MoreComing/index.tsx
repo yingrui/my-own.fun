@@ -8,7 +8,7 @@ const MoreComing = () => {
     <Layout className={"more-coming-soon"}>
       <div className={"more-coming-soon-icon-area"}>
         <div className={"more-coming-soon-logo"}>
-          <img src={"/icons/gm_logo.svg"} />
+          <img src={"/icons/logo.svg"} />
           <h6>{intl.get("options_app_more").d("Coming Soon")}</h6>
         </div>
       </div>

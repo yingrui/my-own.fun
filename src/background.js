@@ -27,7 +27,7 @@ async function genericOnClick(info, tab) {
       const args = results[0].result;
       await chrome.storage.session.set({
         command_from_content_script: {
-          name: "Gru",
+          name: "myFun",
           userInput: "/autocomplete",
           tool: "autocomplete",
           args: args,

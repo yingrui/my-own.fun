@@ -85,7 +85,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
     <div className={`message-item ${isAssistant ? "message-assistant" : ""}`}>
       {isAssistant && (
         <div className="avatar">
-          <img className="bot-avatar" src="/icons/gm_logo.png" />
+          <img className="bot-avatar" src="/icons/logo.png" />
           <span>{name}</span>
         </div>
       )}

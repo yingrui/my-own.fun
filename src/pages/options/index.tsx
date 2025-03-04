@@ -17,7 +17,7 @@ function init() {
   const root = createRoot(appContainer);
   configureStorage.get().then((config) => {
     initI18n(config.language).then(() => {
-      document.title = intl.get("assistant_name").d("Gru");
+      document.title = intl.get("assistant_name").d("myFun");
       root.render(<Options config={config} />);
     });
   });

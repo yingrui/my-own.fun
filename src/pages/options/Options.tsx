@@ -86,8 +86,8 @@ const Logo: React.FC<{
 }> = ({ onClick, query, setQuery }) => (
   <div className="logo">
     <div className="logo-and-name" onClick={onClick}>
-      <img src="/icons/gm_logo.png" alt="Logo" />
-      <h6>{intl.get("assistant_name").d("Gru")}</h6>
+      <img src="/icons/logo.png" alt="Logo" />
+      <h6>{intl.get("assistant_name").d("myFun")}</h6>
     </div>
     {!!query && <NavSearch query={query} onQueryChange={setQuery} />}
   </div>

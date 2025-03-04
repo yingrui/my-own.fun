@@ -1,10 +1,10 @@
-# An Introduction to gru.ai
+# An Introduction to my-own.fun (myFun for short)
 
 This Chrome extension has been designed to provide a seamless experience for users, offering a range of features to enhance your browsing experience. This document will guide you on how to use the extension effectively.
 
 The interactions with this extension include:
 
-* **Chat in Side Panel**: This is a conversation UI extension, you can have a conversation with Gru in the side panel. 
+* **Chat in Side Panel**: This is a conversation UI extension, you can have a conversation with myFun in the side panel. 
 * **Right-click**: when you right-click the mouse in webpage, the context menu will showup. Currently, it only supports `Generate Text` action.
 * **Floating Ball or Shortcut key**: Click floating ball or type `alt + enter` to open side panel. In the future, there will be more shortcuts to trigger new functions.
 * **Tools in Options Page**: There are many tools you can use in options page when you click `Other Tools` button in popup window.  
@@ -12,8 +12,8 @@ The interactions with this extension include:
 Before we dive in, let's introduce some concepts in this Chrome extension:
 
 * **Popup Window**: Manages additional settings and can save configurations specifically for the agent operations within the Side Panel.
-* **Agents & Commands**: in this extension, there are many agents with different tools, such as `Gru`, `SummaryAgent`, `GoogleAgent`, `TranslateAgent`, `TrelloAgent`, etc. These agents are packed in side panel, the agent can recognize your intent and then call other agents to help you. Some tools of agent have been set as commands, you can type `/` in the chat box to execute corresponding tools directly.
-* **Side Panel**: the side panel is used to chat with Gru, and it will show the results of the tools you executed. All the results will be displayed in Markdown format. Other agents do not need to write code for displaying.
+* **Agents & Commands**: in this extension, there are many agents with different tools, such as `myFun`, `SummaryAgent`, `GoogleAgent`, `TranslateAgent`, `TrelloAgent`, etc. These agents are packed in side panel, the agent can recognize your intent and then call other agents to help you. Some tools of agent have been set as commands, you can type `/` in the chat box to execute corresponding tools directly.
+* **Side Panel**: the side panel is used to chat with myFun, and it will show the results of the tools you executed. All the results will be displayed in Markdown format. Other agents do not need to write code for displaying.
 * **Options Page**: the options page is like offline Web application run in your local environment, there are many tools in options page.
 * **Context Menus**: in Chrome extension, when you right-click the mouse it can provide some quick actions, it is called context menu. This extension provide `Generate Text` action when you are writing in a text area and right-click the mouse.
 * **Content Script**: Some actions need to get more details information from webpage, or need to execute automatically in webpage. For example, if you think the generated story is good, then you want to create a Trello card automatically.
@@ -33,7 +33,7 @@ graph TD;
 
 ## 1. Agents & Commands
 
-The `Gru` will try to understand your intent and call the tools provided by other agents. And you can also directly send command to execute. Here are the commands when you type `/` in the chat box, you will see:
+The `myFun` will try to understand your intent and call the tools provided by other agents. And you can also directly send command to execute. Here are the commands when you type `/` in the chat box, you will see:
 
 ![type_slash_show_commands.png](../images/type_slash_show_commands.png)
 
@@ -45,11 +45,11 @@ You can also type `@` to directly send instructions to specific agent. Below sho
 
 Next, we will introduce the agents and the tools provided by them.
 
-### 1.1. Gru, the Composite Agent
+### 1.1. myFun, the Composite Agent
 
-**Agent Name**: Gru
+**Agent Name**: myFun
 
-This is a composite agent in this extension. Gru is designed to understand your intent and call the tools provided by other agents to help you.
+This is a composite agent in this extension. myFun is designed to understand your intent and call the tools provided by other agents to help you.
 And it also can provide a summary of the text or answer questions related to the current web page.
 
 **Supported Command**:
@@ -65,16 +65,16 @@ The sequence diagram for the `/summary` command:
 ```mermaid
 sequenceDiagram
     participant User
-    participant Gru
+    participant myFun
         
     participant Content Script
     participant Remote Model Service
 
-    User->>Gru: Enters command (e.g., /summary)
-    Gru->>Content Script: send get_content message to content script
-    Content Script->>Gru: send content to agent
-    Gru->>Remote Model Service: generate summary, return streaming message
-    Gru->>User: display on side panel
+    User->>myFun: Enters command (e.g., /summary)
+    myFun->>Content Script: send get_content message to content script
+    Content Script->>myFun: send content to agent
+    myFun->>Remote Model Service: generate summary, return streaming message
+    myFun->>User: display on side panel
 ```
 
 ### 1.2. SearchAgent
@@ -120,21 +120,21 @@ The sequence diagram for the `/tasking` command:
 ```mermaid
 sequenceDiagram
     participant User
-    participant Gru
+    participant myFun
     participant BACopilotAgent
     participant Content Script
     participant Backend KnowledgeService
     participant Backend Model Service
 
-    User->>Gru: Enters command (e.g., /tasking)
-    Gru->>BACopilotAgent: parse command and forward to BA Copilot agent
+    User->>myFun: Enters command (e.g., /tasking)
+    myFun->>BACopilotAgent: parse command and forward to BA Copilot agent
     BACopilotAgent->>Content Script: send get_board message to content script
     Content Script->>BACopilotAgent: send details of board or card to agent
     BACopilotAgent->>Backend KnowledgeService: retrieve tasking example or implementation reference via knowledge api
     Backend KnowledgeService->>BACopilotAgent: return search results
     BACopilotAgent->>Backend Model Service: generate tasking results, return streaming message
-    BACopilotAgent->>Gru: display on side panel
-    Gru->>User: View tasking results
+    BACopilotAgent->>myFun: display on side panel
+    myFun->>User: View tasking results
 ```
 
 ## 2. Side Panel
@@ -143,7 +143,7 @@ When the first time you installed the extension, after you open a new tab or ref
 
 ### 2.1. Floating Ball
 
-You will see the floating ball on the right side of the webpage, you can click it to open side panel, then you can chat with Gru.
+You will see the floating ball on the right side of the webpage, you can click it to open side panel, then you can chat with myFun.
 
 ![floating_ball.png](../images/floating_ball.png)
 

@@ -14,7 +14,7 @@ export default function FloatingBallComponent() {
     chrome.runtime.sendMessage({ type: "open_side_panel" });
   };
 
-  const iconSrc = chrome.runtime.getURL("icons/gm_logo.png");
+  const iconSrc = chrome.runtime.getURL("icons/logo.png");
   return (
     <Draggable
       defaultClassName={configStorage.enableFloatingBall ? "" : "hidden"}

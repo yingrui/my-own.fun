@@ -12,14 +12,14 @@ import ChatMessage, {
 } from "@src/shared/agents/core/ChatMessage";
 
 /**
- * Gru Agent
+ * myFun Agent
  * @extends {CompositeAgent} - Agent with tools
  */
-class Gru extends CompositeAgent {
+class MyFun extends CompositeAgent {
   constructor(
     props: ThoughtAgentProps,
-    name: string = "Gru",
-    description: string = "Gru",
+    name: string = "myFun",
+    description: string = "your personal AI assistant",
     agents: ThoughtAgent[] = [],
   ) {
     super(props, name, description, agents);
@@ -248,4 +248,4 @@ Output format should be in markdown format, and use mermaid format for diagram g
   }
 }
 
-export default Gru;
+export default MyFun;

@@ -11,7 +11,7 @@
 3. Follow steps 2 to 5 in [Install from Package](#install-from-package).
 
 ### Install from Package
-1. Download & unzip the latest release zip file from [releases page](https://github.com/yingrui/gru.ai/releases).
+1. Download & unzip the latest release zip file from [releases page](https://github.com/yingrui/my-own.fun/releases).
 2. Open in browser - `chrome://extensions`
 3. Check - `Developer mode`
 4. Find and Click - `Load unpacked extension`
@@ -23,7 +23,7 @@ You can pin extension in Google Chrome toolbar if you want.
 ![pin chrome extension](../images/pin_chrome_extension.png)
  
 
-## Configure gru.ai
+## Configure myFun
 Please entrance options page as below, and set up configurations.
 ![options_chrome_extension](../images/options_chrome_extension.png)
 
