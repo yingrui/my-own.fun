@@ -66,3 +66,7 @@ Please refer to [How to setup configurations](docs/tutorial/how_to_setup_configu
 ## Others
 * **Docs:** [Github Pages](https://yingrui.github.io/my-own.fun/)
 * **Stay tuned for more updates:** By starring the myFun project, GitHub will automatically receive and notify you of the latest updates through your GitHub account.
+
+### Star history
+
+[![Star History Chart](https://api.star-history.com/svg?repos=yingrui/my-own.fun&type=Date)](https://star-history.com/#yingrui/my-own.fun&Date)
