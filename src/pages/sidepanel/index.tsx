@@ -13,7 +13,7 @@ refreshOnUpdate("pages/sidepanel");
 
 function getInitialSystemMessage(language: string): string {
   return intl.get("myfun_initial_system_prompt", { language: language })
-    .d(`As an assistant or chrome copilot named Gru.
+    .d(`As an assistant or chrome copilot named myFun.
 You can decide to call different tools or directly answer questions in ${language}, should not add assistant in answer.
 Output format should be in markdown format, and use mermaid format for diagram generation.`);
 }

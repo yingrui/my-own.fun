@@ -31,6 +31,7 @@ const Code = ({ children, className, node }) => {
 
   useEffect(() => {
     if (container && isMermaid && demoId.current && code) {
+      mermaid.initialize({ startOnLoad: true, theme: "neutral" });
       mermaid
         .render(demoId.current, code)
         .then(({ svg, bindFunctions }) => {

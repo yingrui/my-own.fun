@@ -14,7 +14,7 @@ const Mermaid = ({ chart, loading }: Props) => {
     if (!loading) {
       mermaid.parse(chart).then((value) => {
         if (value) {
-          mermaid.initialize({ startOnLoad: true });
+          mermaid.initialize({ startOnLoad: true, theme: "neutral" });
           if (containerRef.current) {
             mermaid.contentLoaded();
             setError(null); // 清除之前的错误状态

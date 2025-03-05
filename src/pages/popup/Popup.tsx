@@ -92,7 +92,7 @@ const Popup: React.FC<PopupProps> = ({ config, copilot }) => {
       </div>
       <p style={{ textAlign: "center" }}>
         <a href="https://github.com/yingrui/my-own.fun">
-          {intl.get("assistant_name").d("Gru")}
+          {intl.get("assistant_name").d("myFun")}
         </a>{" "}
         {intl
           .get("tooltip_assistant_shortcut")
