@@ -38,6 +38,9 @@ const manifest = {
     default_popup: "src/pages/popup/index.html",
     default_icon: "icons/logo.png",
   },
+  chrome_url_overrides: {
+    newtab: "src/pages/options/index.html",
+  },
   icons: {
     128: "icons/logo.png",
   },
