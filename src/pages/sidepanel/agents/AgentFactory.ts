@@ -39,6 +39,7 @@ class AgentFactory extends BaseAgentFactory {
 
     const agent = new MyFun(
       props,
+      true,
       intl.get("assistant_name").d("myFun"),
       intl.get("agent_description_myfun").d("myFun, your browser assistant"),
       agents,

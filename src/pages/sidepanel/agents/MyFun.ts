@@ -16,13 +16,17 @@ import ChatMessage, {
  * @extends {CompositeAgent} - Agent with tools
  */
 class MyFun extends CompositeAgent {
+  private provideEnvironment: boolean;
+
   constructor(
     props: ThoughtAgentProps,
+    provideEnvironment: boolean = true,
     name: string = "myFun",
     description: string = "your personal AI assistant",
     agents: ThoughtAgent[] = [],
   ) {
     super(props, name, description, agents);
+    this.provideEnvironment = provideEnvironment;
     this.addTools();
   }
 
@@ -183,6 +187,9 @@ Do not repeat the content before and after caret position.
    * @returns {Environment} Environment description
    */
   async environment(): Promise<Environment> {
+    if (!this.provideEnvironment) {
+      return { systemPrompt: () => this.getInitialSystemMessage() };
+    }
     const screenshot = this.enableMultimodal
       ? await this.getScreenshot()
       : undefined;
@@ -242,9 +249,7 @@ Output format should be in markdown format, and use mermaid format for diagram g
   }
 
   getInitialSystemMessage(): string {
-    return `As an assistant or chrome copilot named Gru.
-You can decide to call different tools or directly answer questions in ${this.language}, should not add assistant in answer.
-Output format should be in markdown format, and use mermaid format for diagram generation.`;
+    return this.getConversation().getMessages()[0].getContentText();
   }
 }
 
