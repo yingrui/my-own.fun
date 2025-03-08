@@ -1,0 +1,14 @@
+.chat {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.form {
+  margin: 16px 20px;
+}

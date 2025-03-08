@@ -58,6 +58,7 @@
   "enableWriting": "写作工具",
   "feature_toggles": "功能开关",
   "language": "语言",
+  "miss_required_settings": "请先设置好API相关的关键配置",
   "multimodalModel": "多模态模型",
   "myfun_greeting": "您好! 请问需要什么帮助？",
   "myfun_initial_system_prompt": "我是趣趣，您的浏览器助手。\n您可以决定调用不同的工具或直接用 {language} 回答问题。\n输出格式应为 markdown 格式，如果可能的话可以使用 mermaid 格式生成图表。",
