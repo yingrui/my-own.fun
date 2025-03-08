@@ -4,7 +4,7 @@
   flex-direction: column;
 }
 
-.chatList {
+.chat-list {
   flex: 1;
   overflow-y: auto;
 }

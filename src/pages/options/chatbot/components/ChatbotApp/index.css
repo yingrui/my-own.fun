@@ -1,0 +1,10 @@
+.left-sider-title {
+  height: 64px;
+}
+
+#chatbot-left-sider {
+  background-color: #fff;
+  border-right-width: 1px;
+  border-right-style: solid;
+  border-right-color: #ccc;
+}

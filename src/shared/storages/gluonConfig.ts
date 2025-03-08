@@ -17,10 +17,14 @@ export type GluonConfigure = {
   language: string;
   enableFloatingBall: boolean;
   enableReflection: boolean;
-  enableWriting: boolean;
-  enableHistoryRecording: boolean;
   enableMultimodal: boolean;
   enableChainOfThoughts: boolean;
+  // below are for options app
+  enableOptionsAppSearch: boolean;
+  enableOptionsAppChatbot: boolean;
+  enableOptionsAppArchitect: boolean;
+  enableWriting: boolean;
+  enableHistoryRecording: boolean;
 };
 
 type ConfigureStorage = BaseStorage<GluonConfigure>;
@@ -38,10 +42,14 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   language: "English",
   enableFloatingBall: true,
   enableReflection: false,
-  enableWriting: false,
-  enableHistoryRecording: false,
   enableMultimodal: false,
   enableChainOfThoughts: false,
+  // below are for options app
+  enableOptionsAppSearch: true,
+  enableOptionsAppChatbot: false,
+  enableOptionsAppArchitect: true,
+  enableWriting: false,
+  enableHistoryRecording: false,
 };
 
 const storage = createStorage<GluonConfigure>(

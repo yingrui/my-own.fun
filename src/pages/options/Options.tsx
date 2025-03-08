@@ -20,9 +20,11 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import PreferenceApp from "@pages/options/preference/components/PreferenceApp";
+import ChatbotApp from "@pages/options/chatbot/components/ChatbotApp";
 
 const { Header } = Layout;
 const MENU_KEYS = {
+  CHATBOT: "chatbot",
   SEARCH: "search",
   WRITER: "writer",
   HISTORY: "history",
@@ -32,16 +34,24 @@ const MENU_KEYS = {
 };
 
 const getHeaderItems = (config: GluonConfigure): MenuProps["items"] => {
-  const items: MenuProps["items"] = [
-    {
+  const items: MenuProps["items"] = [];
+  if (config.enableOptionsAppSearch) {
+    items.push({
       key: MENU_KEYS.SEARCH,
       label: intl.get("options_app_search").d("Search"),
-    },
-    {
+    });
+  }
+  if (config.enableOptionsAppChatbot) {
+    items.push({
+      key: MENU_KEYS.CHATBOT,
+      label: intl.get("options_app_chatbot").d("Chatbot"),
+    });
+  }
+  if (config.enableOptionsAppArchitect)
+    items.push({
       key: MENU_KEYS.ARCHITECT,
       label: intl.get("options_app_architect").d("Architect"),
-    },
-  ];
+    });
   if (config.enableWriting) {
     items.push({
       key: MENU_KEYS.WRITER,
@@ -123,6 +133,7 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
           />
         </div>
       </Header>
+      {selectedItem === MENU_KEYS.CHATBOT && <ChatbotApp config={config} />}
       {selectedItem === MENU_KEYS.SEARCH && (
         <SearchApp config={config} query={query} onQueryChange={setQuery} />
       )}
