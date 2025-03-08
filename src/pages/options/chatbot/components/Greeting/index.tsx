@@ -25,7 +25,11 @@ const Greeting: React.FC<GreetingProps> = ({
   const inputMethodRef = useRef<boolean>(false);
   const mentionRef = useRef<MentionsRef>();
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    // Try to automatically focus on the input field. It only works when you open the options page.
+    // It doesn't work when you open a new tab, the focus would be on the address bar.
+    mentionRef.current.focus();
+  }, []);
 
   const handleSearchChange = async () => {
     commandRef.current = true;
