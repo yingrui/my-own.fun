@@ -8,3 +8,17 @@
   border-right-style: solid;
   border-right-color: #ccc;
 }
+
+.chatbot-main {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  background-color: #fff;
+}
+
+.chatbot-conversation, .chatbot-addons {
+  flex: 2;
+  padding: 12px 24px;
+  max-width: 50vw;
+  background-color: #fff;
+}

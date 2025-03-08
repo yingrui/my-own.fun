@@ -40,8 +40,10 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
           />
         </div>
       </Sider>
-      <Layout>
-        <ChatWindow config={config} agent={agent} />
+      <Layout className={"chatbot-main"}>
+        <Layout className={"chatbot-conversation"}>
+          <ChatWindow config={config} agent={agent} />
+        </Layout>
       </Layout>
     </Layout>
   );

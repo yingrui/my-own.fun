@@ -1,0 +1,39 @@
+.chatbot-icon-area {
+  justify-content: end;
+  align-items: center;
+  height: 30vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-logo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.chatbot-logo img {
+  width: 72px;
+  height: 72px;
+}
+
+.chatbot-logo h6 {
+  font-size: 48px;
+  font-style: italic;
+  font-family: system-ui;
+  font-weight: 600;
+  margin: 0 0 0 12px;
+  vertical-align: middle;
+  display: inline;
+}
+
+.chatbot-input-first-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+.chatbot-input-area {
+  width: 480px;
+}

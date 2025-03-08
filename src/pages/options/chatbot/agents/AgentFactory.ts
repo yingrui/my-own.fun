@@ -55,12 +55,6 @@ Output format should be in markdown format, and use mermaid format for diagram g
         role: "system",
         content: AgentFactory.getInitialSystemMessage(language),
       }),
-      new ChatMessage({
-        role: "assistant",
-        content: intl
-          .get("myfun_greeting")
-          .d("Hello! How can I assist you today?"),
-      }),
     ];
     return messages;
   }

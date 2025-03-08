@@ -1,5 +1,6 @@
 import React, {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -21,6 +22,7 @@ import AgentFactory from "@pages/options/chatbot/agents/AgentFactory";
 interface ChatConversationProps {
   config: GluonConfigure;
   agent: DelegateAgent;
+  question?: string;
   enableClearCommand?: boolean;
 }
 
@@ -35,7 +37,7 @@ interface ChatConversationRef {
 type PrefixType = "@" | "/";
 
 const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
-  ({ config, agent, enableClearCommand }, ref) => {
+  ({ config, agent, question, enableClearCommand }, ref) => {
     const mentionRef = useRef<MentionsRef>();
     const [text, setText] = useState<string>();
     const [prefix, setPrefix] = useState<PrefixType>("@");
@@ -47,6 +49,16 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     const [messages, setList] = useState<ChatMessage[]>([
       ...agent.getConversation().getMessages(),
     ]);
+
+    useEffect(() => {
+      if (question) {
+        generateReply(question, () =>
+          agent.chat(messages[messages.length - 1]),
+        ).then((msg) => {
+          // do something with the message
+        });
+      }
+    }, []);
 
     async function handleSubmit() {
       if (generating) {
@@ -141,11 +153,12 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     async function onKeyDown(e: any) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
+        // if keyCode is not 13, then it's input method enter
         inputMethodRef.current = e.keyCode !== 13;
       }
     }
 
-    async function keypress(e: any) {
+    async function onKeyUp(e: any) {
       if (e.key == "Enter" && e.keyCode == 13 && !e.shiftKey) {
         e.preventDefault();
         if (!commandRef.current && !inputMethodRef.current) {
@@ -219,7 +232,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
               onSelect={handleSearchChange}
               onSearch={onSearch}
               onKeyDown={onKeyDown}
-              onKeyUp={keypress}
+              onKeyUp={onKeyUp}
               prefix={["/", "@"]}
               value={text}
               disabled={generating}
