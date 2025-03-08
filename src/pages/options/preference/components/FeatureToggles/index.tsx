@@ -56,6 +56,34 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
               <Switch />
             </Form.Item>
             <Form.Item
+              label={intl.get("enableChainOfThoughts").d("Chain of Thoughts")}
+              name="enableChainOfThoughts"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item
+              label={intl.get("enableOptionsAppSearch").d("AI Search")}
+              name="enableOptionsAppSearch"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item
+              label={intl.get("enableOptionsAppChatbot").d("AI Assistant")}
+              name="enableOptionsAppChatbot"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item
+              label={intl.get("enableOptionsAppArchitect").d("Architect Tools")}
+              name="enableOptionsAppArchitect"
+              valuePropName="checked"
+            >
+              <Switch />
+            </Form.Item>
+            <Form.Item
               label={intl.get("enableWriting").d("Writing Tools")}
               name="enableWriting"
               valuePropName="checked"
@@ -65,13 +93,6 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
             <Form.Item
               label={intl.get("enableHistoryRecording").d("History Records")}
               name="enableHistoryRecording"
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-            <Form.Item
-              label={intl.get("enableChainOfThoughts").d("Chain of Thoughts")}
-              name="enableChainOfThoughts"
               valuePropName="checked"
             >
               <Switch />
