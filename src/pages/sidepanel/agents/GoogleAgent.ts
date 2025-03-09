@@ -73,13 +73,11 @@ ${JSON.stringify(results)}
 ## User Input
 ${userInput}
 
+## User Language
+${this.language}
 `;
     return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `please analysis search results and answer questions in ${this.language}:`,
-      }),
+      new ChatMessage({ role: "user", content: prompt }),
     ]);
   }
 
