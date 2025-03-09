@@ -60,12 +60,9 @@ class OllamaModelService extends DefaultModelService {
         }
       }
     }
-    console.log(actions);
-    if (actions.length > 0) {
-      return new Thought({ type: "actions", actions });
-    } else {
-      throw new Error("Empty actions in chunk of tools call");
-    }
+
+    // even if the actions is empty, the trackingDialogueState will handle it.
+    return new Thought({ type: "actions", actions });
   }
 }
 
