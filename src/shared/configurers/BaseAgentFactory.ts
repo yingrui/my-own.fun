@@ -19,6 +19,7 @@ import PromptChainOfThoughtService from "@src/shared/agents/services/PromptChain
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
+import OllamaModelService from "@src/shared/agents/services/OllamaModelService";
 
 class BaseAgentFactory {
   private repository: ConversationRepository;
@@ -65,21 +66,30 @@ class BaseAgentFactory {
     const toolsCallModel: string = config.toolsCallModel ?? null;
     const multimodalModel: string = config.multimodalModel ?? null;
 
-    if (this.getModelProvider(config.baseURL) === "openai.com") {
-      return new GPTModelService({
-        client,
-        modelName,
-        toolsCallModel,
-        multimodalModel,
-      });
+    const modelProvider = this.getModelProvider(config.baseURL);
+    switch (modelProvider) {
+      case "openai.com":
+        return new GPTModelService({
+          client,
+          modelName,
+          toolsCallModel,
+          multimodalModel,
+        });
+      case "ollama":
+        return new OllamaModelService({
+          client,
+          modelName,
+          toolsCallModel,
+          multimodalModel,
+        });
+      default:
+        return new DefaultModelService({
+          client,
+          modelName,
+          toolsCallModel,
+          multimodalModel,
+        });
     }
-
-    return new DefaultModelService({
-      client,
-      modelName,
-      toolsCallModel,
-      multimodalModel,
-    });
   }
 
   postCreateAgent(agent: Agent): Agent {
@@ -109,6 +119,8 @@ class BaseAgentFactory {
       return "openai.com";
     } else if (baseURL.startsWith("https://open.bigmodel.cn/api/paas/v4")) {
       return "zhipu.ai";
+    } else if (baseURL.includes(":11434/v1")) {
+      return "ollama";
     }
     return "custom";
   }

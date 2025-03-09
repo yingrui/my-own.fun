@@ -1,7 +1,6 @@
-import { ChatCompletionTool } from "openai/resources";
 import ChatMessage from "../core/ChatMessage";
 import type { MessageContent } from "../core/ChatMessage";
-import ModelService, { ModelProvider } from "./ModelService";
+import ModelService, { ModelProvider, ModelServiceProps } from "./ModelService";
 import Thought from "../core/Thought";
 import OpenAI from "openai";
 import {
@@ -10,13 +9,6 @@ import {
   ChatCompletionCreateParamsBase,
   ChatCompletionMessageParam,
 } from "openai/src/resources/chat/completions";
-
-interface ModelServiceProps {
-  client: OpenAI;
-  modelName: string;
-  toolsCallModel: string;
-  multimodalModel: string;
-}
 
 /**
  * GPT Model Service
@@ -125,7 +117,7 @@ class GPTModelService implements ModelService {
 
   async toolsCall(
     messages: ChatMessage[],
-    tools: ChatCompletionTool[],
+    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
     stream: boolean,
   ): Promise<Thought> {
     if (stream) {
@@ -137,7 +129,7 @@ class GPTModelService implements ModelService {
 
   private async nonStreamToolsCall(
     messages: ChatMessage[],
-    tools: ChatCompletionTool[],
+    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
   ) {
     const result = await this.client.chat.completions.create({
       model: this.toolsCallModel,
@@ -166,7 +158,7 @@ class GPTModelService implements ModelService {
 
   private async streamToolsCall(
     messages: ChatMessage[],
-    tools: ChatCompletionTool[],
+    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
   ) {
     const result = await this.client.chat.completions.create({
       model: this.toolsCallModel,

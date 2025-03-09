@@ -1,7 +1,6 @@
-import { ChatCompletionTool } from "openai/resources";
 import type { MessageContent } from "../core/ChatMessage";
 import ChatMessage from "../core/ChatMessage";
-import ModelService, { ModelProvider } from "./ModelService";
+import ModelService, { ModelProvider, ModelServiceProps } from "./ModelService";
 import Thought from "../core/Thought";
 import OpenAI from "openai";
 import {
@@ -12,13 +11,6 @@ import {
 } from "openai/src/resources/chat/completions";
 import { withTimeout } from "../AgentUtils";
 
-interface ModelServiceProps {
-  client: OpenAI;
-  modelName: string;
-  toolsCallModel: string;
-  multimodalModel: string;
-}
-
 class DefaultModelService implements ModelService {
   client: OpenAI;
   modelName: string;
@@ -26,7 +18,7 @@ class DefaultModelService implements ModelService {
   multimodalModel: string;
   modelProviders: ModelProvider[] = ["zhipu.ai", "custom"];
   supportedModels: string[] = ["glm-4-plus", "glm-4v-plus"];
-  maxTokens: number = 4096;
+  maxTokens: number = 8192;
 
   constructor(props: ModelServiceProps) {
     const { client, modelName, toolsCallModel, multimodalModel } = props;
@@ -88,7 +80,7 @@ class DefaultModelService implements ModelService {
    * @returns messages
    * @private
    */
-  private formatMessageContent(
+  protected formatMessageContent(
     messages: ChatMessage[],
     model: string,
   ): ChatMessage[] {
@@ -124,13 +116,13 @@ class DefaultModelService implements ModelService {
     return messages;
   }
 
-  private includeStringContent(messages: ChatMessage[]) {
+  protected includeStringContent(messages: ChatMessage[]) {
     return messages.findIndex((msg) => typeof msg.content === "string") >= 0;
   }
 
   async toolsCall(
     messages: ChatMessage[],
-    tools: ChatCompletionTool[],
+    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
     stream: boolean,
     responseType: "text" | "json_object" = "text",
   ): Promise<Thought> {
@@ -141,13 +133,14 @@ class DefaultModelService implements ModelService {
     return await this.nonStreamToolsCall(messages, tools, responseType);
   }
 
-  private async nonStreamToolsCall(
+  protected async nonStreamToolsCall(
     messages: ChatMessage[],
-    tools: ChatCompletionTool[],
+    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
     responseType: "text" | "json_object" = "text",
   ) {
     const result = await this.client.chat.completions.create({
       model: this.toolsCallModel,
+      max_tokens: this.maxTokens,
       messages: messages as OpenAI.ChatCompletionMessageParam[],
       stream: false,
       tools: tools,
@@ -174,13 +167,14 @@ class DefaultModelService implements ModelService {
     return new Thought({ type: "actions", actions: actions });
   }
 
-  private async streamToolsCall(
+  protected async streamToolsCall(
     messages: ChatMessage[],
-    tools: ChatCompletionTool[],
+    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
     responseType: "text" | "json_object" = "text",
   ) {
     const result = await this.client.chat.completions.create({
       model: this.toolsCallModel,
+      max_tokens: this.maxTokens,
       messages: messages as OpenAI.ChatCompletionMessageParam[],
       stream: true,
       tools: tools,
@@ -213,7 +207,7 @@ class DefaultModelService implements ModelService {
     return new Thought({ type: "actions", actions });
   }
 
-  private toAction(tool: ToolCall): Action {
+  protected toAction(tool: ToolCall): Action {
     let args = {};
     try {
       if (tool.function.arguments) {

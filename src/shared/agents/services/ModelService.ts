@@ -2,7 +2,14 @@ import ChatMessage from "../core/ChatMessage";
 import Thought from "../core/Thought";
 import OpenAI from "openai";
 
-type ModelProvider = "zhipu.ai" | "openai.com" | "custom";
+type ModelProvider = "zhipu.ai" | "openai.com" | "ollama" | "custom";
+
+interface ModelServiceProps {
+  client: OpenAI;
+  modelName: string;
+  toolsCallModel: string;
+  multimodalModel: string;
+}
 
 interface ModelService {
   /**
@@ -65,3 +72,4 @@ interface ModelService {
 
 export default ModelService;
 export type { ModelProvider };
+export { ModelServiceProps };
