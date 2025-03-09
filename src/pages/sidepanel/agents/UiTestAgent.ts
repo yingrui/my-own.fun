@@ -26,7 +26,7 @@ class UiTestAgent extends ThoughtAgent {
   }
 
   async handleCannotGetHtmlError(): Promise<Thought> {
-    const prompt = `You're an assistant or chrome copilot, Gru is your name.
+    const prompt = `You're an assistant or chrome copilot, myFun is your name.
 The user is viewing the page, but you cannot get any information, it's possible because the you're detached from the webpage.
 Reply sorry and ask user to refresh webpage, so you can get information from webpage.`;
     return await this.chatCompletion([

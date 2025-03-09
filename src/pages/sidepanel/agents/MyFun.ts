@@ -42,7 +42,7 @@ class MyFun extends CompositeAgent {
   }
 
   private async handleCannotGetContentError(): Promise<Thought> {
-    const prompt = `You're an assistant or chrome copilot named Gru.
+    const prompt = `You're an assistant or chrome copilot.
 The user is viewing the page, but you cannot get any information, it's possible because the you're detached from the webpage.
 Reply sorry and ask user to refresh webpage, so you can get information from webpage.`;
     return await this.chatCompletion([
@@ -202,7 +202,7 @@ Do not repeat the content before and after caret position.
           : content.text;
       return {
         systemPrompt: () => `## Role
-As a web browser assistant or chrome copilot, named Gru.
+As a web browser assistant or chrome copilot, named myFun.
 You're good at data extraction, data analysis, summarization, wikipedia, and many kinds of internet tools or websites.
 
 ## Context
