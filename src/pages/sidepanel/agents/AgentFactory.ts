@@ -1,6 +1,6 @@
 import ThoughtAgent from "@src/shared/agents/ThoughtAgent";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import MyFun from "./MyFun";
+import MyFunAssistant from "./MyFunAssistant";
 import BACopilotAgent from "./BACopilotAgent";
 import TranslateAgent from "./TranslateAgent";
 import UiTestAgent from "./UiTestAgent";
@@ -37,9 +37,8 @@ class AgentFactory extends BaseAgentFactory {
       ),
     ];
 
-    const agent = new MyFun(
+    const agent = new MyFunAssistant(
       props,
-      true,
       intl.get("assistant_name").d("myFun"),
       intl.get("agent_description_myfun").d("myFun, your browser assistant"),
       agents,

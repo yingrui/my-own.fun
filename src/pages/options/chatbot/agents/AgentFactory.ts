@@ -1,7 +1,6 @@
 import Agent from "@src/shared/agents/core/Agent";
 import ThoughtAgent from "@src/shared/agents/ThoughtAgent";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import MyFun from "@pages/sidepanel/agents/MyFun";
 import GoogleAgent from "@pages/sidepanel/agents/GoogleAgent";
 import LocalConversationRepository from "@src/shared/repositories/LocalConversationRepository";
 import intl from "react-intl-universal";
@@ -9,6 +8,7 @@ import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import BaseAgentFactory from "@src/shared/configurers/BaseAgentFactory";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import { locale } from "@src/shared/utils/i18n";
+import MyFunChatbot from "@pages/options/chatbot/agents/MyFunChatbot";
 
 class AgentFactory extends BaseAgentFactory {
   create(config: GluonConfigure): Agent {
@@ -19,11 +19,10 @@ class AgentFactory extends BaseAgentFactory {
 
     const agents: ThoughtAgent[] = [new GoogleAgent(props)];
 
-    const agent = new MyFun(
+    const agent = new MyFunChatbot(
       props,
-      false,
       intl.get("assistant_name").d("myFun"),
-      intl.get("agent_description_myfun").d("myFun, your browser assistant"),
+      "your fun AI assistant",
       agents,
     );
 
