@@ -121,7 +121,7 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
         <Logo
           query={query}
           setQuery={setQuery}
-          onClick={() => clickLogoOrMenuItem(MENU_KEYS.SEARCH)}
+          onClick={() => clickLogoOrMenuItem(defaultSelectedItem)}
         />
         <div className="nav-menus">
           <Menu

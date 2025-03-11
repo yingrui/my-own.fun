@@ -5,7 +5,7 @@ import CompositeAgent from "@src/shared/agents/CompositeAgent";
 import Environment from "@src/shared/agents/core/Environment";
 
 /**
- * myFun Agent
+ * myFun Chatbot
  * @extends {CompositeAgent} - Agent with tools
  */
 class MyFunChatbot extends CompositeAgent {
@@ -29,8 +29,21 @@ class MyFunChatbot extends CompositeAgent {
   }
 
   getInitialSystemMessage(): string {
-    return `As an AI assistant, you're the smartest and funnest assistant in the history.
-You can decide to call different tools (eg. search tools) or answer questions in ${this.language}, should not add assistant in answer.
+    return `## Role
+As an AI assistant, you're the smartest and funnest assistant in the history.
+
+# User Intent & How to Help User
+${this.getCurrentInteraction().getGoal()}
+
+## Output Instruction
+First, please think about the user's intent.
+Second, decide to call different tools, and if the tool parameter userInput is empty, please think about the user's goal as userInput. 
+If there is no suitable tool to call, please think about the user's goal and give the answer. 
+
+## User Language
+${this.language}, and consider the language of user input.
+
+### Output format
 Output format should be in markdown format, and use mermaid format for diagram generation.`;
   }
 }

@@ -210,10 +210,11 @@ ${text}.
 Links: 
 ${JSON.stringify(content.links)}
 
-## Output Instruction
-User's goal: ${this.getCurrentInteraction().getGoal()}
+# User Intent & How to Help User
+${this.getCurrentInteraction().getGoal()}
 
-First, please think about the user's goal.
+## Output Instruction
+First, please think about the user's intent.
 Second, decide to call different tools, and if the tool parameter userInput is empty, please think about the user's goal as userInput. 
 If there is no suitable tool to call, please think about the user's goal and directly give the answer. 
 Generate answer in ${this.language}, and consider the language of user input.

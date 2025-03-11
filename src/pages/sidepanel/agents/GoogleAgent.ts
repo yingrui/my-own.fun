@@ -46,6 +46,7 @@ open the website or open the given url. the website type or url is required.`,
 
   async search(args: object, messages: ChatMessage[]): Promise<Thought> {
     const userInput = args["userInput"];
+    const goal = this.getCurrentInteraction().getGoal();
     const results = await ddg_search(userInput);
     const prompt = `## Role
 You're Chrome extension, you can answer user questions based on the search results from duckduckgo.
@@ -72,6 +73,9 @@ ${JSON.stringify(results)}
 
 ## User Input
 ${userInput}
+
+## User Intent
+${goal}
 
 ## User Language
 ${this.language}
@@ -167,26 +171,31 @@ There is a problem that you cannot get any information from current tab, it's po
 
   async google(args: object, messages: ChatMessage[]): Promise<Thought> {
     const userInput = args["userInput"];
+    const goal = this.getConversation().getCurrentInteraction().getGoal();
     const url = await this.openGoogle(userInput);
     const content = await this.get_google_result(url, userInput);
     if (!content) return this.handleCannotGetGoogleResultError(userInput);
 
-    const prompt = `You're Chrome extension, you can help users to browse google.
+    const prompt = `## Role & Task
+You're Chrome extension, you can help users to browse google.
 You can understand user's questions, open the google to search content, and most important, you can answer user's question based on search results
 This is user input:${userInput}
 Tell user you helped them to navigate to ${url}, if user input is empty, just open the google webpage.
+please summarize this page in ${this.language}, and recommend links or new search query
+
+## Web Page Content
 The search results page information are:
 - url: ${content.url}
 - title: ${content.title}
 - text: ${content.text}
-The links are: ${JSON.stringify(content.links)}`;
+The links are: ${JSON.stringify(content.links)}
+
+## User Intent
+${goal}
+`;
 
     return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `please summarize this page in ${this.language}, and recommend links or new search query: `,
-      }),
+      new ChatMessage({ role: "user", content: prompt }),
     ]);
   }
 
