@@ -281,7 +281,7 @@ const ConversationsManagement: React.FC<ConversationsManagementProps> = ({
               .d(`Total {length} records.`)}
           </Tooltip>
         )}
-        pagination={{ pageSize: 15 }}
+        pagination={{ pageSize: 10 }}
       />
     </>
   );

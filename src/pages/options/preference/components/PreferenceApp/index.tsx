@@ -108,7 +108,7 @@ const PreferenceApp: React.FC = () => {
           defaultSelectedKeys={[PREFERENCE_MENU_KEYS.BASIC]}
           defaultOpenKeys={[PREFERENCE_MENU_KEYS.BASIC]}
           items={menuItems}
-          style={{ height: "89vh", borderRight: 0 }}
+          style={{ borderRight: 0 }}
           onClick={handleMenuClick}
         />
       </Sider>

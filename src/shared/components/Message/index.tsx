@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import type { MessageContent } from "@src/shared/agents/core/ChatMessage";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import intl from "react-intl-universal";
+import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
 
 interface MessageProps {
   index?: number;
@@ -44,6 +45,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   const [statusMessage, setStatusMessage] = useState<string>(
     interaction ? interaction.getStatusMessage() : "",
   );
+  const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
 
   function getContent(): string {
     if (content instanceof Array) {
@@ -67,6 +69,9 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
         },
       ]);
       setStatusMessage(interaction.getStatusMessage());
+      setTimeout(() => {
+        scrollToBottom();
+      });
     });
   }
 
@@ -82,7 +87,10 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   }
 
   return (
-    <div className={`message-item ${isAssistant ? "message-assistant" : ""}`}>
+    <div
+      ref={messagesRef}
+      className={`message-item ${isAssistant ? "message-assistant" : ""}`}
+    >
       {isAssistant && (
         <div className="avatar">
           <img className="bot-avatar" src="/icons/logo.png" />

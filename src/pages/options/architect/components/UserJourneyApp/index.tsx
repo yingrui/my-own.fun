@@ -8,6 +8,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
+import { CheckOutlined, EditOutlined } from "@ant-design/icons";
 
 interface UserJourneyProps {
   config: GluonConfigure;
@@ -22,6 +23,7 @@ const UserJourneyApp: React.FC<UserJourneyProps> = ({ config }) => {
   const [loading, setLoading] = useState(true);
   const contextRef = useRef(new UserJourneyContext(config));
   const [mode, setMode] = useState<"editing" | "viewing">("editing");
+  const [editResult, setEditResult] = useState<boolean>(false);
   const [userJourney, setUserJourney] = useState<string>("");
   const [details, setDetails] = useState<string>("");
   const [boardUrl, setBoardUrl] = useState<string>("");
@@ -168,12 +170,32 @@ const UserJourneyApp: React.FC<UserJourneyProps> = ({ config }) => {
           </Button>
         </div>
         <div className={"generated-text"}>
-          <ReactMarkdown
-            rehypePlugins={rehypePlugins as any}
-            remarkPlugins={remarkPlugins as any}
-          >
-            {generatedText}
-          </ReactMarkdown>
+          <div className={"float-action-icon"}>
+            {editResult && (
+              <CheckOutlined onClick={() => setEditResult(false)} />
+            )}
+            {!editResult && (
+              <EditOutlined onClick={() => setEditResult(true)} />
+            )}
+          </div>
+          {editResult && (
+            <TextArea
+              className={"generated-text-textarea"}
+              disabled={generating}
+              value={generatedText}
+              style={{ height: "100%" }}
+              onChange={(e) => setGeneratedText(e.target.value)}
+            />
+          )}
+          {!editResult && (
+            <ReactMarkdown
+              className={"generated-text-markdown-editor"}
+              rehypePlugins={rehypePlugins as any}
+              remarkPlugins={remarkPlugins as any}
+            >
+              {generatedText}
+            </ReactMarkdown>
+          )}
         </div>
       </Layout>
       <Layout className={"user-journey-preview"}>

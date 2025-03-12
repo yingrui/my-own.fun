@@ -89,7 +89,7 @@ const ArchitectApp: React.FC<ArchitectAppProps> = ({ config }) => {
           defaultSelectedKeys={[ARCHITECT_MENU_KEYS.ElevatorPitch]}
           defaultOpenKeys={["1"]}
           items={menuItems}
-          style={{ height: "89vh", borderRight: 0 }}
+          style={{ borderRight: 0 }}
           onClick={handleMenuClick}
         />
       </Sider>

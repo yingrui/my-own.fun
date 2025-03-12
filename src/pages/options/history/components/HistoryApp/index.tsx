@@ -65,7 +65,7 @@ const HistoryApp: React.FC<HistoryAppProps> = ({ config }) => {
           mode="inline"
           selectedKeys={[selectedItem]}
           items={historyTypeItems}
-          style={{ height: "89vh", borderRight: 0 }}
+          style={{ borderRight: 0 }}
           onClick={(e) => handleMenuClick(e.key as HistoryType)}
         />
       </Sider>

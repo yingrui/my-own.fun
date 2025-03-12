@@ -22,8 +22,24 @@
   border-radius: 8px;
   border: 1px solid #ccc;
   height: 100%;
-  padding: 8px;
   overflow: auto;
+}
+
+.generated-text .generated-text-textarea {
+  border: 0;
+  height: 100%;
+  padding: 8px;
+}
+
+.generated-text .generated-text-markdown-editor {
+  padding: 8px;
+}
+
+.float-action-icon {
+  float: right;
+  position: relative;
+  right: 8px;
+  top: 4px;;
 }
 
 pre {
@@ -37,4 +53,9 @@ pre {
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
+}
+
+.mermaid svg {
+  max-height: none;
+  height: 60vh!important;
 }

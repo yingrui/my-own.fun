@@ -39,6 +39,12 @@ interface ModelService {
   supportedModels: string[];
 
   /**
+   * Decide if it has reasoning model
+   * @returns {bool} has reasoning model
+   */
+  hasReasoningModel(): boolean;
+
+  /**
    * Decide if it is multimodal model
    * @param {string} modelName - model name
    * @returns {bool} is multimodal model

@@ -41,6 +41,10 @@ class GPTModelService implements ModelService {
     this.multimodalModel = multimodalModel;
   }
 
+  hasReasoningModel(): boolean {
+    return this.reasoningModel !== "";
+  }
+
   isMultimodalModel(modelName: string): boolean {
     return modelName === "glm-4v-plus" || modelName === "gpt-4o-mini";
   }
