@@ -7,6 +7,7 @@ type ModelProvider = "zhipu.ai" | "openai.com" | "ollama" | "custom";
 interface ModelServiceProps {
   client: OpenAI;
   modelName: string;
+  reasoningModel: string;
   toolsCallModel: string;
   multimodalModel: string;
 }
@@ -16,6 +17,11 @@ interface ModelService {
    * Model name
    */
   modelName: string;
+
+  /**
+   * Model name
+   */
+  reasoningModel: string;
 
   /**
    * Tools call model

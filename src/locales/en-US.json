@@ -120,6 +120,7 @@
   "organization": "Organization",
   "placeholder_side_panel_input": "`/` specify instruction, `@` find agent, type `Enter` ask question.",
   "preview": "Preview",
+  "reasoningModel": "Reasoning Model",
   "save": "Save",
   "sensitive_topic": "Sensitive topic detected.",
   "side_panel_interaction_goal": "Thought",

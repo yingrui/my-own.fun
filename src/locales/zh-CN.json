@@ -120,6 +120,7 @@
   "organization": "团队",
   "placeholder_side_panel_input": "`/`发出命令，`@`指定助手，输入回车确定提问",
   "preview": "预览",
+  "reasoningModel": "推理模型",
   "save": "保存",
   "sensitive_topic": "检测到敏感话题！",
   "side_panel_interaction_goal": "深度思考",

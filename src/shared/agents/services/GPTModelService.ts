@@ -19,6 +19,7 @@ import {
 class GPTModelService implements ModelService {
   client: OpenAI;
   modelName: string;
+  reasoningModel: string;
   toolsCallModel: string;
   multimodalModel: string;
   modelProviders: ModelProvider[] = ["openai.com", "custom"];
@@ -26,9 +27,16 @@ class GPTModelService implements ModelService {
   maxTokens: number = 4096;
 
   constructor(props: ModelServiceProps) {
-    const { client, modelName, toolsCallModel, multimodalModel } = props;
+    const {
+      client,
+      modelName,
+      reasoningModel,
+      toolsCallModel,
+      multimodalModel,
+    } = props;
     this.client = client;
     this.modelName = modelName;
+    this.reasoningModel = reasoningModel;
     this.toolsCallModel = toolsCallModel;
     this.multimodalModel = multimodalModel;
   }

@@ -63,32 +63,25 @@ class BaseAgentFactory {
     });
 
     const modelName: string = config.defaultModel ?? "glm-4-plus";
+    const reasoningModel: string = config.reasoningModel ?? null;
     const toolsCallModel: string = config.toolsCallModel ?? null;
     const multimodalModel: string = config.multimodalModel ?? null;
 
     const modelProvider = this.getModelProvider(config.baseURL);
+    const modelServiceProps = {
+      client,
+      modelName,
+      reasoningModel,
+      toolsCallModel,
+      multimodalModel,
+    };
     switch (modelProvider) {
       case "openai.com":
-        return new GPTModelService({
-          client,
-          modelName,
-          toolsCallModel,
-          multimodalModel,
-        });
+        return new GPTModelService(modelServiceProps);
       case "ollama":
-        return new OllamaModelService({
-          client,
-          modelName,
-          toolsCallModel,
-          multimodalModel,
-        });
+        return new OllamaModelService(modelServiceProps);
       default:
-        return new DefaultModelService({
-          client,
-          modelName,
-          toolsCallModel,
-          multimodalModel,
-        });
+        return new DefaultModelService(modelServiceProps);
     }
   }
 

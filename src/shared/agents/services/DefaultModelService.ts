@@ -14,6 +14,7 @@ import { withTimeout } from "../AgentUtils";
 class DefaultModelService implements ModelService {
   client: OpenAI;
   modelName: string;
+  reasoningModel: string;
   toolsCallModel: string;
   multimodalModel: string;
   modelProviders: ModelProvider[] = ["zhipu.ai", "custom"];
@@ -21,9 +22,16 @@ class DefaultModelService implements ModelService {
   maxTokens: number = 8192;
 
   constructor(props: ModelServiceProps) {
-    const { client, modelName, toolsCallModel, multimodalModel } = props;
+    const {
+      client,
+      modelName,
+      reasoningModel,
+      toolsCallModel,
+      multimodalModel,
+    } = props;
     this.client = client;
     this.modelName = modelName;
+    this.reasoningModel = reasoningModel;
     this.toolsCallModel = toolsCallModel;
     this.multimodalModel = multimodalModel;
   }

@@ -9,6 +9,7 @@ export type GluonConfigure = {
   baseURL: string;
   organization: string;
   defaultModel: string;
+  reasoningModel: string;
   toolsCallModel: string;
   multimodalModel: string;
   baCopilotKnowledgeApi: string;
@@ -34,6 +35,7 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   baseURL: "",
   organization: "",
   defaultModel: "glm-4-plus",
+  reasoningModel: "",
   toolsCallModel: "glm-4-plus",
   multimodalModel: "glm-4v-plus",
   baCopilotKnowledgeApi: "",

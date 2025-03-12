@@ -68,6 +68,12 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({
               <Input placeholder="glm-4-plus" />
             </Form.Item>
             <Form.Item
+              name="reasoningModel"
+              label={intl.get("reasoningModel").d("Reasoning Model")}
+            >
+              <Input placeholder="deepseek-r1" />
+            </Form.Item>
+            <Form.Item
               name="toolsCallModel"
               label={intl.get("toolsCallModel").d("Tools Call Model")}
             >
