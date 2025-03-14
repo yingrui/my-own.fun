@@ -10,6 +10,11 @@ import type { MessageContent } from "@src/shared/agents/core/ChatMessage";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import intl from "react-intl-universal";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
+import CodeBlock, {
+  rehypePlugins,
+  remarkPlugins,
+} from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
+import ReactMarkdown from "react-markdown";
 
 interface MessageProps {
   index?: number;
@@ -28,7 +33,19 @@ const getChainOfThoughts = (
       {
         key: "1",
         label: intl.get("side_panel_interaction_goal").d("Thought"),
-        children: <p className="interaction-goal">{interaction.getGoal()}</p>,
+        children: (
+          <ReactMarkdown
+            components={{
+              code: (props) => {
+                return <CodeBlock {...props} loading={false} />;
+              },
+            }}
+            rehypePlugins={rehypePlugins as any}
+            remarkPlugins={remarkPlugins as any}
+          >
+            {interaction.getGoal().replaceAll(/<[/]?think>/g, "")}
+          </ReactMarkdown>
+        ),
       },
     ];
   } else {
@@ -61,13 +78,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
 
   if (interaction) {
     interaction.onChange(() => {
-      setChainOfThoughts([
-        {
-          key: "1",
-          label: intl.get("side_panel_interaction_goal").d("Thought"),
-          children: <p className="interaction-goal">{interaction.getGoal()}</p>,
-        },
-      ]);
+      setChainOfThoughts(getChainOfThoughts(interaction));
       setStatusMessage(interaction.getStatusMessage());
       setTimeout(() => {
         scrollToBottom();
