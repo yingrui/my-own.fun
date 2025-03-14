@@ -12,14 +12,14 @@ import ChatMessage, {
 } from "@src/shared/agents/core/ChatMessage";
 
 /**
- * myFun Agent
+ * myFun Copilot
  * @extends {CompositeAgent} - Agent with tools
  */
 class MyFunCopilot extends CompositeAgent {
   constructor(
     props: ThoughtAgentProps,
-    name: string = "myFun",
-    description: string = "your personal AI assistant",
+    name: string,
+    description: string,
     agents: ThoughtAgent[] = [],
   ) {
     super(props, name, description, agents);
@@ -195,7 +195,7 @@ Do not repeat the content before and after caret position.
           : content.text;
       return {
         systemPrompt: () => `## Role
-As a web browser assistant or chrome copilot, named myFun.
+As a web browser assistant or chrome copilot, named ${this.getName()}.
 You're good at data extraction, data analysis, summarization, wikipedia, and many kinds of internet tools or websites.
 
 ## Context

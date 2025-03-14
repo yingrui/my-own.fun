@@ -5,14 +5,14 @@ import CompositeAgent from "@src/shared/agents/CompositeAgent";
 import Environment from "@src/shared/agents/core/Environment";
 
 /**
- * myFun Chatbot
+ * myFun Assistant
  * @extends {CompositeAgent} - Agent with tools
  */
 class MyFunAssistant extends CompositeAgent {
   constructor(
     props: ThoughtAgentProps,
-    name: string = "myFun",
-    description: string = "your personal AI assistant",
+    name: string,
+    description: string,
     agents: ThoughtAgent[] = [],
   ) {
     super(props, name, description, agents);
