@@ -8,7 +8,7 @@ import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import BaseAgentFactory from "@src/shared/configurers/BaseAgentFactory";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import { locale } from "@src/shared/utils/i18n";
-import MyFunChatbot from "@pages/options/chatbot/agents/MyFunChatbot";
+import MyFunAssistant from "@pages/options/chatbot/agents/MyFunAssistant";
 
 class AgentFactory extends BaseAgentFactory {
   create(config: GluonConfigure): Agent {
@@ -17,9 +17,11 @@ class AgentFactory extends BaseAgentFactory {
     this.setInitMessages(AgentFactory.getInitialMessages(config));
     this.setConversationRepository(new LocalConversationRepository());
 
-    const agents: ThoughtAgent[] = [new GoogleAgent(props)];
+    const agents: ThoughtAgent[] = [
+      new GoogleAgent(props),
+    ];
 
-    const agent = new MyFunChatbot(
+    const agent = new MyFunAssistant(
       props,
       intl.get("assistant_name").d("myFun"),
       "your fun AI assistant",

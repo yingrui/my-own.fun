@@ -40,6 +40,10 @@ class DefaultModelService implements ModelService {
     return this.reasoningModel !== "";
   }
 
+  isReasoningModel(model: string): boolean {
+    return this.hasReasoningModel() && model === this.reasoningModel;
+  }
+
   isMultimodalModel(modelName: string): boolean {
     return ["glm-4v", "glm-4v-plus", "glm-4v-flash", "gpt-4o-mini"].includes(
       modelName,

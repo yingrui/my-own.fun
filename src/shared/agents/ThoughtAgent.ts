@@ -223,7 +223,7 @@ class ThoughtAgent implements Agent {
 
   private async process(thought: Thought): Promise<Thought> {
     if (thought.type === "actions") {
-      return await this.execute(thought.actions);
+      return await this.execute(await this.check(thought.actions));
     } else if (["message", "stream"].includes(thought.type)) {
       return await this.execute([this.replyAction(thought)]);
     } else if (thought.type === "error") {
@@ -270,6 +270,7 @@ class ThoughtAgent implements Agent {
 
     const toolCalls = this.getToolCalls();
     if (toolCalls.length === 0) {
+      // return empty list if there is no tool
       return new Thought({ type: "actions", actions: [] });
     }
 
@@ -322,11 +323,15 @@ class ThoughtAgent implements Agent {
   }
 
   /**
-   * Tracking dialogue state, should be invoked in execute method, before actions are executed
+   * Should be invoked before actions are executed
+   * 1. Check action parameters
+   * 2. Track dialogue state
+   * 3. Control action flow
+   * ...
    * @param {Action[]} actions - Actions
    * @returns {Action[]} Actions
    */
-  trackingDialogueState(actions: Action[]): Action[] {
+  async check(actions: Action[]): Promise<Action[]> {
     const messages = this.conversation.getMessages();
     const interaction = this.conversation.getCurrentInteraction();
     // TODO: Implement tracking dialogue state
@@ -344,10 +349,8 @@ class ThoughtAgent implements Agent {
    * @returns {Promise<Thought>} ChatCompletion
    */
   async execute(actions: Action[]): Promise<Thought> {
-    const refinedActions = this.trackingDialogueState(actions);
-
     const interaction = this.conversation.getCurrentInteraction();
-    const actionNameList = refinedActions.map((a) => a.name);
+    const actionNameList = actions.map((a) => a.name);
     interaction.setStatus(
       "Executing",
       `${this.getName()} is executing ${actionNameList.join(", ")}...`,
@@ -355,8 +358,8 @@ class ThoughtAgent implements Agent {
     interaction.setAgentName(this.getName());
 
     // TODO: support multiple actions in future
-    const action = refinedActions[0].name;
-    const args = refinedActions[0].arguments;
+    const action = actions[0].name;
+    const args = actions[0].arguments;
 
     if (action === "chat") {
       const env = await this.environment();

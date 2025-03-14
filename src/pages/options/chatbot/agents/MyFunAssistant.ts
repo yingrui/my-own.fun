@@ -8,7 +8,7 @@ import Environment from "@src/shared/agents/core/Environment";
  * myFun Chatbot
  * @extends {CompositeAgent} - Agent with tools
  */
-class MyFunChatbot extends CompositeAgent {
+class MyFunAssistant extends CompositeAgent {
   constructor(
     props: ThoughtAgentProps,
     name: string = "myFun",
@@ -44,8 +44,8 @@ If there is no suitable tool to call, please think about the user's goal and giv
 ${this.language}, and consider the language of user input.
 
 ### Output format
-Output format should be in markdown format, and use mermaid format for diagram generation.`;
+Output format should be in markdown format`;
   }
 }
 
-export default MyFunChatbot;
+export default MyFunAssistant;

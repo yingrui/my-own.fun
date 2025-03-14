@@ -76,10 +76,6 @@ class DelegateAgent implements Agent {
     return await this.currentAgent.reflection();
   }
 
-  public trackingDialogueState(actions: Action[]): Action[] {
-    return this.currentAgent.trackingDialogueState(actions);
-  }
-
   public async executeCommand(
     actions: Action[],
     message: ChatMessage,

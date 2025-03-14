@@ -15,7 +15,7 @@ import ChatMessage, {
  * myFun Agent
  * @extends {CompositeAgent} - Agent with tools
  */
-class MyFunAssistant extends CompositeAgent {
+class MyFunCopilot extends CompositeAgent {
   constructor(
     props: ThoughtAgentProps,
     name: string = "myFun",
@@ -249,4 +249,4 @@ Output format should be in markdown format, and use mermaid format for diagram g
   }
 }
 
-export default MyFunAssistant;
+export default MyFunCopilot;

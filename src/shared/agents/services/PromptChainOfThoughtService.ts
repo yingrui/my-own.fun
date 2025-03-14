@@ -33,12 +33,8 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     const thought = await this.modelService.chatCompletion(
       [
         new ChatMessage({
-          role: "system",
-          content: this.getGoalPrompt(env, conversation),
-        }),
-        new ChatMessage({
           role: "user",
-          content: `Please analysis user's goal in ${this.language}`,
+          content: this.getGoalPrompt(env, conversation),
         }),
       ],
       true,
@@ -308,20 +304,26 @@ ${conversationContent}
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
         : env.content?.text;
-    return `## Role: Assistant
-## Task
-Just analysis user's goal, consider the previous goals, if the goal is not change, could use previous goals.
-${this.enableChainOfThoughts ? "And then, give the thoughts of how to achieve the goal step by step." : ""}
 
-## Output Format
-Keep the output goal short and precise, just one sentence, less than 50 words. 
-
-## Status
+    const currenStatus = env.content ? `## Status
 The user is browsing webpage:
 - Title: ${env.content?.title}
 - URL: ${env.content?.url}
 - Content: 
 ${text}
+` : ""
+
+    return `## Role: Assistant
+## Task
+Analysis user's goal, consider the previous goals, if the goal is not change, could use previous goals.
+${this.enableChainOfThoughts ? "And then, give the thoughts of how to achieve the goal step by step." : ""}
+
+## Output Format
+Keep the output goal short and precise, just one sentence, less than 50 words. 
+
+Note: user language is ${this.language}
+
+${currenStatus}
 
 ## Conversation Messages
 ${conversationContent}

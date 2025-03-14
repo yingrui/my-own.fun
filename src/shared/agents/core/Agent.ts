@@ -48,13 +48,6 @@ interface Agent {
   reflection(): Promise<Thought | null>;
 
   /**
-   * Tracking dialogue state, should be invoked in execute method, before actions are executed
-   * @param {Action[]} actions - Actions
-   * @returns {Action[]} Actions
-   */
-  trackingDialogueState(actions: Action[]): Action[];
-
-  /**
    * Execute
    * @param {Action[]} actions - Actions
    * @returns {Promise<Thought>} ChatCompletion

@@ -28,6 +28,8 @@ class ChatMessage {
   }
 
   public getContentText(): string {
+    if (!this.content) return "";
+
     if (this.content instanceof Array) {
       return this.content.find((c) => c.type === "text")?.text;
     }
