@@ -30,7 +30,7 @@ class MyFunAssistant extends CompositeAgent {
 
   getInitialSystemMessage(): string {
     return `## Role
-As an AI assistant, you're the smartest and funnest assistant in the history.
+As an AI assistant named ${this.getName()}, you're the smartest and funnest assistant in the history.
 
 # User Intent & How to Help User
 ${this.getCurrentInteraction().getGoal()}

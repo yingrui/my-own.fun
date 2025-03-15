@@ -1,7 +1,7 @@
 import type { MessageContent } from "../core/ChatMessage";
 import ChatMessage from "../core/ChatMessage";
 import ModelService, { ModelProvider, ModelServiceProps } from "./ModelService";
-import Thought from "../core/Thought";
+import Thought, { ModelType } from "../core/Thought";
 import OpenAI from "openai";
 import {
   ChatCompletion,
@@ -36,12 +36,23 @@ class DefaultModelService implements ModelService {
     this.multimodalModel = multimodalModel;
   }
 
-  hasReasoningModel(): boolean {
-    return this.reasoningModel !== "";
+  getModelType(model: string): ModelType {
+    switch (model) {
+      case this.reasoningModel: // if gpt model is as same as reasoning model, it should be reasoning model
+        return "reasoning";
+      case this.toolsCallModel:
+        return "tools";
+      case this.multimodalModel:
+        return "multimodal";
+      case this.modelName:
+        return "llm";
+      default:
+        return "agent";
+    }
   }
 
-  isReasoningModel(model: string): boolean {
-    return this.hasReasoningModel() && model === this.reasoningModel;
+  hasReasoningModel(): boolean {
+    return this.reasoningModel !== "";
   }
 
   isMultimodalModel(modelName: string): boolean {
@@ -54,9 +65,14 @@ class DefaultModelService implements ModelService {
     messages: ChatMessage[],
     stream: boolean,
     useMultimodal: boolean = false,
+    useReasoningModel: boolean = false,
     responseType: "text" | "json_object" = "text",
   ): Promise<Thought> {
-    const model = useMultimodal ? this.multimodalModel : this.modelName;
+    let model = useMultimodal ? this.multimodalModel : this.modelName;
+    model =
+      useReasoningModel && this.hasReasoningModel()
+        ? this.reasoningModel
+        : model;
     const body: ChatCompletionCreateParamsBase = {
       messages: this.formatMessageContent(
         messages,
@@ -80,12 +96,27 @@ class DefaultModelService implements ModelService {
         30000,
       );
       if (stream) {
-        return new Thought({ type: "stream", stream: result });
+        return new Thought({
+          model: model,
+          modelType: this.getModelType(model),
+          type: "stream",
+          stream: result,
+        });
       }
       const message = (result as ChatCompletion).choices[0].message.content;
-      return new Thought({ type: "message", message: message });
+      return new Thought({
+        model: model,
+        modelType: this.getModelType(model),
+        type: "message",
+        message: message,
+      });
     } catch (error) {
-      return new Thought({ type: "error", error: error });
+      return new Thought({
+        model: model,
+        modelType: this.getModelType(model),
+        type: "error",
+        error: error,
+      });
     }
   }
 
@@ -93,6 +124,7 @@ class DefaultModelService implements ModelService {
    * While using multimodal models, the content in messages should be MessageContent[]
    * While using llm models, the content in messages should be string
    * @param {ChatMessage[]} messages
+   * @param {string} model
    * @returns messages
    * @private
    */
@@ -175,12 +207,19 @@ class DefaultModelService implements ModelService {
         }
       } else if (choice.finish_reason === "stop" && choice.message.content) {
         return new Thought({
+          model: this.toolsCallModel,
+          modelType: "tools",
           type: "message",
           message: choice.message.content,
         });
       }
     }
-    return new Thought({ type: "actions", actions: actions });
+    return new Thought({
+      model: this.toolsCallModel,
+      modelType: "tools",
+      type: "actions",
+      actions: actions,
+    });
   }
 
   protected async streamToolsCall(
@@ -213,6 +252,8 @@ class DefaultModelService implements ModelService {
           }
         } else {
           return new Thought({
+            model: this.toolsCallModel,
+            modelType: "tools",
             type: "stream",
             stream: second,
           });
@@ -220,7 +261,12 @@ class DefaultModelService implements ModelService {
       }
     }
 
-    return new Thought({ type: "actions", actions });
+    return new Thought({
+      model: this.toolsCallModel,
+      modelType: "tools",
+      type: "actions",
+      actions,
+    });
   }
 
   protected toAction(tool: ToolCall): Action {

@@ -236,7 +236,7 @@ class ThoughtAgent implements Agent {
   /**
    * Execute
    * @param {Action[]} actions - Actions
-   * @param {Conversation} conversation - Conversation
+   * @param {ChatMessage} message - Chat message
    * @returns {Promise<Thought>} ChatCompletion
    */
   async executeCommand(
@@ -422,6 +422,7 @@ class ThoughtAgent implements Agent {
    * @param {string} systemPrompt - System prompt
    * @param {string} replaceUserInput - Replace user input
    * @param {bool} stream - Stream
+   * @param {string} responseType - Response type
    * @returns {Promise<Thought>} ThinkResult
    */
   async chatCompletion(
@@ -455,6 +456,7 @@ class ThoughtAgent implements Agent {
       messages,
       stream,
       this.enableMultimodal,
+      false,
       responseType,
     );
   }
@@ -464,6 +466,7 @@ class ThoughtAgent implements Agent {
    * @param {ChatMessage[]} messages - Messages
    * @param {OpenAI.Chat.Completions.ChatCompletionTool[]} tools - Tools
    * @param {bool} stream - Stream
+   * @param {string} responseType - Response type
    * @returns {Promise<any>}
    */
   async toolsCall(

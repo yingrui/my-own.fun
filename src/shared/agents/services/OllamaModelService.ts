@@ -53,6 +53,8 @@ class OllamaModelService extends DefaultModelService {
         if (choice.finish_reason !== "tool_calls") {
           if (!tools) {
             return new Thought({
+              model: this.toolsCallModel,
+              modelType: "tools",
               type: "stream",
               stream: second,
             });
@@ -62,7 +64,12 @@ class OllamaModelService extends DefaultModelService {
     }
 
     // even if the actions is empty, the trackingDialogueState will handle it.
-    return new Thought({ type: "actions", actions });
+    return new Thought({
+      model: this.toolsCallModel,
+      modelType: "tools",
+      type: "actions",
+      actions,
+    });
   }
 }
 

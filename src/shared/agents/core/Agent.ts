@@ -32,6 +32,7 @@ interface Agent {
   /**
    * Add listener for receiving stream message
    * @param listener
+   * @returns {Agent} Agent
    */
   onMessageChange(listener: (msg: string) => void): Agent;
 
@@ -57,8 +58,8 @@ interface Agent {
   /**
    * Execute command
    * @param {Action[]} actions - Actions
-   * @param {Conversation} conversation - Conversation
-   * @returns {Promise<Thought>} ChatCompletion
+   * @param {ChatMessage} message - Chat message
+   * @returns {Promise<Thought>} Thought
    */
   executeCommand(actions: Action[], message: ChatMessage): Promise<Thought>;
 

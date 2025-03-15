@@ -1,9 +1,32 @@
 import SensitiveTopicError from "./errors/SensitiveTopicError";
 
-declare type ThoughtType = "actions" | "message" | "stream" | "error";
+/**
+ * Action type
+ * @enum {string}
+ * @property {string} actions - should take actions
+ * @property {string} message - should reply with message
+ * @property {string} stream - should reply with stream message
+ * @property {string} error - should handle error
+ * @readonly
+ */
+type ThoughtType = "actions" | "message" | "stream" | "error";
 
-declare interface ThoughtProps {
+/**
+ * Model type - the thought is come from which type of model
+ * @enum {string}
+ * @property {string} llm - LLM model
+ * @property {string} tools - Tools model
+ * @property {string} reasoning - Reasoning model
+ * @property {string} multimodal - Multimodal model
+ * @property {string} agent - thought is from agent, the model is not specified
+ * @readonly
+ */
+type ModelType = "llm" | "tools" | "reasoning" | "multimodal" | "agent";
+
+interface ThoughtProps {
   type: ThoughtType;
+  model?: string;
+  modelType?: ModelType;
   actions?: Action[];
   stream?: any;
   message?: string;
@@ -12,14 +35,25 @@ declare interface ThoughtProps {
 
 class Thought {
   public readonly type: ThoughtType;
+  public readonly model: string;
+  public readonly modelType: ModelType;
   public readonly actions?: Action[];
   public readonly stream?: AsyncIterator<any>;
   public readonly message?: string;
   public readonly error?: Error;
 
-  constructor(props: ThoughtProps) {
-    const { type, actions, stream, message, error } = props;
+  constructor({
+    type,
+    model,
+    modelType,
+    actions,
+    stream,
+    message,
+    error,
+  }: ThoughtProps) {
     this.type = type;
+    this.model = model ?? "";
+    this.modelType = modelType ?? "agent";
     this.actions = actions;
     this.stream = stream;
     this.message = message;
@@ -67,3 +101,4 @@ class Thought {
 }
 
 export default Thought;
+export { ThoughtProps, ThoughtType, ModelType };

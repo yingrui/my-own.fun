@@ -39,6 +39,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
       ],
       true,
       false,
+      true,
       "text",
     );
     return thought.getMessage(notifyMessageChanged);
@@ -125,6 +126,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
         ],
         true,
         false,
+        false,
         "text",
       );
     }
@@ -151,6 +153,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
       ],
       false,
       false,
+      true,
       "json_object",
     );
     if (result.type === "message") {
@@ -305,13 +308,15 @@ ${conversationContent}
         ? env.content?.text?.slice(0, 1024 * 5)
         : env.content?.text;
 
-    const currenStatus = env.content ? `## Status
+    const currenStatus = env.content
+      ? `## Status
 The user is browsing webpage:
 - Title: ${env.content?.title}
 - URL: ${env.content?.url}
 - Content: 
 ${text}
-` : ""
+`
+      : "";
 
     return `## Role: Assistant
 ## Task

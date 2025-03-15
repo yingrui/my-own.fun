@@ -1,5 +1,5 @@
 import ChatMessage from "../core/ChatMessage";
-import Thought from "../core/Thought";
+import Thought, { ModelType } from "../core/Thought";
 import OpenAI from "openai";
 
 type ModelProvider = "zhipu.ai" | "openai.com" | "ollama" | "custom";
@@ -45,6 +45,12 @@ interface ModelService {
   hasReasoningModel(): boolean;
 
   /**
+   * Decide if it has reasoning model
+   * @returns {bool} has reasoning model
+   */
+  getModelType(model: string): ModelType;
+
+  /**
    * Decide if it is multimodal model
    * @param {string} modelName - model name
    * @returns {bool} is multimodal model
@@ -63,6 +69,7 @@ interface ModelService {
     messages: ChatMessage[],
     stream: boolean,
     useMultimodal: boolean,
+    useReasoningModel: boolean,
     responseType: "text" | "json_object",
   ): Promise<Thought>;
 
