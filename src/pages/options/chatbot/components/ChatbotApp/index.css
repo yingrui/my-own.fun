@@ -22,3 +22,13 @@
   max-width: 50vw;
   background-color: #fff;
 }
+
+@media (max-width: 900px) {
+  .chatbot-addons {
+    display: none;
+  }
+
+  .chatbot-conversation {
+    max-width: 90vw;
+  }
+}

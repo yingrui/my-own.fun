@@ -57,6 +57,17 @@ class ThoughtAgent implements Agent {
   }
 
   /**
+   * Get current environment
+   */
+  protected getCurrentEnvironment(): Environment {
+    return this.getCurrentInteraction().environment;
+  }
+
+  protected getCurrentInteraction(): Interaction {
+    return this.getConversation().getCurrentInteraction();
+  }
+
+  /**
    * On start interaction:
    *  1. append user message
    *  2. perception environment
@@ -74,17 +85,6 @@ class ThoughtAgent implements Agent {
   }
 
   /**
-   * Get current environment
-   */
-  protected getCurrentEnvironment(): Environment {
-    return this.getCurrentInteraction().environment;
-  }
-
-  protected getCurrentInteraction(): Interaction {
-    return this.getConversation().getCurrentInteraction();
-  }
-
-  /**
    * When the chat (or executeCommand) is completed, then do the following:
    * 1. Get the message from the thought
    * 2. Append the message to the conversation, and then save the conversation
@@ -97,22 +97,7 @@ class ThoughtAgent implements Agent {
       return result.error.message;
     }
 
-    let message = await result.getMessage((msg) => {
-      this.notifyMessageChanged(msg);
-    });
-
-    let thought = await this.reflection();
-    while (thought && thought.type === "actions") {
-      await this.execute(thought.actions);
-      thought = await this.reflection();
-    }
-    if (thought && ["stream", "message"].includes(thought.type)) {
-      this.notifyMessageChanged("");
-      message = await thought.getMessage((msg) => {
-        this.notifyMessageChanged(msg);
-      });
-    }
-
+    const message = await result.getMessage();
     this.getConversation().appendMessage(
       new ChatMessage({
         role: "assistant",
@@ -123,6 +108,53 @@ class ThoughtAgent implements Agent {
     await this.record();
 
     this.getCurrentInteraction().setStatus("Completed", "");
+    return message;
+  }
+
+  /**
+   * Observes the result of the thought, revise the answer if needed
+   * @param result
+   * @returns {Promise<Thought>}
+   */
+  private async observe(result: Thought): Promise<Thought> {
+    if (result.type === "error") {
+      this.getCurrentInteraction().setStatus("Completed", "");
+      return result;
+    }
+
+    let message = await this.readMessage(result);
+
+    let thought = await this.reflection();
+    while (thought && thought.type === "actions") {
+      const actionResult = await this.execute(thought.actions);
+      message = await this.readMessage(actionResult);
+      thought = await this.reflection();
+    }
+    if (thought) {
+      if (["stream", "message"].includes(thought.type)) {
+        message = await this.readMessage(thought);
+      }
+    }
+
+    return new Thought({
+      model: this.getName(),
+      modelType: "agent",
+      type: "message",
+      message: message,
+    });
+  }
+
+  private async readMessage(thought: Thought) {
+    const message = await thought.getMessage((msg) => {
+      this.notifyMessageChanged(msg);
+    });
+    this.getCurrentInteraction().setOutputMessage(
+      new ChatMessage({
+        role: "assistant",
+        content: message,
+        name: this.getName(),
+      }),
+    );
     return message;
   }
 
@@ -217,7 +249,8 @@ class ThoughtAgent implements Agent {
     await this.onStartInteraction(message);
     const thought = await this.plan();
     const result = await this.process(thought);
-    const output = await this.onCompleted(result);
+    const revised = await this.observe(result);
+    const output = await this.onCompleted(revised);
     return new Thought({ type: "message", message: output });
   }
 

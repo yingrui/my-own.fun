@@ -91,12 +91,8 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     const result = await this.modelService.toolsCall(
       [
         new ChatMessage({
-          role: "system",
-          content: this.getReflectionPrompt(env, conversation),
-        }),
-        new ChatMessage({
           role: "user",
-          content: `Please follow the reflection prompt, and answer in ${this.language}`,
+          content: this.getReflectionPrompt(env, conversation),
         }),
       ],
       toolCalls,
@@ -166,7 +162,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     env: Environment,
     conversation: Conversation,
   ): string {
-    const conversationContent = conversation.toString();
+    const conversationContent = conversation.toJSONString();
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -207,9 +203,11 @@ if not satisfied, but the answer is still useful, then return:
 ## Examples
 ### Example 1
 #### Conversation Messages
-user goal: Find the information about the Hinton.
+\`\`\`json
+{"user goal": Find the information about the Hinton.
 user: When the Hinton won the nobel prize?
-assistant: I don't know, I have the knowledge before 2023.
+assistant: I don't know, I have the knowledge before 2023.}
+\`\`\`
 #### Output
 Should choose search action to find the answer.
 
@@ -230,7 +228,9 @@ assistant: 1.11 is greater than 1.2
 {"evaluation": "suggest", "feedback": "the 1.11 is not greater than 1.2, please correct it."}
 
 #### Conversation Messages
+\`\`\`json
 ${conversationContent}
+\`\`\`
 
 #### Output
 `;
@@ -241,29 +241,37 @@ ${conversationContent}
     conversation: Conversation,
     feedback: string,
   ): string {
-    const conversationContent = conversation.toString();
+    const conversationContent = conversation.toJSONString();
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
         : env.content?.text;
+
+    const currenStatus = env.content
+      ? `## Status
+The user is browsing webpage:
+- Title: ${env.content?.title}
+- URL: ${env.content?.url}
+- Content: 
+${text}
+`
+      : "";
+
     return `## Role: Assistant
 ## Task
-The given answer is not good enough, please revise the last answer based on below feedback: 
+The given answer could be improved based on below feedback: 
 ${feedback}
 
 ### Watch out
 - You don't need to apologize, just correct the answer.
 - The feedback is not provided by the user, it's self-review of AI.
 
-## Status
-The user is browsing webpage:
-- Title: ${env.content?.title}
-- URL: ${env.content?.url}
-- Content: 
-${text}
+${currenStatus}
 
 ## Conversation Messages
+\`\`\`json
 ${conversationContent}
+\`\`\`
 `;
   }
 
@@ -271,14 +279,27 @@ ${conversationContent}
     env: Environment,
     conversation: Conversation,
   ): string {
-    const conversationContent = conversation.toString();
+    const conversationContent = conversation.toJSONString();
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
         : env.content?.text;
+
+    const currenStatus = env.content
+      ? `## Status
+The user is browsing webpage:
+- Title: ${env.content?.title}
+- URL: ${env.content?.url}
+- Content: 
+${text}
+`
+      : "";
+
     return `## Role: Assistant
 ## Task
 Suggest more questions or links he/she can visit. 
+
+${currenStatus}
 
 ## Output JSON Format
 \`\`\`json
@@ -288,21 +309,18 @@ Suggest more questions or links he/she can visit.
 }
 \`\`\`
 
-## Status
-The user is browsing webpage:
-- Title: ${env.content?.title}
-- URL: ${env.content?.url}
-- Links: ${env.content?.links}
-- Content: 
-${text}
-
 ## Conversation Messages
+\`\`\`json
 ${conversationContent}
+\`\`\`
 `;
   }
 
   private getGoalPrompt(env: Environment, conversation: Conversation): string {
-    const conversationContent = conversation.toString();
+    const conversationContent = conversation.toJSONString();
+    const userInput = conversation
+      .getCurrentInteraction()
+      .inputMessage.getContentText();
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -323,15 +341,20 @@ ${text}
 Analysis user's goal, consider the previous goals, if the goal is not change, could use previous goals.
 ${this.enableChainOfThoughts ? "And then, give the thoughts of how to achieve the goal step by step." : ""}
 
-## Output Format
-Keep the output goal short and precise, just one sentence, less than 50 words. 
-
-Note: user language is ${this.language}
-
 ${currenStatus}
 
+## Output Format
+Keep the output goal short and precise, just one sentence, less than 50 words. 
+Note: user language is ${this.language}
+
 ## Conversation Messages
+Analysis below json messages, each interaction contains user goal, user message and assistant message.
+\`\`\`json
 ${conversationContent}
+\`\`\`
+
+### Current User Input
+${userInput}
 `;
   }
 }

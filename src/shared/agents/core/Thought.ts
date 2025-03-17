@@ -41,6 +41,7 @@ class Thought {
   public readonly stream?: AsyncIterator<any>;
   public readonly message?: string;
   public readonly error?: Error;
+  private streamMessage: string;
 
   constructor({
     type,
@@ -64,10 +65,14 @@ class Thought {
     notifyMessageChanged: (msg: string) => void = undefined,
   ): Promise<string> {
     if (this.type === "stream") {
-      return await this.readMessageFromStream(
+      if (this.streamMessage) {
+        return this.streamMessage;
+      }
+      this.streamMessage = await this.readMessageFromStream(
         this.stream,
         notifyMessageChanged,
       );
+      return this.streamMessage;
     } else if (this.type === "message") {
       return this.message;
     }

@@ -157,16 +157,22 @@ There is a problem that you cannot get any information from current tab, it's po
       result = await this.open_url({ userInput, url: url }, messages);
     }
 
-    const status = await result.getMessage();
-    if (status === this.urlIsOpened) {
-      const env = await this.environment();
-      return await this.chatCompletion([
-        new ChatMessage({ role: "system", content: env.systemPrompt() }),
-        new ChatMessage({ role: "user", content: userInput }),
-      ]);
+    if (result) {
+      const status = await result.getMessage();
+      if (status === this.urlIsOpened) {
+        const env = await this.environment();
+        return await this.chatCompletion([
+          new ChatMessage({ role: "system", content: env.systemPrompt() }),
+          new ChatMessage({ role: "user", content: userInput }),
+        ]);
+      }
+      return new Thought({ type: "message", message: status });
     }
 
-    return new Thought({ type: "message", message: status });
+    return new Thought({
+      type: "error",
+      error: new Error(`Invalid visit action: ${args}`),
+    });
   }
 
   async google(args: object, messages: ChatMessage[]): Promise<Thought> {

@@ -91,15 +91,14 @@ class Conversation {
     return this.datetime;
   }
 
-  public toString(): string {
-    return this.interactions
-      .map(
-        (i) => `user goal: ${i.getGoal()}
-user: ${i.inputMessage.getContentText()}
-assistant: ${i.outputMessage?.getContentText()}
-`,
-      )
-      .join("\n");
+  public toJSONString(): string {
+    return JSON.stringify(
+      this.interactions.map((i) => ({
+        goal: i.getGoal() ?? "",
+        user: i.inputMessage?.getContentText() ?? "",
+        assistant: i.outputMessage?.getContentText() ?? "",
+      })),
+    );
   }
 }
 

@@ -90,6 +90,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       if (e instanceof SensitiveTopicError) {
         return intl.get("sensitive_topic").d("Sensitive topic detected.");
       } else {
+        console.warn(e);
         return e.message;
       }
     }
