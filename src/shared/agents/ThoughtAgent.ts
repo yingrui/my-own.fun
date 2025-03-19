@@ -237,21 +237,23 @@ class ThoughtAgent implements Agent {
   async chat(message: ChatMessage): Promise<Thought> {
     await this.onStartInteraction(message);
     let result: Thought = null;
-    let continueAction = false;
 
     let plan = await this.plan();
     do {
       result = await this.process(plan);
       plan = await this.observe(result); // directly return the result if reflection is disabled
-      continueAction = plan && plan.type === "actions";
-    } while (this.enableReflection && continueAction);
+    } while (this.enableReflection && plan && plan.type === "actions");
 
     const output = await this.onCompleted(result);
+    return this.createThought(output);
+  }
+
+  protected createThought(message: string) {
     return new Thought({
       model: this.getName(),
       modelType: "agent",
       type: "message",
-      message: output,
+      message: message,
     });
   }
 
@@ -316,10 +318,9 @@ class ThoughtAgent implements Agent {
       content: env.systemPrompt(),
     });
     const messages = this.conversation.getMessages();
-    const messagesWithEnv = env.systemPrompt()
+    return env.systemPrompt()
       ? [systemMessage, ...messages.slice(1)]
       : messages;
-    return messagesWithEnv;
   }
 
   private async guessGoal(interaction: Interaction) {
