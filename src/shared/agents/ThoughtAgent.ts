@@ -92,8 +92,9 @@ class ThoughtAgent implements Agent {
    * @param result
    */
   private async onCompleted(result: Thought): Promise<string> {
+    this.getCurrentInteraction().setStatus("Completed", "");
+
     if (result.type === "error") {
-      this.getCurrentInteraction().setStatus("Completed", "");
       return result.error.message;
     }
 
@@ -107,44 +108,16 @@ class ThoughtAgent implements Agent {
     );
     await this.record();
 
-    this.getCurrentInteraction().setStatus("Completed", "");
     return message;
   }
 
   /**
-   * Observes the result of the thought, revise the answer if needed
-   * @param result
-   * @returns {Promise<Thought>}
+   * Read message from thought, save the message to the current interaction and notify the message changed
+   * @param thought
+   * @returns {Promise<string>}
+   * @private
    */
-  private async observe(result: Thought): Promise<Thought> {
-    if (result.type === "error") {
-      this.getCurrentInteraction().setStatus("Completed", "");
-      return result;
-    }
-
-    let message = await this.readMessage(result);
-
-    let thought = await this.reflection();
-    while (thought && thought.type === "actions") {
-      const actionResult = await this.execute(thought.actions);
-      message = await this.readMessage(actionResult);
-      thought = await this.reflection();
-    }
-    if (thought) {
-      if (["stream", "message"].includes(thought.type)) {
-        message = await this.readMessage(thought);
-      }
-    }
-
-    return new Thought({
-      model: this.getName(),
-      modelType: "agent",
-      type: "message",
-      message: message,
-    });
-  }
-
-  private async readMessage(thought: Thought) {
+  private async readMessage(thought: Thought): Promise<string> {
     const message = await thought.getMessage((msg) => {
       this.notifyMessageChanged(msg);
     });
@@ -240,6 +213,22 @@ class ThoughtAgent implements Agent {
   }
 
   /**
+   * Execute
+   * @param {Action[]} actions - Actions
+   * @param {ChatMessage} message - Chat message
+   * @returns {Promise<Thought>} ChatCompletion
+   */
+  async executeCommand(
+    actions: Action[],
+    message: ChatMessage,
+  ): Promise<Thought> {
+    await this.onStartInteraction(message);
+    const result = await this.execute(actions);
+    const output = await this.onCompleted(result);
+    return new Thought({ type: "message", message: output });
+  }
+
+  /**
    * Choose the tool agent to execute the tool
    * @param {ChatMessage} message - Chat message
    * @returns {Promise<Thought>} ChatCompletion
@@ -247,11 +236,23 @@ class ThoughtAgent implements Agent {
    */
   async chat(message: ChatMessage): Promise<Thought> {
     await this.onStartInteraction(message);
-    const thought = await this.plan();
-    const result = await this.process(thought);
-    const revised = await this.observe(result);
-    const output = await this.onCompleted(revised);
-    return new Thought({ type: "message", message: output });
+    let result: Thought = null;
+    let continueAction = false;
+
+    let plan = await this.plan();
+    do {
+      result = await this.process(plan);
+      plan = await this.observe(result); // directly return the result if reflection is disabled
+      continueAction = plan && plan.type === "actions";
+    } while (this.enableReflection && continueAction);
+
+    const output = await this.onCompleted(result);
+    return new Thought({
+      model: this.getName(),
+      modelType: "agent",
+      type: "message",
+      message: output,
+    });
   }
 
   private async process(thought: Thought): Promise<Thought> {
@@ -267,19 +268,16 @@ class ThoughtAgent implements Agent {
   }
 
   /**
-   * Execute
-   * @param {Action[]} actions - Actions
-   * @param {ChatMessage} message - Chat message
-   * @returns {Promise<Thought>} ChatCompletion
+   * Observes the result of the thought, revise the answer if needed
+   * @param result
+   * @returns {Promise<Thought>}
    */
-  async executeCommand(
-    actions: Action[],
-    message: ChatMessage,
-  ): Promise<Thought> {
-    await this.onStartInteraction(message);
-    const result = await this.execute(actions);
-    const output = await this.onCompleted(result);
-    return new Thought({ type: "message", message: output });
+  private async observe(result: Thought): Promise<Thought> {
+    if (!this.enableReflection || result.type === "error") {
+      return result;
+    }
+    await this.readMessage(result);
+    return await this.reflection();
   }
 
   /**
