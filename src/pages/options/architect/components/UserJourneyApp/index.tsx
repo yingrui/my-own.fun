@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
-import { CheckOutlined, EditOutlined } from "@ant-design/icons";
+import MarkdownTextArea from "@src/shared/components/MarkdownTextArea";
 
 interface UserJourneyProps {
   config: GluonConfigure;
@@ -23,7 +23,6 @@ const UserJourneyApp: React.FC<UserJourneyProps> = ({ config }) => {
   const [loading, setLoading] = useState(true);
   const contextRef = useRef(new UserJourneyContext(config));
   const [mode, setMode] = useState<"editing" | "viewing">("editing");
-  const [editResult, setEditResult] = useState<boolean>(false);
   const [userJourney, setUserJourney] = useState<string>("");
   const [details, setDetails] = useState<string>("");
   const [boardUrl, setBoardUrl] = useState<string>("");
@@ -109,6 +108,11 @@ const UserJourneyApp: React.FC<UserJourneyProps> = ({ config }) => {
     setGenerating(false);
   };
 
+  const updateGeneratedText = (text: string) => {
+    setGeneratedText(text);
+    setUserJourney(extractUserJourney(text));
+  };
+
   return (
     <Layout style={{ padding: "24px" }} className={"user-journey-app"}>
       <Layout
@@ -169,34 +173,11 @@ const UserJourneyApp: React.FC<UserJourneyProps> = ({ config }) => {
             {intl.get("user_journey_view_mode").d("View Mode")}
           </Button>
         </div>
-        <div className={"generated-text"}>
-          <div className={"float-action-icon"}>
-            {editResult && (
-              <CheckOutlined onClick={() => setEditResult(false)} />
-            )}
-            {!editResult && (
-              <EditOutlined onClick={() => setEditResult(true)} />
-            )}
-          </div>
-          {editResult && (
-            <TextArea
-              className={"generated-text-textarea"}
-              disabled={generating}
-              value={generatedText}
-              style={{ height: "100%" }}
-              onChange={(e) => setGeneratedText(e.target.value)}
-            />
-          )}
-          {!editResult && (
-            <ReactMarkdown
-              className={"generated-text-markdown-editor"}
-              rehypePlugins={rehypePlugins as any}
-              remarkPlugins={remarkPlugins as any}
-            >
-              {generatedText}
-            </ReactMarkdown>
-          )}
-        </div>
+        <MarkdownTextArea
+          disabled={generating}
+          text={generatedText}
+          textChanged={updateGeneratedText}
+        />
       </Layout>
       <Layout className={"user-journey-preview"}>
         <div style={{ height: "100%" }}>

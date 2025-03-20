@@ -4,7 +4,6 @@ import "./index.css";
 import ElevatorPitchContext, {
   ElevatorPitchRecord,
 } from "@pages/options/architect/context/ElevatorPitchContext";
-import ElevatorPitchEditor from "@pages/options/architect/components/ElevatorPitchEditor";
 import ElevatorPitchDetails from "@pages/options/architect/components/ElevatorPitchDetails";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import ElevatorPitchPreview from "@pages/options/architect/components/ElevatorPitchPreview";
@@ -46,18 +45,7 @@ const ElevatorPitchApp: React.FC<ElevatorPitchProps> = ({ config }) => {
         context={contextRef.current}
         onElevatorPitchChanged={onElevatorPitchChanged}
       />
-      {editing ? (
-        <ElevatorPitchEditor
-          context={contextRef.current}
-          elevatorPitchRecord={elevatorPitch}
-          onElevatorPitchChanged={onElevatorPitchChanged}
-        />
-      ) : (
-        <ElevatorPitchPreview
-          context={contextRef.current}
-          onEdit={() => setEditing(true)}
-        />
-      )}
+      <ElevatorPitchPreview context={contextRef.current} />
     </Layout>
   );
 };

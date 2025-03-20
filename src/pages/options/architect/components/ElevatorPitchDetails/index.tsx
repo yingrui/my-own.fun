@@ -6,13 +6,9 @@ import intl from "react-intl-universal";
 import ElevatorPitchContext, {
   ElevatorPitchRecord,
 } from "@pages/options/architect/context/ElevatorPitchContext";
-import ReactMarkdown from "react-markdown";
-import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm";
+import MarkdownTextArea from "@src/shared/components/MarkdownTextArea";
 
 const { TextArea } = Input;
-const rehypePlugins = [rehypeKatex];
-const remarkPlugins = [remarkGfm];
 
 interface ElevatorPitchDetailsProps {
   context: ElevatorPitchContext;
@@ -32,6 +28,7 @@ const ElevatorPitchDetails: React.FC<ElevatorPitchDetailsProps> = ({
   const [feedback, setFeedback] = useState<string>(
     context.getElevatorPitch().feedback,
   );
+  const [generating, setGenerating] = useState<boolean>(false);
   const [generatedElevatorPitch, setGeneratedElevatorPitch] = useState<string>(
     context.getElevatorPitch().generatedElevatorPitch,
   );
@@ -73,6 +70,14 @@ const ElevatorPitchDetails: React.FC<ElevatorPitchDetailsProps> = ({
     }
   };
 
+  const updateElevatorPitch = (text) => {
+    const matches = /```json\n([\s\S]*?)\n```/g.exec(text);
+    if (matches.length > 0) {
+      text = matches[1];
+    }
+    setGeneratedElevatorPitch(text);
+  };
+
   const handleSubmit = async () => {
     if (!details) {
       message.error(
@@ -92,10 +97,12 @@ const ElevatorPitchDetails: React.FC<ElevatorPitchDetailsProps> = ({
     // Add logic to handle the submitted pitch
     const elevatorPitchAgent = context.getElevatorPitchAgent();
     const result = await elevatorPitchAgent.elevatorPitch(props);
+    setGenerating(true);
     const msg = await result.getMessage((msg) => {
       setGeneratedElevatorPitch(msg);
     });
     setGeneratedElevatorPitch(msg);
+    setGenerating(false);
   };
 
   return (
@@ -154,12 +161,11 @@ const ElevatorPitchDetails: React.FC<ElevatorPitchDetailsProps> = ({
           {intl.get("elevator_pitch_save").d("Save")}
         </Button>
       </div>
-      <div className={"generated-elevator-pitch"}>
-        <ReactMarkdown
-          rehypePlugins={rehypePlugins as any}
-          remarkPlugins={remarkPlugins as any}
-        >{`\`\`\`json\n${generatedElevatorPitch}\`\`\``}</ReactMarkdown>
-      </div>
+      <MarkdownTextArea
+        disabled={generating}
+        text={`\`\`\`json\n${generatedElevatorPitch}\n\`\`\``}
+        textChanged={updateElevatorPitch}
+      />
       {contextHolder}
     </Layout>
   );

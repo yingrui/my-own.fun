@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Layout } from "antd";
+import { Layout } from "antd";
 
 import "./index.css";
 import intl from "react-intl-universal";
@@ -7,12 +7,10 @@ import ElevatorPitchContext from "@pages/options/architect/context/ElevatorPitch
 
 interface ElevatorPitchPreviewProps {
   context: ElevatorPitchContext;
-  onEdit: () => void;
 }
 
 const ElevatorPitchPreview: React.FC<ElevatorPitchPreviewProps> = ({
   context,
-  onEdit,
 }) => {
   const elevatorPitch = context.getElevatorPitchRecord();
 
@@ -98,11 +96,6 @@ const ElevatorPitchPreview: React.FC<ElevatorPitchPreviewProps> = ({
               .get("elevator_pitch_differentiation_placeholder")
               .d("statement of primary differentiation")}
         </span>
-      </div>
-      <div className={"form-submit-buttons"} style={{ marginTop: "12px" }}>
-        <Button type="default" onClick={onEdit}>
-          {intl.get("edit").d("Edit")}
-        </Button>
       </div>
     </Layout>
   );

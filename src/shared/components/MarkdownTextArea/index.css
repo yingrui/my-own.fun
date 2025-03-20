@@ -1,0 +1,33 @@
+.markdown-textarea {
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  height: 100%;
+  overflow: auto;
+}
+
+.markdown-textarea .textarea {
+  border: 0;
+  height: 100%;
+  padding: 8px;
+}
+
+.markdown-textarea .markdown-preview {
+  padding: 8px;
+}
+
+.float-action-icon {
+  float: right;
+  position: relative;
+  right: 8px;
+  top: 4px;;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.mermaid svg {
+  max-height: none;
+  height: 60vh!important;
+}
