@@ -56,9 +56,11 @@ graph TD;
 ```
 
 There are some frontend AI agents has been built for study, and here is a demo called AutoGLM:
+
 <video width="640" height="480" controls="">
     <source src="https://xiao9905.github.io/AutoGLM/static/videos/web_overall_video.mp4" type="video/mp4">
 </video>
+
 
 [AutoGLM: Autonomous Foundation Agents for GUIs](https://xiao9905.github.io/AutoGLM/)
 

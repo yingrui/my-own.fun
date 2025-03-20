@@ -18,30 +18,6 @@
   margin-right: 12px;
 }
 
-.generated-text {
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  height: 100%;
-  overflow: auto;
-}
-
-.generated-text .generated-text-textarea {
-  border: 0;
-  height: 100%;
-  padding: 8px;
-}
-
-.generated-text .generated-text-markdown-editor {
-  padding: 8px;
-}
-
-.float-action-icon {
-  float: right;
-  position: relative;
-  right: 8px;
-  top: 4px;;
-}
-
 pre {
   white-space: pre-wrap;
   word-wrap: break-word;

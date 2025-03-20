@@ -64,6 +64,7 @@ graph TD;
 <source src="https://xiao9905.github.io/AutoGLM/static/videos/web_overall_video.mp4" type="video/mp4">
 </video>
 
+
 [AutoGLM: Autonomous Foundation Agents for GUIs](https://xiao9905.github.io/AutoGLM/)
 
 ## 为什么需要前端AI Agent

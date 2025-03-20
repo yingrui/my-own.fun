@@ -225,7 +225,7 @@ class ThoughtAgent implements Agent {
     await this.onStartInteraction(message);
     const result = await this.execute(actions);
     const output = await this.onCompleted(result);
-    return new Thought({ type: "message", message: output });
+    return this.thought(output);
   }
 
   /**
@@ -245,16 +245,26 @@ class ThoughtAgent implements Agent {
     } while (this.enableReflection && plan && plan.type === "actions");
 
     const output = await this.onCompleted(result);
-    return this.createThought(output);
+    return this.thought(output);
   }
 
-  protected createThought(message: string) {
-    return new Thought({
-      model: this.getName(),
-      modelType: "agent",
-      type: "message",
-      message: message,
-    });
+  /**
+   * Think
+   * @returns {Promise<Thought>} ThinkResult
+   */
+  async plan(): Promise<Thought> {
+    const interaction = this.conversation.getCurrentInteraction();
+    interaction.setStatus("Planning", `${this.getName()} is thinking...`);
+    await this.guessGoal(interaction);
+
+    const toolCalls = this.getToolCalls();
+    if (toolCalls.length === 0) {
+      // return empty list if there is no tool
+      return new Thought({ type: "actions", actions: [] });
+    }
+
+    const messages = this.messagesWithNewSystemPrompt();
+    return await this.toolsCall(messages, toolCalls, true);
   }
 
   private async process(thought: Thought): Promise<Thought> {
@@ -290,25 +300,6 @@ class ThoughtAgent implements Agent {
     return new Promise<Environment>((resolve, reject) => {
       resolve({ systemPrompt: () => "" });
     });
-  }
-
-  /**
-   * Think
-   * @returns {Promise<Thought>} ThinkResult
-   */
-  async plan(): Promise<Thought> {
-    const interaction = this.conversation.getCurrentInteraction();
-    interaction.setStatus("Planning", `${this.getName()} is thinking...`);
-    await this.guessGoal(interaction);
-
-    const toolCalls = this.getToolCalls();
-    if (toolCalls.length === 0) {
-      // return empty list if there is no tool
-      return new Thought({ type: "actions", actions: [] });
-    }
-
-    const messages = this.messagesWithNewSystemPrompt();
-    return await this.toolsCall(messages, toolCalls, true);
   }
 
   private messagesWithNewSystemPrompt() {
@@ -513,6 +504,15 @@ class ThoughtAgent implements Agent {
       stream,
       responseType,
     );
+  }
+
+  protected thought(message: string) {
+    return new Thought({
+      model: this.getName(),
+      modelType: "agent",
+      type: "message",
+      message: message,
+    });
   }
 
   protected promptTemplate(
