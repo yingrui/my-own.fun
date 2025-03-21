@@ -27,7 +27,7 @@ interface ThoughtAgentProps {
 }
 
 class ThoughtAgent implements Agent {
-  language: string;
+  protected readonly language: string;
   protected readonly enableMultimodal: boolean;
   protected readonly enableReflection: boolean;
   protected readonly enableChainOfThoughts: boolean;

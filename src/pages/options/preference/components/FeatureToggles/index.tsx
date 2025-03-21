@@ -63,12 +63,21 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
               <Switch />
             </Form.Item>
             <Form.Item
-              label={intl.get("enableOptionsAppSearch").d("AI Search")}
-              name="enableOptionsAppSearch"
+              label={intl.get("enableSearch").d("Search")}
+              name="enableSearch"
               valuePropName="checked"
             >
               <Switch />
             </Form.Item>
+            {config.enableSearch && (
+              <Form.Item
+                label={intl.get("enableOptionsAppSearch").d("AI Search")}
+                name="enableOptionsAppSearch"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            )}
             <Form.Item
               label={intl.get("enableOptionsAppChatbot").d("AI Assistant")}
               name="enableOptionsAppChatbot"

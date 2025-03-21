@@ -44,7 +44,7 @@ const getHeaderItems = (config: GluonConfigure): MenuProps["items"] => {
   if (config.enableOptionsAppChatbot) {
     items.push({
       key: MENU_KEYS.CHATBOT,
-      label: intl.get("options_app_chatbot").d("Chatbot"),
+      label: intl.get("options_app_chatbot").d("Fun Chat"),
     });
   }
   if (config.enableOptionsAppArchitect)

@@ -20,6 +20,7 @@ export type GluonConfigure = {
   enableReflection: boolean;
   enableMultimodal: boolean;
   enableChainOfThoughts: boolean;
+  enableSearch: boolean;
   // below are for options app
   enableOptionsAppSearch: boolean;
   enableOptionsAppChatbot: boolean;
@@ -46,6 +47,7 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   enableReflection: false,
   enableMultimodal: false,
   enableChainOfThoughts: false,
+  enableSearch: true,
   // below are for options app
   enableOptionsAppSearch: true,
   enableOptionsAppChatbot: false,
