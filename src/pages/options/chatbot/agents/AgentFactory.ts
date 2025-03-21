@@ -17,9 +17,10 @@ class AgentFactory extends BaseAgentFactory {
     this.setInitMessages(AgentFactory.getInitialMessages(config));
     this.setConversationRepository(new LocalConversationRepository());
 
-    const agents: ThoughtAgent[] = [
-      new GoogleAgent(props),
-    ];
+    const agents: ThoughtAgent[] = [];
+    if (config.enableSearch) {
+      agents.push(new GoogleAgent(props));
+    }
 
     const agent = new MyFunAssistant(
       props,

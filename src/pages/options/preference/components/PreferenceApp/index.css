@@ -8,3 +8,7 @@
   border-right-style: solid;
   border-right-color: #ccc;
 }
+
+.ant-form-item {
+  margin-bottom: 8px; // 调整间距
+}

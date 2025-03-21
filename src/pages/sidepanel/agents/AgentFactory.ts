@@ -25,7 +25,6 @@ class AgentFactory extends BaseAgentFactory {
     this.setConversationRepository(new LocalConversationRepository());
 
     const agents: ThoughtAgent[] = [
-      new GoogleAgent(props),
       new TranslateAgent(props),
       new UiTestAgent(props),
       new BACopilotAgent(
@@ -36,6 +35,10 @@ class AgentFactory extends BaseAgentFactory {
         apiKey,
       ),
     ];
+
+    if (config.enableSearch) {
+      agents.push(new GoogleAgent(props));
+    }
 
     const agent = new MyFunCopilot(
       props,
