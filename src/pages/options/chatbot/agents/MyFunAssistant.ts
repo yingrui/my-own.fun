@@ -30,11 +30,11 @@ class MyFunAssistant extends CompositeAgent {
 
   override async generateChatReply(args: object) {
     const env = await this.environment();
-    return this.chatCompletion(
-      this.getConversation().getMessages(),
-      env.systemPrompt(),
-      this.getUserPrompt(),
-    );
+    return this.chatCompletion({
+      messages: this.getConversation().getMessages(),
+      systemPrompt: env.systemPrompt(),
+      userInput: this.getUserPrompt(),
+    });
   }
 
   getInitialSystemMessage(): string {

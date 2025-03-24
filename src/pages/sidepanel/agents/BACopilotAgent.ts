@@ -63,25 +63,29 @@ class BACopilotAgent extends ThoughtAgent {
   async handleCannotGetBoardError(): Promise<Thought> {
     const prompt = `You're an Business Analyst in Software Engineering Team.
 But you cannot get any information. Reply sorry and ask user to open or navigate to story board, so you can get information from board.`;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `explain in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `explain in ${this.language}:`,
+        }),
+      ],
+    });
   }
 
   async handleCannotGetCardError(): Promise<Thought> {
     const prompt = `You're an Business Analyst or software engineer in Software Engineering Team.
 But you cannot get any card information. Reply sorry and ask user to open or navigate to story board card page, so you can get information of card.`;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `explain in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `explain in ${this.language}:`,
+        }),
+      ],
+    });
   }
 
   async generateStoryWithGPTModel(
@@ -116,13 +120,15 @@ The story format should be Given/When/Then, and should include Test Cases as wel
 Use markdown format to beautify output.`;
     }
 
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `generate story in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `generate story in ${this.language}:`,
+        }),
+      ],
+    });
   }
 
   async user_story(args: object, messages: ChatMessage[]): Promise<Thought> {
@@ -249,13 +255,15 @@ At last, use markdown format to output the details of some tasks, including:
 
 Output language: ${this.language}`;
 
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: userInput,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: userInput,
+        }),
+      ],
+    });
   }
 
   private async search(cardDescription: string): Promise<any> {

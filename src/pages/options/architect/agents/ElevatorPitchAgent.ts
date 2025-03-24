@@ -56,8 +56,8 @@ ${elevatorPitch}
 ## User Input, they may provide some feedbacks or requirements
 ${feedback}
 `;
-    return await this.chatCompletion(
-      [
+    return await this.chatCompletion({
+      messages: [
         new ChatMessage({ role: "system", content: prompt }),
         new ChatMessage({
           role: "user",
@@ -66,11 +66,9 @@ ${feedback}
             `please generate product elevator pitch in ${this.language}:`,
         }),
       ],
-      "",
-      "",
-      true,
-      "json_object",
-    );
+      stream: true,
+      responseType: "json_object",
+    });
   }
 }
 

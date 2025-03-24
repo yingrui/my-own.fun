@@ -41,13 +41,15 @@ class MyFunCopilot extends CompositeAgent {
     const prompt = `You're an assistant or chrome copilot.
 The user is viewing the page, but you cannot get any information, it's possible because the you're detached from the webpage.
 Reply sorry and ask user to refresh webpage, so you can get information from webpage.`;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `explain in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `explain in ${this.language}:`,
+        }),
+      ],
+    });
   }
 
   async summary(args: object, messages: ChatMessage[]): Promise<Thought> {
@@ -92,7 +94,12 @@ The links are: {{links}}`,
     const replaceUserInput = this.enableMultimodal
       ? imageContent(userInput, screenshot)
       : textContent(userInput);
-    return await this.chatCompletion(messages, prompt, replaceUserInput, true);
+    return await this.chatCompletion({
+      messages: messages,
+      systemPrompt: prompt,
+      userInput: replaceUserInput,
+      stream: true,
+    });
   }
 
   private get(args: object, key: string, defaultValue: string): string {
@@ -137,13 +144,15 @@ ${text}
 ## Output Instruction
 Directly give the sentence continue to the end of given text. Do not repeat the content before and after caret position.`;
     }
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `Continue writing in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `Continue writing in ${this.language}:`,
+        }),
+      ],
+    });
   }
 
   private autocompletePrompt(

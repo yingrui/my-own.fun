@@ -30,18 +30,18 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     conversation: Conversation,
     notifyMessageChanged: (msg: string) => void = undefined,
   ): Promise<string> {
-    const thought = await this.modelService.chatCompletion(
-      [
+    const thought = await this.modelService.chatCompletion({
+      messages: [
         new ChatMessage({
           role: "user",
           content: this.getGoalPrompt(env, conversation),
         }),
       ],
-      true,
-      false,
-      true,
-      "text",
-    );
+      stream: true,
+      useMultimodal: false,
+      useReasoningModel: true,
+      responseType: "text",
+    });
     return thought.getMessage(notifyMessageChanged);
   }
 
@@ -88,18 +88,17 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     conversation: Conversation,
   ) {
     const toolCalls = tools.map((t) => t.getFunction());
-    const result = await this.modelService.toolsCall(
-      [
+    return await this.modelService.toolsCall({
+      messages: [
         new ChatMessage({
           role: "user",
           content: this.getReflectionPrompt(env, conversation),
         }),
       ],
-      toolCalls,
-      false,
-      "json_object",
-    );
-    return result;
+      tools: toolCalls,
+      stream: false,
+      responseType: "json_object",
+    });
   }
 
   async revise(
@@ -109,8 +108,8 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   ): Promise<Thought> {
     const feedback = evaluation.feedback;
     if (feedback) {
-      return await this.modelService.chatCompletion(
-        [
+      return await this.modelService.chatCompletion({
+        messages: [
           new ChatMessage({
             role: "system",
             content: this.getRevisePrompt(env, conversation, feedback),
@@ -120,11 +119,11 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
             content: `Please revise the last answer based on the feedback, and answer in ${this.language}`,
           }),
         ],
-        true,
-        false,
-        false,
-        "text",
-      );
+        stream: true,
+        useMultimodal: false,
+        useReasoningModel: false,
+        responseType: "text",
+      });
     }
     return new Thought({
       type: "error",
@@ -136,8 +135,8 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     env: Environment,
     conversation: Conversation,
   ): Promise<Suggestions> {
-    const result = await this.modelService.chatCompletion(
-      [
+    const result = await this.modelService.chatCompletion({
+      messages: [
         new ChatMessage({
           role: "system",
           content: this.getSuggestionPrompt(env, conversation),
@@ -147,11 +146,11 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
           content: `Please suggest more questions or links, and answer in ${this.language}`,
         }),
       ],
-      false,
-      false,
-      true,
-      "json_object",
-    );
+      stream: false,
+      useMultimodal: false,
+      useReasoningModel: true,
+      responseType: "json_object",
+    });
     if (result.type === "message") {
       return JSON.parse(result.message) as Suggestions;
     }

@@ -1,6 +1,11 @@
 import type { MessageContent } from "../core/ChatMessage";
 import ChatMessage from "../core/ChatMessage";
-import ModelService, { ModelProvider, ModelServiceProps } from "./ModelService";
+import ModelService, {
+  ChatCompletionParams,
+  ChatCompletionTools,
+  ModelProvider,
+  ModelServiceProps,
+} from "./ModelService";
 import Thought, { ModelType } from "../core/Thought";
 import OpenAI from "openai";
 import {
@@ -61,13 +66,10 @@ class DefaultModelService implements ModelService {
     );
   }
 
-  async chatCompletion(
-    messages: ChatMessage[],
-    stream: boolean,
-    useMultimodal: boolean = false,
-    useReasoningModel: boolean = false,
-    responseType: "text" | "json_object" = "text",
-  ): Promise<Thought> {
+  async chatCompletion(params: ChatCompletionParams): Promise<Thought> {
+    const { useMultimodal, useReasoningModel, stream, responseType } = params;
+    const messages = this.getChatCompletionMessages(params);
+
     let model = useMultimodal ? this.multimodalModel : this.modelName;
     model =
       useReasoningModel && this.hasReasoningModel()
@@ -120,6 +122,32 @@ class DefaultModelService implements ModelService {
     }
   }
 
+  private getChatCompletionMessages(params: ChatCompletionParams) {
+    const { systemPrompt, userInput } = params;
+    let { messages } = params;
+
+    if (systemPrompt && messages.length > 0 && messages[0].role === "system") {
+      const systemMessage = new ChatMessage({
+        role: "system",
+        content: systemPrompt,
+      });
+      messages = [systemMessage, ...messages.slice(1)];
+    }
+
+    if (
+      userInput &&
+      messages.length > 1 &&
+      messages[messages.length - 1].role === "user"
+    ) {
+      const userMessage = new ChatMessage({
+        role: "user",
+        content: userInput,
+      });
+      messages = [...messages.slice(0, messages.length - 1), userMessage];
+    }
+    return messages;
+  }
+
   /**
    * While using multimodal models, the content in messages should be MessageContent[]
    * While using llm models, the content in messages should be string
@@ -168,12 +196,8 @@ class DefaultModelService implements ModelService {
     return messages.findIndex((msg) => typeof msg.content === "string") >= 0;
   }
 
-  async toolsCall(
-    messages: ChatMessage[],
-    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
-    stream: boolean,
-    responseType: "text" | "json_object" = "text",
-  ): Promise<Thought> {
+  async toolsCall(params: ChatCompletionTools): Promise<Thought> {
+    const { messages, tools, stream, responseType } = params;
     if (stream) {
       return await this.streamToolsCall(messages, tools, responseType);
     }

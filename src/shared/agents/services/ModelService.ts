@@ -1,4 +1,4 @@
-import ChatMessage from "../core/ChatMessage";
+import ChatMessage, { type MessageContent } from "../core/ChatMessage";
 import Thought, { ModelType } from "../core/Thought";
 import OpenAI from "openai";
 
@@ -10,6 +10,23 @@ interface ModelServiceProps {
   reasoningModel: string;
   toolsCallModel: string;
   multimodalModel: string;
+}
+
+interface ChatCompletionParams {
+  messages: ChatMessage[];
+  systemPrompt?: string;
+  userInput?: string | MessageContent[];
+  stream?: boolean;
+  useMultimodal?: boolean;
+  useReasoningModel?: boolean;
+  responseType?: "text" | "json_object";
+}
+
+interface ChatCompletionTools {
+  messages: ChatMessage[];
+  tools: OpenAI.Chat.Completions.ChatCompletionTool[];
+  stream?: boolean;
+  responseType?: "text" | "json_object";
 }
 
 interface ModelService {
@@ -59,36 +76,19 @@ interface ModelService {
 
   /**
    * Chat completion
-   * @param {ChatMessage[]} messages - Messages
-   * @param {bool} stream - Stream
-   * @param {bool} useMultimodal - Use multimodal
-   * @param {string} responseType - Response type
+   * @param {ChatCompletionParams} params - Chat completion params
    * @returns {Promise<Thought>} ThinkResult
    */
-  chatCompletion(
-    messages: ChatMessage[],
-    stream: boolean,
-    useMultimodal: boolean,
-    useReasoningModel: boolean,
-    responseType: "text" | "json_object",
-  ): Promise<Thought>;
+  chatCompletion(params: ChatCompletionParams): Promise<Thought>;
 
   /**
    * Tools call
-   * @param {ChatMessage[]} messages - Messages
-   * @param {OpenAI.Chat.Completions.ChatCompletionTool[]} tools - Tools
-   * @param {bool} stream - Stream
-   * @param {string} responseType - Response type
+   * @param {ChatCompletionTools} params - Chat completion tools
    * @returns {Promise<Thought>} ThinkResult
    */
-  toolsCall(
-    messages: ChatMessage[],
-    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
-    stream: boolean,
-    responseType: "text" | "json_object",
-  ): Promise<Thought>;
+  toolsCall(params: ChatCompletionTools): Promise<Thought>;
 }
 
 export default ModelService;
-export type { ModelProvider };
+export type { ModelProvider, ChatCompletionParams, ChatCompletionTools };
 export { ModelServiceProps };

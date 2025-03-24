@@ -29,7 +29,11 @@ class TranslateAgent extends ThoughtAgent {
 Directly output the result, below is user input:
 ${userInput}`;
 
-    return await this.chatCompletion(messages, prompt, userInput);
+    return await this.chatCompletion({
+      messages: messages,
+      systemPrompt: prompt,
+      userInput: userInput,
+    });
   }
 }
 

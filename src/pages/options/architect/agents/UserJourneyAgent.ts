@@ -50,8 +50,8 @@ ${userJourney}
 ## User Input, they may provide some feedbacks or requirements
 ${feedback}
 `;
-    return await this.chatCompletion(
-      [
+    return await this.chatCompletion({
+      messages: [
         new ChatMessage({ role: "system", content: prompt }),
         new ChatMessage({
           role: "user",
@@ -60,10 +60,8 @@ ${feedback}
             `please generate product user journey in ${this.language}:`,
         }),
       ],
-      "",
-      "",
-      true,
-    );
+      stream: true,
+    });
   }
 }
 

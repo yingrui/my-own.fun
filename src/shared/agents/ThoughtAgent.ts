@@ -5,7 +5,10 @@ import Thought from "./core/Thought";
 import Environment from "./core/Environment";
 import type { MessageContent } from "./core/ChatMessage";
 import ChatMessage from "./core/ChatMessage";
-import ModelService from "./services/ModelService";
+import ModelService, {
+  ChatCompletionParams,
+  ChatCompletionTools,
+} from "./services/ModelService";
 import ReflectionService from "./services/ReflectionService";
 import ConversationRepository from "@src/shared/agents/ConversationRepository";
 import Agent from "./core/Agent";
@@ -266,7 +269,11 @@ class ThoughtAgent implements Agent {
     }
 
     const messages = this.messagesWithNewSystemPrompt();
-    return await this.toolsCall(messages, toolCalls, true);
+    return await this.toolsCall({
+      messages: messages,
+      tools: toolCalls,
+      stream: true,
+    });
   }
 
   private async process(thought: Thought): Promise<Thought> {
@@ -414,11 +421,11 @@ class ThoughtAgent implements Agent {
 
   protected async generateChatReply(args: object) {
     const env = await this.environment();
-    return this.chatCompletion(
-      this.getConversation().getMessages(),
-      env.systemPrompt(),
-      args["userInput"],
-    );
+    return this.chatCompletion({
+      messages: this.getConversation().getMessages(),
+      systemPrompt: env.systemPrompt(),
+      userInput: args["userInput"],
+    });
   }
 
   private getMemberOfSelf(): string[] {
@@ -450,69 +457,36 @@ class ThoughtAgent implements Agent {
 
   /**
    * Chat completion
-   * @param {ChatMessage[]} messages - Messages
-   * @param {string} systemPrompt - System prompt
-   * @param {string} replaceUserInput - Replace user input
-   * @param {bool} stream - Stream
-   * @param {string} responseType - Response type
+   * @param {ChatCompletionParams} params - Chat completion params
    * @returns {Promise<Thought>} ThinkResult
    */
-  async chatCompletion(
-    messages: ChatMessage[],
-    systemPrompt: string = "",
-    replaceUserInput: string | MessageContent[] = "",
-    stream: boolean = true,
-    responseType: "text" | "json_object" = "text",
-  ): Promise<Thought> {
-    if (systemPrompt && messages.length > 0 && messages[0].role === "system") {
-      const systemMessage = new ChatMessage({
-        role: "system",
-        content: systemPrompt,
-      });
-      messages = [systemMessage, ...messages.slice(1)];
-    }
-
-    if (
-      replaceUserInput &&
-      messages.length > 1 &&
-      messages[messages.length - 1].role === "user"
-    ) {
-      const userMessage = new ChatMessage({
-        role: "user",
-        content: replaceUserInput,
-      });
-      messages = [...messages.slice(0, messages.length - 1), userMessage];
-    }
-
-    return await this.modelService.chatCompletion(
-      messages,
-      stream,
-      this.enableMultimodal,
-      false,
-      responseType,
-    );
+  async chatCompletion(params: ChatCompletionParams): Promise<Thought> {
+    const { messages, systemPrompt, userInput, stream, responseType } = params;
+    // useMultimodal and useReasoningModel are controlled by the agent
+    return await this.modelService.chatCompletion({
+      messages: messages,
+      systemPrompt: systemPrompt ?? "",
+      userInput: userInput ?? "",
+      stream: stream ?? true,
+      useMultimodal: this.enableMultimodal,
+      useReasoningModel: false,
+      responseType: responseType ?? "text",
+    });
   }
 
   /**
    * Tools call
-   * @param {ChatMessage[]} messages - Messages
-   * @param {OpenAI.Chat.Completions.ChatCompletionTool[]} tools - Tools
-   * @param {bool} stream - Stream
-   * @param {string} responseType - Response type
+   * @param {ChatCompletionTools} params - Chat completion tools
    * @returns {Promise<any>}
    */
-  async toolsCall(
-    messages: ChatMessage[],
-    tools: OpenAI.Chat.Completions.ChatCompletionTool[],
-    stream: boolean = false,
-    responseType: "text" | "json_object" = "text",
-  ): Promise<Thought> {
-    return await this.modelService.toolsCall(
-      messages,
-      tools,
-      stream,
-      responseType,
-    );
+  async toolsCall(params: ChatCompletionTools): Promise<Thought> {
+    const { messages, tools, stream, responseType } = params;
+    return await this.modelService.toolsCall({
+      messages: messages,
+      tools: tools ?? [],
+      stream: stream ?? false,
+      responseType: responseType ?? "text",
+    });
   }
 
   protected thought(message: string) {

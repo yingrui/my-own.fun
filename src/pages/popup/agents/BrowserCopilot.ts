@@ -46,13 +46,15 @@ ${text}
 Give your guess first, then provide your suggestion and instructions.
 Output should be markdown format. 
 `;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `Please guess what I need, and give me some suggestion, answer me in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `Please guess what I need, and give me some suggestion, answer me in ${this.language}:`,
+        }),
+      ],
+    });
   }
 }
 

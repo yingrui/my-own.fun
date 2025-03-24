@@ -80,9 +80,9 @@ ${goal}
 ## User Language
 ${this.language}
 `;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "user", content: prompt }),
-    ]);
+    return await this.chatCompletion({
+      messages: [new ChatMessage({ role: "user", content: prompt })],
+    });
   }
 
   async handleCannotGetGoogleResultError(userInput): Promise<Thought> {
@@ -90,13 +90,15 @@ ${this.language}
 You can understand user's questions, open the google to search content, and most important, you can answer user's question based on search results
 There is a problem that you cannot get any information from current tab, it's possible because the you're detached from the webpage.
 `;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `Directly answer question in ${this.language}: "${userInput}"`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `Directly answer question in ${this.language}: "${userInput}"`,
+        }),
+      ],
+    });
   }
 
   private urlIsOpened = "Url is opened.";
@@ -161,10 +163,12 @@ There is a problem that you cannot get any information from current tab, it's po
       const status = await result.getMessage();
       if (status === this.urlIsOpened) {
         const env = await this.environment();
-        return await this.chatCompletion([
-          new ChatMessage({ role: "system", content: env.systemPrompt() }),
-          new ChatMessage({ role: "user", content: userInput }),
-        ]);
+        return await this.chatCompletion({
+          messages: [
+            new ChatMessage({ role: "system", content: env.systemPrompt() }),
+            new ChatMessage({ role: "user", content: userInput }),
+          ],
+        });
       }
       return new Thought({ type: "message", message: status });
     }
@@ -200,9 +204,9 @@ The links are: ${JSON.stringify(content.links)}
 ${goal}
 `;
 
-    return await this.chatCompletion([
-      new ChatMessage({ role: "user", content: prompt }),
-    ]);
+    return await this.chatCompletion({
+      messages: [new ChatMessage({ role: "user", content: prompt })],
+    });
   }
 
   private openGoogle(userInput: string): Promise<string> {

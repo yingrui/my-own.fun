@@ -29,13 +29,15 @@ class UiTestAgent extends ThoughtAgent {
     const prompt = `You're an assistant or chrome copilot, named ${this.getName()}.
 The user is viewing the page, but you cannot get any information, it's possible because the you're detached from the webpage.
 Reply sorry and ask user to refresh webpage, so you can get information from webpage.`;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `explain in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `explain in ${this.language}:`,
+        }),
+      ],
+    });
   }
 
   async ui_test(args: object, messages: ChatMessage[]): Promise<Thought> {
@@ -60,10 +62,12 @@ ${html}`;
       ? imageContent(instruct, screenshot)
       : textContent(instruct);
 
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({ role: "user", content: content }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({ role: "user", content: content }),
+      ],
+    });
   }
 }
 

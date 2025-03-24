@@ -52,13 +52,15 @@ Do not repeat the content before and after caret position.
 ## User Input
 ${userInput}
 `;
-    return await this.chatCompletion([
-      new ChatMessage({ role: "system", content: prompt }),
-      new ChatMessage({
-        role: "user",
-        content: `please provide better content in ${this.language}:`,
-      }),
-    ]);
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({ role: "system", content: prompt }),
+        new ChatMessage({
+          role: "user",
+          content: `please provide better content in ${this.language}:`,
+        }),
+      ],
+    });
   }
 
   async environment(): Promise<Environment> {
