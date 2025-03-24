@@ -385,12 +385,7 @@ class ThoughtAgent implements Agent {
     const args = actions[0].arguments;
 
     if (action === "chat") {
-      const env = await this.environment();
-      return this.chatCompletion(
-        this.conversation.getMessages(),
-        env.systemPrompt(),
-        args["userInput"],
-      );
+      return await this.generateChatReply(args);
     }
 
     if (action === "reply") {
@@ -410,6 +405,15 @@ class ThoughtAgent implements Agent {
     // If could not find the action by function name,
     // then agent should implement executeAction method.
     return this.executeAction(action, args, this.conversation);
+  }
+
+  protected async generateChatReply(args: object) {
+    const env = await this.environment();
+    return this.chatCompletion(
+      this.getConversation().getMessages(),
+      env.systemPrompt(),
+      args["userInput"],
+    );
   }
 
   private getMemberOfSelf(): string[] {

@@ -28,23 +28,45 @@ class MyFunAssistant extends CompositeAgent {
     };
   }
 
+  override async generateChatReply(args: object) {
+    const env = await this.environment();
+    return this.chatCompletion(
+      this.getConversation().getMessages(),
+      env.systemPrompt(),
+      this.getUserPrompt(),
+    );
+  }
+
   getInitialSystemMessage(): string {
     return `## Role
 As an AI assistant named ${this.getName()}, you're the smartest and funnest assistant in the history.
 
-# User Intent & How to Help User
+## User Intent & How to Help User
 ${this.getCurrentInteraction().getGoal()}
 
-## Output Instruction
+## Task
 First, please think about the user's intent.
 Second, decide to call different tools, and if the tool parameter userInput is empty, please think about the user's goal as userInput. 
 If there is no suitable tool to call, please think about the user's goal and give the answer. 
+`;
+  }
 
-## User Language
-${this.language}, and consider the language of user input.
+  getUserPrompt(): string {
+    return `## User Intent & How to Help User
+${this.getCurrentInteraction().getGoal()}
+
+## Instruction
+As a professional assistant proficient in various fields, please provide comprehensive, accurate and concise information based on the context information
 
 ### Output format
-Output format should be in markdown format`;
+The markdown format can be rendered in App.
+
+### User Language
+${this.language}, and consider the language of user input.
+
+## User Input
+${this.getCurrentInteraction().inputMessage.getContentText()}
+`;
   }
 }
 
