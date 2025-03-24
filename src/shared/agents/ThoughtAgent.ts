@@ -224,7 +224,9 @@ class ThoughtAgent implements Agent {
   ): Promise<Thought> {
     await this.onStartInteraction(message);
     const result = await this.execute(actions);
-    const output = await this.onCompleted(result);
+    const output = await this.onCompleted(
+      this.thought(await this.readMessage(result)),
+    );
     return this.thought(output);
   }
 
@@ -285,10 +287,13 @@ class ThoughtAgent implements Agent {
    * @returns {Promise<Thought>}
    */
   private async observe(result: Thought): Promise<Thought> {
-    if (!this.enableReflection || result.type === "error") {
+    if (result.type === "error") {
       return result;
     }
-    await this.readMessage(result);
+    const message = await this.readMessage(result);
+    if (!this.enableReflection) {
+      return this.thought(message);
+    }
     return await this.reflection();
   }
 

@@ -75,6 +75,8 @@ class Thought {
       return this.streamMessage;
     } else if (this.type === "message") {
       return this.message;
+    } else if (this.type === "error") {
+      throw this.error;
     }
     throw new Error("Cannot get message from this thought.");
   }
