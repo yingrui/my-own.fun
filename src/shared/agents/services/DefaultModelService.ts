@@ -15,6 +15,7 @@ import {
   ChatCompletionMessageParam,
 } from "openai/src/resources/chat/completions";
 import { withTimeout } from "../AgentUtils";
+import _ from "lodash";
 
 class DefaultModelService implements ModelService {
   client: OpenAI;
@@ -162,6 +163,7 @@ class DefaultModelService implements ModelService {
   ): ChatMessage[] {
     if (this.isMultimodalModel(model)) {
       if (this.includeStringContent(messages)) {
+        // convert string content to MessageContent[]
         return messages.map((msg) => {
           let content = msg.content;
           if (typeof content === "string") {
@@ -175,6 +177,7 @@ class DefaultModelService implements ModelService {
         });
       }
     } else {
+      // convert MessageContent[] to string content
       return messages.map((msg) => {
         let content = msg.content;
         if (typeof content !== "string") {
@@ -198,6 +201,11 @@ class DefaultModelService implements ModelService {
 
   async toolsCall(params: ChatCompletionTools): Promise<Thought> {
     const { messages, tools, stream, responseType } = params;
+
+    if (_.isEmpty(this.toolsCallModel)) {
+      return new Thought({ type: "actions", actions: [] });
+    }
+
     if (stream) {
       return await this.streamToolsCall(messages, tools, responseType);
     }

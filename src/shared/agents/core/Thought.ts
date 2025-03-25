@@ -105,6 +105,10 @@ class Thought {
     }
     return message;
   }
+
+  public hasActions(): boolean {
+    return this.type === "actions" && this.actions.length > 0;
+  }
 }
 
 export default Thought;

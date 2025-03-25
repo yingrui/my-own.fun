@@ -247,7 +247,7 @@ class ThoughtAgent implements Agent {
     do {
       result = await this.process(plan);
       plan = await this.observe(result); // directly return the result if reflection is disabled
-    } while (this.enableReflection && plan && plan.type === "actions");
+    } while (this.enableReflection && plan && plan.hasActions());
 
     const output = await this.onCompleted(result);
     return this.thought(output);
