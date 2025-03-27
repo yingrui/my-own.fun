@@ -71,14 +71,14 @@ Note: List the related links.
 ## Search Results
 ${JSON.stringify(results)}
 
-## User Input
-${userInput}
-
 ## User Intent
 ${goal}
 
 ## User Language
 ${this.language}
+
+## User Input
+${userInput}
 `;
     return await this.chatCompletion({
       messages: [new ChatMessage({ role: "user", content: prompt })],

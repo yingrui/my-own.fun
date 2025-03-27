@@ -320,24 +320,19 @@ ${conversationContent}
     const userInput = conversation
       .getCurrentInteraction()
       .inputMessage.getContentText();
-    const text =
-      env.content?.text?.length > 1024 * 5
-        ? env.content?.text?.slice(0, 1024 * 5)
-        : env.content?.text;
 
     const currenStatus = env.content
       ? `## Status
 The user is browsing webpage:
 - Title: ${env.content?.title}
 - URL: ${env.content?.url}
-- Content: 
-${text}
 `
       : "";
 
     return `## Role: Assistant
 ## Task
-Analysis user's goal, consider the previous goals, if the goal is not change, could use previous goals.
+Analysis user's goal based on user input and conversation, carefully check if the user intent relates to open tab.
+Consider the previous goals, if the goal is not change, could use previous goals.
 ${this.enableChainOfThoughts ? "And then, give the thoughts of how to achieve the goal step by step." : ""}
 
 ${currenStatus}
