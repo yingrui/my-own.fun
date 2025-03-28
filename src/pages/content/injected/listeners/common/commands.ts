@@ -1,8 +1,15 @@
 import { matchURL } from "@pages/content/injected/listeners/utils";
-import jQuery from "jquery";
 import PageParser from "@pages/content/injected/page/PageParser";
+import { LayoutNode } from "@pages/content/injected/page/PageLayoutTree";
 
 const addCommands = () => {
+  const visualizeLayout = (tree: LayoutNode) => {
+    tree.element.style.border = "1px solid red";
+    for (const child of tree.children) {
+      visualizeLayout(child);
+    }
+  };
+
   if (matchURL("*")) {
     document.addEventListener("keydown", function (event) {
       if (!event.ctrlKey && event.altKey && event.key === "Enter") {
@@ -10,8 +17,9 @@ const addCommands = () => {
         chrome.runtime.sendMessage({ type: "open_side_panel" });
       }
       if (event.ctrlKey && event.altKey && event.key === "Enter") {
-        // Open options page when press ctrl+alt+enter
-        const page = new PageParser(document).parseContent();
+        // Show layout on screen when press ctrl+alt+enter
+        const page = new PageParser(document).parse();
+        visualizeLayout(page.layoutTree);
       }
     });
 

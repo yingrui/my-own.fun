@@ -1,25 +1,23 @@
 import { getSelectorSettings } from "@pages/content/injected/listeners/utils";
 import jQuery from "jquery";
-
-interface PageLink {
-  text: string;
-  href: string;
-}
-
-interface Page {
-  url: string;
-  title: string;
-  text: string;
-  links: PageLink[];
-}
+import PageLayoutTree, {
+  Page,
+  PageLink,
+} from "@pages/content/injected/page/PageLayoutTree";
 
 class PageParser {
-  private page: any;
+  private page: Page;
   private readonly document: Document;
 
   constructor(document: Document) {
     this.document = document;
     this.page = null;
+  }
+
+  parse(): Page {
+    this.page = this.parseContent();
+    this.page.layoutTree = new PageLayoutTree(this.document.body).getRootNode();
+    return this.page;
   }
 
   parseContent(): Page {
@@ -53,7 +51,7 @@ class PageParser {
     return innerText ?? element.textContent;
   }
 
-  getPage() {
+  getPage(): Page {
     return this.page;
   }
 
