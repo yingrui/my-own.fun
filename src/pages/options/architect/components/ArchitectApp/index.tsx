@@ -3,6 +3,7 @@ import type { MenuProps } from "antd";
 import { Button, Layout, Menu } from "antd";
 
 import {
+  AntDesignOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ProductOutlined,
@@ -14,6 +15,7 @@ import "./index.css";
 import intl from "react-intl-universal";
 import ElevatorPitchApp from "@pages/options/architect/components/ElevatorPitchApp";
 import UserJourneyApp from "@pages/options/architect/components/UserJourneyApp";
+import TechArchitectApp from "../TechArchitectApp";
 
 const { Sider } = Layout;
 
@@ -24,6 +26,7 @@ interface ArchitectAppProps {
 const ARCHITECT_MENU_KEYS = {
   ElevatorPitch: "elevator_pitch",
   UserJourney: "user_journey",
+  TechArchitect: "architect_design",
 };
 
 const ArchitectApp: React.FC<ArchitectAppProps> = ({ config }) => {
@@ -51,6 +54,21 @@ const ArchitectApp: React.FC<ArchitectAppProps> = ({ config }) => {
           label: intl
             .get("options_app_architect_items_user_journey")
             .d("User Journey"),
+        },
+      ],
+    },
+    {
+      key: "2",
+      icon: <AntDesignOutlined />,
+      label: intl
+        .get("options_app_architect_items_system_design")
+        .d("System Design"),
+      children: [
+        {
+          key: ARCHITECT_MENU_KEYS.TechArchitect,
+          label: intl
+            .get("options_app_architect_items_tech_architect")
+            .d("Technical Architecture"),
         },
       ],
     },
@@ -99,6 +117,9 @@ const ArchitectApp: React.FC<ArchitectAppProps> = ({ config }) => {
         )}
         {selectedKey === ARCHITECT_MENU_KEYS.UserJourney && (
           <UserJourneyApp config={config}></UserJourneyApp>
+        )}
+        {selectedKey === ARCHITECT_MENU_KEYS.TechArchitect && (
+          <TechArchitectApp config={config}></TechArchitectApp>
         )}
       </Layout>
     </Layout>

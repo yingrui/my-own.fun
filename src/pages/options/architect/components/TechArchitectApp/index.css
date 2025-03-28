@@ -1,0 +1,33 @@
+.app-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.left-container {
+    display: flex;
+    flex: 1;
+    background-color: white;
+    margin: 20px 10px;
+    border-radius: 15px;
+
+    .context-textarea {
+        min-height: 200px;
+        height: 1000px;
+        margin: 0px 12px;
+        width: 95%;
+        &:focus {
+            border-color: #57a8e9;
+            border-width: 2px;
+            outline: 0;
+        }
+    }
+}
+
+.right-container {
+    display: flex;
+    flex: 2;
+    background-color: white;
+    margin: 20px 10px;
+    border-radius: 15px;
+}
