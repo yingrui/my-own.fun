@@ -22,6 +22,10 @@ class WriterContext {
     this.config = config;
   }
 
+  public getConfig(): GluonConfigure {
+    return this.config;
+  }
+
   public getTitle(): string {
     return this.title;
   }

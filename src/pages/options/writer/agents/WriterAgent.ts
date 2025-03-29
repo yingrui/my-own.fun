@@ -17,6 +17,51 @@ class WriterAgent extends ThoughtAgent {
       "help user to continue writing from the cursor.",
       ["userInput"],
     );
+
+    this.addTool(
+      "outline",
+      "help user to create or modify the outline for the article.",
+      ["userInput"],
+    );
+  }
+
+  async outline(args: object, messages: ChatMessage[]): Promise<Thought> {
+    const userInput = args["userInput"];
+    const title = this.context.getTitle();
+    const content = this.context.getContent();
+    const outline = this.context.getOutline();
+    const prompt = `## Role & Task
+You're a great editor. 
+Now we need your help to create an outline for the article.
+
+## Context of the Article
+
+### Title
+${title}
+
+### Current Outline
+${outline}
+
+### Content
+${content}
+
+### Language
+${this.language}
+
+### User Instruction
+${userInput}
+
+## Output Instruction
+Please think about the structure of the article and provide an outline in markdown format.
+`;
+    return await this.chatCompletion({
+      messages: [
+        new ChatMessage({
+          role: "user",
+          content: prompt,
+        }),
+      ],
+    });
   }
 
   async autocomplete(args: object, messages: ChatMessage[]): Promise<Thought> {

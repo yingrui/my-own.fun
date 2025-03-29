@@ -460,8 +460,13 @@ class ThoughtAgent implements Agent {
    * @param {ChatCompletionParams} params - Chat completion params
    * @returns {Promise<Thought>} ThinkResult
    */
-  async chatCompletion(params: ChatCompletionParams): Promise<Thought> {
-    const { messages, systemPrompt, userInput, stream, responseType } = params;
+  async chatCompletion({
+    messages,
+    systemPrompt,
+    userInput,
+    stream,
+    responseType,
+  }: ChatCompletionParams): Promise<Thought> {
     // useMultimodal and useReasoningModel are controlled by the agent
     return await this.modelService.chatCompletion({
       messages: messages,
@@ -479,8 +484,12 @@ class ThoughtAgent implements Agent {
    * @param {ChatCompletionTools} params - Chat completion tools
    * @returns {Promise<any>}
    */
-  async toolsCall(params: ChatCompletionTools): Promise<Thought> {
-    const { messages, tools, stream, responseType } = params;
+  async toolsCall({
+    messages,
+    tools,
+    stream,
+    responseType,
+  }: ChatCompletionTools): Promise<Thought> {
     return await this.modelService.toolsCall({
       messages: messages,
       tools: tools ?? [],
