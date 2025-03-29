@@ -1,26 +1,28 @@
-import React, { useEffect, useRef, useState, useContext } from "react";
+import React, { useRef, useState, useContext } from "react";
 import {
   Button,
   Col,
   ConfigProvider,
   Divider,
+  Empty,
   Input,
   Layout,
   Row,
   Space,
+  Spin,
+  Typography,
 } from "antd";
 import { css } from "@emotion/css";
 import "./index.css";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
-import UserJourneyContext from "@pages/options/architect/context/UserJourneyContext";
 import intl from "react-intl-universal";
 import {
   AntDesignOutlined,
   EditOutlined,
-  ExportOutlined,
-  FullscreenOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons";
 import MarkdownPreview from "@root/src/shared/components/Message/MarkdownPreview";
+import TechArchitectContext from "../../context/TechArchitectContext";
 
 interface TechArchitectProps {
   config: GluonConfigure;
@@ -28,8 +30,12 @@ interface TechArchitectProps {
 const { TextArea } = Input;
 
 const TechArchitectApp: React.FC<TechArchitectProps> = ({ config }) => {
-  const [loading, setLoading] = useState(true);
-  const contextRef = useRef(new UserJourneyContext(config));
+  const [generating, setGenerating] = useState<boolean>(false);
+  const [editing, setEditing] = useState<boolean>(false);
+  const [context, setContext] = useState<string>("");
+  const [content, setContent] = useState<string>("");
+  const [contentSnapshot, setContentSnapshot] = useState<string>("");
+  const contextRef = useRef(new TechArchitectContext(config));
 
   const { getPrefixCls } = useContext(ConfigProvider.ConfigContext);
   const prefixCls = getPrefixCls();
@@ -60,39 +66,49 @@ const TechArchitectApp: React.FC<TechArchitectProps> = ({ config }) => {
     }
   `;
 
-  useEffect(() => {
-    // Load the context of this app from local storage
-    // Once loaded, this component will rerender.
-    // That's why we need to set the context in the state
-    contextRef.current.load().then(() => {
-      setLoading(false);
-    });
-  }, []);
+  const handleGenerate = async () => {
+    setGenerating(true);
+    const agent = contextRef.current.getAgent();
+    const result = await agent.drawTechArchitecture(context);
+    const msg = await result.getMessage();
+    console.log(msg);
+    setContent(extractMermaidText(msg));
+    setGenerating(false);
+  };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const extractMermaidText = (text: string) => {
+    // use regex to extract mermaid code block from the Markdown text
+    // and return the code block
+    const matchedUserJourney = text.match(/```mermaid([\s\S]*?)```/g);
+    if (matchedUserJourney.length > 0) {
+      return matchedUserJourney[0];
+    } else {
+      return text;
+    }
+  };
 
-  function getSampleContent(): string {
-    return `\`\`\`mermaid
-    sequenceDiagram
-    participant Alice
-    participant Bob
-    Alice->>John: Hello John, how are you?
-    loop Healthcheck
-        John->>John: Fight against hypochondria
-    end
-    Note right of John: Rational thoughts <br>prevail!
-    John-->>Alice: Great!
-    John->>Bob: How about you?
-    Bob-->>John: Jolly good!`;
-  }
+  const handleEditClick = async () => {
+    setEditing(true);
+    setContentSnapshot(content);
+  };
+
+  const handleEditConfirm = async () => {
+    setEditing(false);
+    setContent(contentSnapshot);
+  };
 
   return (
     <Layout className="app-container">
       <Layout className="left-container">
         <Row>
-          <Col span={12} style={{ paddingLeft: "16px" }}>
+          <Col
+            span={12}
+            style={{
+              paddingLeft: "16px",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             <h2>
               {intl
                 .get("tect_architecture_title")
@@ -112,6 +128,8 @@ const TechArchitectApp: React.FC<TechArchitectProps> = ({ config }) => {
                 type="primary"
                 size="large"
                 icon={<AntDesignOutlined />}
+                disabled={context === ""}
+                onClick={handleGenerate}
               >
                 {intl
                   .get("tect_architecture_gen_button")
@@ -123,31 +141,77 @@ const TechArchitectApp: React.FC<TechArchitectProps> = ({ config }) => {
 
         <TextArea
           className="context-textarea"
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
           placeholder={intl
             .get("tect_architecture_context_placeholder")
             .d("Please enter system architecture context information")}
         ></TextArea>
       </Layout>
       <Layout className="right-container">
-        <Space
-          style={{ width: "100%", padding: "16px", justifyContent: "flex-end" }}
-        >
-          <Space>
-            <Button icon={<EditOutlined />}>
-              {intl.get("tect_architecture_btn_edit").d("Edit")}
-            </Button>
-            <Button icon={<FullscreenOutlined />}>
-              {intl.get("tect_architecture_btn_full_screen").d("Full Screen")}
-            </Button>
-            <Button icon={<ExportOutlined />}>
-              {intl.get("tect_architecture_btn_export").d("Export")}
-            </Button>
-          </Space>
-        </Space>
-        <Divider style={{ margin: "10px 0" }} />
-        <div className="graph-preview">
-          <MarkdownPreview loading={loading} content={getSampleContent()} />
-        </div>
+        {content === "" && !generating && (
+          <Empty
+            style={{ marginTop: "400px" }}
+            description={
+              <Typography.Text>
+                {intl.get("tect_architecture_tips_no_data").d("No data")}
+              </Typography.Text>
+            }
+          />
+        )}
+        {generating && (
+          <Spin
+            style={{ marginTop: "400px" }}
+            indicator={<LoadingOutlined spin />}
+            size="large"
+          />
+        )}
+        {content !== "" && !editing && (
+          <>
+            <Space
+              style={{
+                width: "100%",
+                padding: "20px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Space>
+                <Button icon={<EditOutlined />} onClick={handleEditClick}>
+                  {intl.get("tect_architecture_btn_edit").d("Edit")}
+                </Button>
+              </Space>
+            </Space>
+            <Divider style={{ margin: "0" }} />
+            <div className="graph-preview">
+              <MarkdownPreview loading={generating} content={content} />
+            </div>
+          </>
+        )}
+        {editing && (
+          <>
+            <Space
+              style={{
+                width: "100%",
+                padding: "20px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Space>
+                <Button type="primary" onClick={handleEditConfirm}>
+                  {intl.get("tect_architecture_btn_ok").d("Ok")}
+                </Button>
+                <Button type="default" onClick={() => setEditing(false)}>
+                  {intl.get("tect_architecture_btn_cancel").d("Cancel")}
+                </Button>
+              </Space>
+            </Space>
+            <TextArea
+              value={contentSnapshot}
+              onChange={(e) => setContentSnapshot(e.target.value)}
+              className="content-textarea"
+            />
+          </>
+        )}
       </Layout>
     </Layout>
   );

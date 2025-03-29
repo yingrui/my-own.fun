@@ -30,4 +30,16 @@
     background-color: white;
     margin: 20px 10px;
     border-radius: 15px;
+
+    inset: 0;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease-in-out;
+
+    .content-textarea {
+        min-height: 200px;
+        height: 1000px;
+        margin: 0px 12px;
+        width: 95%;
+    }
 }
