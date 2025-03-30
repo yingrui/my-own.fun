@@ -1,9 +1,10 @@
 import { matchURL } from "@pages/content/injected/listeners/utils";
 import PageParser from "@src/shared/webpage/PageParser";
-import { LayoutNode } from "@src/shared/webpage/PageLayoutTree";
+
+import { LayoutElement } from "@src/shared/webpage/LayoutElement";
 
 const addCommands = () => {
-  const visualizeLayout = (tree: LayoutNode) => {
+  const visualizeLayout = (tree: LayoutElement) => {
     tree.element.style.border = "1px solid red";
     for (const child of tree.children) {
       visualizeLayout(child);

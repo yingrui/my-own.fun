@@ -1,9 +1,6 @@
 import { getSelectorSettings } from "@pages/content/injected/listeners/utils";
 import jQuery from "jquery";
-import PageLayoutTree, {
-  Page,
-  PageLink,
-} from "@src/shared/webpage/PageLayoutTree";
+import PageLayoutTree from "@src/shared/webpage/PageLayoutTree";
 
 class PageParser {
   private page: Page;
