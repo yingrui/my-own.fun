@@ -1,6 +1,6 @@
 import { matchURL } from "@pages/content/injected/listeners/utils";
-import PageParser from "@pages/content/injected/page/PageParser";
-import { LayoutNode } from "@pages/content/injected/page/PageLayoutTree";
+import PageParser from "@src/shared/webpage/PageParser";
+import { LayoutNode } from "@src/shared/webpage/PageLayoutTree";
 
 const addCommands = () => {
   const visualizeLayout = (tree: LayoutNode) => {

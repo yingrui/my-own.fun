@@ -3,7 +3,7 @@ import jQuery from "jquery";
 import PageLayoutTree, {
   Page,
   PageLink,
-} from "@pages/content/injected/page/PageLayoutTree";
+} from "@src/shared/webpage/PageLayoutTree";
 
 class PageParser {
   private page: Page;

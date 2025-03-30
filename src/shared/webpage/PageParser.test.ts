@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import PageParser from "@pages/content/injected/page/PageParser";
+import PageParser from "@src/shared/webpage/PageParser";
 
 describe("PageParser", () => {
   const html =
