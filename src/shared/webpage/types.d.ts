@@ -3,6 +3,14 @@ interface PageLink {
   href: string;
 }
 
+interface PageInput {
+  xpath: string;
+  tag: string;
+  type: string;
+  label: string;
+  value: string;
+}
+
 interface Page {
   url: string;
   title: string;
@@ -16,4 +24,13 @@ interface LayoutOffset {
   height: number;
   x: number;
   y: number;
+}
+
+interface LayoutNode {
+  xpath: string;
+  offset: LayoutOffset;
+  children: LayoutNode[];
+  text: string;
+  links: PageLink[];
+  inputs: PageInput[];
 }

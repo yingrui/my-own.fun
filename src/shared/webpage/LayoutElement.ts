@@ -1,4 +1,5 @@
-import HtmlTag from "@src/shared/webpage/tags";
+import HtmlTag from "./tags";
+import getXpath from "./XpathUtils";
 
 class LayoutElement {
   element: HTMLElement;
@@ -72,6 +73,43 @@ class LayoutElement {
       this.children = [];
       return;
     }
+  }
+
+  toPojo(): LayoutNode {
+    return {
+      xpath: getXpath(this.element),
+      offset: this.offset,
+      children: this.children.map((child) => child.toPojo()),
+      text: this.children.length > 0 ? "" : this.getText(),
+      links: this.children.length > 0 ? [] : this.getLinks(),
+      inputs: this.children.length > 0 ? [] : this.getInputs(),
+    };
+  }
+
+  private getText() {
+    const text = this.element.textContent ?? this.element.innerText;
+    return text ? text.trim() : "";
+  }
+
+  private getLinks(): PageLink[] {
+    const elements = this.element.getElementsByTagName("a");
+    const links = [];
+    for (let i = 0; i < elements.length; i++) {
+      const link = elements[i];
+      if (link instanceof HTMLElement) {
+        const text = link.textContent ?? link.innerText;
+        const href = link.getAttribute("href") ?? "";
+        const i = links.findIndex((l) => l.href === href);
+        if (i < 0) {
+          links.push({ text: text.trim(), href: href });
+        }
+      }
+    }
+    return links;
+  }
+
+  private getInputs(): PageInput[] {
+    return [];
   }
 
   private isCurrentNodeWidthLessThanParent(): boolean {

@@ -1,22 +1,22 @@
 import LayoutElement from "./LayoutElement";
 
 class PageLayoutTree {
-  root: LayoutElement;
-  depth: number;
+  private readonly root: LayoutElement;
+  private readonly depth: number;
 
   constructor(body: HTMLElement, depth: number = 4) {
-    const layout = {
+    const offset = {
       width: body.offsetWidth,
       height: body.offsetHeight,
       x: body.offsetLeft,
       y: body.offsetTop,
     };
-    this.root = new LayoutElement(null, body, layout);
+    this.root = new LayoutElement(null, body, offset);
     this.depth = depth;
+    this.prune([this.root], 0);
   }
 
   getRootNode(): LayoutElement {
-    this.prune([this.root], 0);
     return this.root;
   }
 
