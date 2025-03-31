@@ -7,6 +7,7 @@ describe("XpathUtils", () => {
   <head><title>Test</title></head>
   <body>
     <div>
+        <p>paragraph</p>
         <span>test</span>
     </div>
     <div id="div_with_id">
@@ -38,8 +39,10 @@ describe("XpathUtils", () => {
     expect(getXpath(element)).toBe("//body/div[3]/ul/li[1]");
   });
 
-  it("should return xpath of span", async () => {
-    const element = jQuery("span", htmlDoc)[0];
-    expect(getXpath(element)).toBe("//body/div[1]/span");
+  it("should return xpath of text elements (p span)", async () => {
+    let element = jQuery("span", htmlDoc)[0];
+    expect(getXpath(element)).toBe("//body/div[1]/span[1]");
+    element = jQuery("p", htmlDoc)[0];
+    expect(getXpath(element)).toBe("//body/div[1]/p[1]");
   });
 });

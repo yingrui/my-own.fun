@@ -30,15 +30,17 @@ function getXpathWithIndex(element: HTMLElement): string {
   let index = -1;
   for (let i = 0; i < parent.children.length; i++) {
     const child = parent.children[i];
+    if (element.tagName.toLowerCase() === child.tagName.toLowerCase()) {
+      // Increment index if tag name is same
+      index += 1;
+    }
     if (child === element) {
-      index = i;
+      // Break if found the element
+      break;
     }
   }
 
-  if (index >= 0) {
-    return `/${element.tagName.toLowerCase()}[${index + 1}]`;
-  }
-  return "";
+  return `/${element.tagName.toLowerCase()}[${index + 1}]`;
 }
 
 export default getXpath;
