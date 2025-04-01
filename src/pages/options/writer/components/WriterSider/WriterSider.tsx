@@ -107,7 +107,10 @@ const WriterSider: React.FC<WriterSiderProps> = ({ context }) => {
           </Radio.Group>
         )}
       </div>
-      <div className={"writer-menu"}>
+      <div
+        className={"writer-menu"}
+        style={{ display: collapsed ? "none" : "block" }}
+      >
         {selectedPanel === "Outline" && (
           <Tree
             className={"outline-tree"}
