@@ -1,7 +1,7 @@
 import Thought from "../core/Thought";
 import Conversation from "../core/Conversation";
 import Environment from "../core/Environment";
-import Tool from "../core/Tool";
+import ToolDefinition from "../core/ToolDefinition";
 
 class EvaluationScore {
   evaluation: "finished" | "suggest"; // Mandatory, finished means good enough, suggest means need improvement
@@ -23,7 +23,7 @@ interface ReflectionService {
   reflection(
     env: Environment,
     conversation: Conversation,
-    tools: Tool[],
+    tools: ToolDefinition[],
   ): Promise<Thought>;
 
   /**

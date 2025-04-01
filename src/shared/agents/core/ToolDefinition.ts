@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 
-class Tool {
+class ToolDefinition {
   name: string;
   description: string;
   properties: any;
@@ -44,4 +44,4 @@ class Tool {
   }
 }
 
-export default Tool;
+export default ToolDefinition;

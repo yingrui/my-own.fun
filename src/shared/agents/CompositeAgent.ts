@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import Tool from "./core/Tool";
+import ToolDefinition from "./core/ToolDefinition";
 import ThoughtAgent, { ThoughtAgentProps } from "./ThoughtAgent";
 import Conversation from "./core/Conversation";
 import Thought from "./core/Thought";
@@ -47,7 +47,11 @@ class CompositeAgent extends ThoughtAgent {
   /**
    * Override the addTool function, add the tool to chatCompletionTools and mapToolsAgents
    */
-  addTool(name: string, description: string, stringParameters: string[]): Tool {
+  addTool(
+    name: string,
+    description: string,
+    stringParameters: string[],
+  ): ToolDefinition {
     const tool = super.addTool(name, description, stringParameters);
     const toolCall = tool.getFunction();
     this.chatCompletionTools.push(toolCall);

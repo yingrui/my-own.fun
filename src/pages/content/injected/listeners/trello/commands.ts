@@ -19,7 +19,7 @@ class TrelloHelper {
     const cards = jQuery(column)
       .find('a[data-testid="card-name"]')
       .map((id, a) => {
-        return { name: a.text, href: a.href };
+        return { name: jQuery(a).text(), href: jQuery(a).attr("href") };
       })
       .get();
 

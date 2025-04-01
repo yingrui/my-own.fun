@@ -7,7 +7,7 @@ import Thought from "../core/Thought";
 import ModelService from "./ModelService";
 import Environment from "../core/Environment";
 import Conversation from "../core/Conversation";
-import Tool from "../core/Tool";
+import ToolDefinition from "../core/ToolDefinition";
 import ThoughtService from "@src/shared/agents/services/ThoughtService";
 
 class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
@@ -48,7 +48,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   async reflection(
     env: Environment,
     conversation: Conversation,
-    tools: Tool[],
+    tools: ToolDefinition[],
   ): Promise<Thought> {
     const result = await this.reviewConversation(tools, env, conversation);
 
@@ -83,7 +83,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   }
 
   private async reviewConversation(
-    tools: Tool[],
+    tools: ToolDefinition[],
     env: Environment,
     conversation: Conversation,
   ) {

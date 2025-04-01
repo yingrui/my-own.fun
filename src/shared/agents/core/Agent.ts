@@ -1,4 +1,4 @@
-import Tool from "./Tool";
+import ToolDefinition from "./ToolDefinition";
 import Conversation from "./Conversation";
 import Thought from "./Thought";
 import Environment from "./Environment";
@@ -19,9 +19,9 @@ interface Agent {
 
   /**
    * Get tools that the agent can use
-   * @returns {Tool[]} Tools
+   * @returns {ToolDefinition[]} Tools
    */
-  getTools(): Tool[];
+  getTools(): ToolDefinition[];
 
   /**
    * Get conversation

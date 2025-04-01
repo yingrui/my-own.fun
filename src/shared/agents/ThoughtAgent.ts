@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import Tool from "./core/Tool";
+import ToolDefinition from "./core/ToolDefinition";
 import Conversation from "./core/Conversation";
 import Thought from "./core/Thought";
 import Environment from "./core/Environment";
@@ -34,7 +34,7 @@ class ThoughtAgent implements Agent {
   protected readonly enableMultimodal: boolean;
   protected readonly enableReflection: boolean;
   protected readonly enableChainOfThoughts: boolean;
-  private readonly tools: Tool[] = [];
+  private readonly tools: ToolDefinition[] = [];
   private readonly name: string;
   private readonly description: string;
   private readonly conversation: Conversation;
@@ -169,9 +169,9 @@ class ThoughtAgent implements Agent {
 
   /**
    * Implement interface method, return tools that the agent can use
-   * @returns {Tool[]} Tools
+   * @returns {ToolDefinition[]} Tools
    */
-  getTools(): Tool[] {
+  getTools(): ToolDefinition[] {
     return this.tools;
   }
 
@@ -197,8 +197,12 @@ class ThoughtAgent implements Agent {
    * @param {string[]} stringParameters - String parameters
    * @returns {void}
    */
-  addTool(name: string, description: string, stringParameters: string[]): Tool {
-    const tool = new Tool(name, description);
+  addTool(
+    name: string,
+    description: string,
+    stringParameters: string[],
+  ): ToolDefinition {
+    const tool = new ToolDefinition(name, description);
     for (const stringParameter of stringParameters) {
       tool.setStringParameter(stringParameter);
     }

@@ -7,9 +7,15 @@ import SensitiveTopicError from "./errors/SensitiveTopicError";
  * @property {string} message - should reply with message
  * @property {string} stream - should reply with stream message
  * @property {string} error - should handle error
+ * @property {string} functionReturn - should process return value from function
  * @readonly
  */
-type ThoughtType = "actions" | "message" | "stream" | "error";
+type ThoughtType =
+  | "actions"
+  | "message"
+  | "stream"
+  | "error"
+  | "functionReturn";
 
 /**
  * Model type - the thought is come from which type of model
@@ -31,6 +37,7 @@ interface ThoughtProps {
   stream?: any;
   message?: string;
   error?: Error;
+  returnValue?: any;
 }
 
 class Thought {
@@ -41,6 +48,7 @@ class Thought {
   public readonly stream?: AsyncIterator<any>;
   public readonly message?: string;
   public readonly error?: Error;
+  public readonly returnValue?: any;
   private streamMessage: string;
 
   constructor({
@@ -51,6 +59,7 @@ class Thought {
     stream,
     message,
     error,
+    returnValue,
   }: ThoughtProps) {
     this.type = type;
     this.model = model ?? "";
@@ -59,6 +68,7 @@ class Thought {
     this.stream = stream;
     this.message = message;
     this.error = error;
+    this.returnValue = returnValue;
   }
 
   public async getMessage(
@@ -75,10 +85,18 @@ class Thought {
       return this.streamMessage;
     } else if (this.type === "message") {
       return this.message;
+    } else if (this.type === "functionReturn") {
+      return this.isString(this.returnValue)
+        ? this.returnValue
+        : JSON.stringify(this.returnValue);
     } else if (this.type === "error") {
       throw this.error;
     }
     throw new Error("Cannot get message from this thought.");
+  }
+
+  private isString(value: any): boolean {
+    return typeof value === "string" || value instanceof String;
   }
 
   private async readMessageFromStream(

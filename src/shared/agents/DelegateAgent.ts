@@ -1,4 +1,4 @@
-import Tool from "./core/Tool";
+import ToolDefinition from "./core/ToolDefinition";
 import Agent from "./core/Agent";
 import Conversation from "./core/Conversation";
 import Thought from "./core/Thought";
@@ -60,7 +60,7 @@ class DelegateAgent implements Agent {
     return this.currentAgent.getDescription();
   }
 
-  public getTools(): Tool[] {
+  public getTools(): ToolDefinition[] {
     return this.currentAgent.getTools();
   }
 
