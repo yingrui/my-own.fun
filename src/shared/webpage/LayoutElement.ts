@@ -29,9 +29,11 @@ class LayoutElement {
   }
 
   shouldKeep(): boolean {
+    if (this.isSignificantVisualBlock()) {
+      return true;
+    }
     let shouldKeep = true;
     shouldKeep = shouldKeep && !this.isLeaf();
-
     return shouldKeep;
   }
 
@@ -59,7 +61,11 @@ class LayoutElement {
     }
 
     // Strategy 2: If all children are at same line, merge all by setting children to empty list
-    if (this.isAllChildrenAtSameLine()) {
+    if (
+      this.isAllChildrenAtSameLine() &&
+      this.isHorizontalRect() &&
+      this.isAllChildrenNonSignificant()
+    ) {
       this.children = [];
       return;
     }
@@ -69,7 +75,8 @@ class LayoutElement {
     // Then merge all by setting children to empty list
     if (
       this.isCurrentNodeWidthLessThanParent() &&
-      this.isAllChildrenAtSameColumn()
+      this.isAllChildrenAtSameColumn() &&
+      this.isAllChildrenNonSignificant()
     ) {
       this.children = [];
       return;
@@ -110,6 +117,27 @@ class LayoutElement {
     }
 
     return true;
+  }
+
+  private isAllChildrenNonSignificant(): boolean {
+    let isNonSignificant = true;
+    for (const child of this.children) {
+      isNonSignificant = isNonSignificant && !child.isSignificantVisualBlock();
+      if (!isNonSignificant) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private isSignificantVisualBlock(): boolean {
+    const area = this.offset.width * this.offset.height;
+    const areaThreshold = 153600; // 480 * 320 = 153,600;
+    return area > areaThreshold;
+  }
+
+  private isHorizontalRect(): boolean {
+    return this.offset.width > this.offset.height;
   }
 
   private isAllChildrenAtSameColumn(): boolean {

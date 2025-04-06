@@ -33,11 +33,11 @@ class LocalRepository<T> implements Repository<T> {
       return value["id"];
     }
 
-    const id = this.entityPrototype["_id"];
-    if (!id) {
-      throw new Error("Please use decorator @Id to specify 'id'.");
+    const idField = this.entityPrototype["_id"];
+    if (!idField) {
+      throw new Error("Please use decorator @Id to specify 'id' field.");
     }
-    return value[id];
+    return value[idField];
   }
 
   async save(value: T): Promise<void> {

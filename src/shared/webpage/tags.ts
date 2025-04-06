@@ -1,6 +1,5 @@
 class HtmlTag {
   static readonly leafNodeNames = [
-    "p",
     "a",
     "button",
     "span",

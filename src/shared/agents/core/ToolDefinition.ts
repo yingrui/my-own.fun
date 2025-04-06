@@ -1,14 +1,23 @@
 import OpenAI from "openai";
 
+interface ToolProps {
+  name: string;
+  description: string;
+  required?: string[];
+  properties?: any;
+}
+
 class ToolDefinition {
   name: string;
   description: string;
+  required: string[];
   properties: any;
 
-  constructor(name: string, description: string) {
+  constructor({ name, required, description, properties }: ToolProps) {
     this.name = name;
-    this.description = description;
-    this.properties = {};
+    this.description = description ?? "";
+    this.properties = properties ?? {};
+    this.required = required ?? [];
   }
 
   setStringParameter(name: string) {
@@ -26,10 +35,7 @@ class ToolDefinition {
         function: {
           name: this.name,
           description: this.description,
-          parameters: {
-            type: "object",
-            properties: this.properties,
-          },
+          parameters: this.getParameters(),
         },
       };
     }
@@ -42,6 +48,21 @@ class ToolDefinition {
       },
     };
   }
+
+  private getParameters() {
+    if (this.required.length > 0) {
+      return {
+        type: "object",
+        properties: this.properties,
+        required: this.required,
+      };
+    }
+    return {
+      type: "object",
+      properties: this.properties,
+    };
+  }
 }
 
 export default ToolDefinition;
+export type { ToolProps };

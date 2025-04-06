@@ -3,12 +3,19 @@ interface PageLink {
   href: string;
 }
 
+interface SelectOption {
+  value: string;
+  text: string;
+  selected?: boolean;
+}
+
 interface PageInput {
   xpath: string;
   tag: string;
-  type: string;
-  label: string;
-  value: string;
+  name: string;
+  type?: string;
+  value?: string;
+  options?: SelectOption[];
 }
 
 interface Page {

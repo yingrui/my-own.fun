@@ -189,8 +189,8 @@ class ThoughtAgent implements Agent {
    * 2. Add string parameters to the tool
    * 3. Set user input as argument, so agent can understand that user input could be which parameter
    *    - If there are more than one string parameters, and user input as argument is not given, set the first one as user input as argument
-   *    - If user input as argument is given, set it as user input as argument
-   *    eg. when user types "/ask_page xxx", agent should understand the user input (xxx) is the parameter "question"
+   *    - If user input as argument is given, set it as user input as argument.
+   *    eg: when user types "/ask_page xxx", agent should understand the user input (xxx) is the parameter "question"
    * 4. At last add tool to the tools
    * @param {string} name - Name of the tool
    * @param {string} description - Description of the tool
@@ -202,7 +202,7 @@ class ThoughtAgent implements Agent {
     description: string,
     stringParameters: string[],
   ): ToolDefinition {
-    const tool = new ToolDefinition(name, description);
+    const tool = new ToolDefinition({ name, description });
     for (const stringParameter of stringParameters) {
       tool.setStringParameter(stringParameter);
     }
@@ -418,7 +418,7 @@ class ThoughtAgent implements Agent {
       }
     }
 
-    // If could not find the action by function name,
+    // If there is no action found by function name,
     // then agent should implement executeAction method.
     return this.executeAction(action, args, this.conversation);
   }
