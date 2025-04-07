@@ -16,12 +16,12 @@ The on-device AI agent is a kind of AI agent that runs on the device side, such 
 ```mermaid
 graph TD;
     subgraph PC or Phone
-        A[On Device AI Agent] --> LT[Local Tools]
+        A[On Device AI Agent] --> LT[Local Tools & MCP Services]
         A --> LM[Local AI Models]
     end
     
     subgraph Cloud Service
-        CA[Cloud AI Agent] --> CT[Cloud Tools]
+        CA[Cloud AI Agent] --> CT[Cloud MCP Services];
         CA --> CM[AI Models];
         A ---> CA;
         A ---> CM;
@@ -37,21 +37,19 @@ graph TD;
 graph TD;
     subgraph PC or Phone
         subgraph Browser
-            A[On Device AI Agent] --> T[Browser Tools]    
+            A[Frontend AI Agent] --> T[Browser Tools]    
         end
         subgraph Local Service
-            A ---> L[Local AI Agent]
             A ---> LM[Local AI Models]
-            L --> LT[Local Tools]
-            L --> LM
+            A ---> MCP[Local Tools & MCP Services]
+            L[Local AI Agent] --> LM
+            L  --> MCP
         end
+        MCP -.-> Browser
     end
     
     subgraph Cloud Service
-        B[Cloud AI Agent] --> T2[Cloud Tools]
-        B --> C[AI Models];
-        A --> B;
-        A --> C;
+        A --> B[Cloud API/MCP Service/AI Models];
     end
 ```
 

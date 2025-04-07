@@ -17,14 +17,14 @@
 
 ```mermaid
 graph TD;
-    subgraph PC or Phone
-        A[On Device AI Agent] --> LT[Local Tools]
-        A --> LM[Local AI Models]
+    subgraph PC或手机
+        A[本地AI Agent] --> LT[本地工具]
+        A --> LM[本地AI模型]
     end
 
-    subgraph Cloud Service
-        CA[Cloud AI Agent] --> CT[Cloud Tools]
-        CA --> CM[AI Models];
+    subgraph 云端
+        CA[云端AI Agent] --> CT[云端工具]
+        CA --> CM[AI模型];
         A ---> CA;
         A ---> CM;
     end
@@ -38,23 +38,21 @@ graph TD;
 
 ```mermaid
 graph TD;
-    subgraph PC or Phone
-        subgraph Browser
-            A[On Device AI Agent] --> T[Browser Tools]
+    subgraph PC或手机
+        subgraph 浏览器
+            A[前端AI Agent] --> T[浏览器工具]
         end
-        subgraph Local Service
-            A ---> L[Local AI Agent]
-            A ---> LM[Local AI Models]
-            L --> LT[Local Tools]
-            L --> LM
+        subgraph 桌面应用
+            A ---> LM[本地AI模型]
+            A ---> MCP[本地工具或MCP服务]
+            L[本地AI Agent] --> LM
+            L  --> MCP
         end
+        MCP -.-> 浏览器
     end
 
-    subgraph Cloud Service
-        B[Cloud AI Agent] --> T2[Cloud Tools]
-        B --> C[AI Models];
-        A --> B;
-        A --> C;
+    subgraph 云端
+        A --> B[云端API or MCP服务 or AI模型]
     end
 ```
 
