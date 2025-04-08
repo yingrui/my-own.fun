@@ -5,6 +5,7 @@ import { fromReadableStream } from "@src/shared/utils/streaming";
 import Thought from "@src/shared/agents/core/Thought";
 import intl from "react-intl-universal";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
+import { Tool } from "@src/shared/agents/decorators/tool";
 
 class BACopilotAgent extends ThoughtAgent {
   baCopilotKnowledgeApi: string;
@@ -27,17 +28,6 @@ class BACopilotAgent extends ThoughtAgent {
         .get("agent_description_ba_copilot")
         .d("BACopilot, your BA assistant"),
     );
-    this.addTool(
-      "user_story",
-      "generate story content for user before they want to create a new card in story board. userInput is interactive message between agent & human.",
-      ["userInput"],
-    );
-    this.addTool(
-      "tasking",
-      "Help developer to breakdown tasks for story in story card, when user is browsing story card page",
-      ["userInput"],
-    );
-    // this.addTool("createCard", "create card in story board with given title and description", ["title", "desc", "column"]);
 
     this.baCopilotKnowledgeApi = baCopilotKnowledgeApi;
     this.baCopilotApi = baCopilotApi;
@@ -131,8 +121,13 @@ Use markdown format to beautify output.`;
     });
   }
 
-  async user_story(args: object, messages: ChatMessage[]): Promise<Thought> {
-    const userInput = args["userInput"];
+  @Tool({
+    description:
+      "generate story content for user before they want to create a new card in story board. userInput is interactive message between agent & human.",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async user_story(userInput: string): Promise<Thought> {
     const board = await this.get_board();
     if (!board) return this.handleCannotGetBoardError();
     if (this.baCopilotApi) {
@@ -215,8 +210,13 @@ Use markdown format to beautify output.`;
     }
   }
 
-  async tasking(args: object, messages: ChatMessage[]): Promise<Thought> {
-    let userInput = args["userInput"];
+  @Tool({
+    description:
+      "Help developer to breakdown tasks for story in story card, when user is browsing story card page",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async tasking(userInput: string): Promise<Thought> {
     if (!userInput || userInput === "") {
       userInput = `breakdown tasks in ${this.language}:`;
     }

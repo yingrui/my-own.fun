@@ -3,6 +3,7 @@ import ToolDefinition from "./core/ToolDefinition";
 import ThoughtAgent, { ThoughtAgentProps } from "./ThoughtAgent";
 import Conversation from "./core/Conversation";
 import Thought from "./core/Thought";
+import Agent from "./core/Agent";
 
 /**
  * Composite Agent
@@ -75,9 +76,9 @@ class CompositeAgent extends ThoughtAgent {
     args: object,
     conversation: Conversation,
   ): Promise<Thought> {
-    const agent = this.mapToolsAgents[action];
+    const agent = this.mapToolsAgents[action] as Agent;
     if (agent) {
-      return agent.execute([{ name: action, arguments: args }], conversation);
+      return agent.execute([{ name: action, arguments: args }]);
     } else {
       throw new Error(
         `Unexpected action in CompositeAgent(${this.getName()}): ${action}`,

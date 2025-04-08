@@ -16,6 +16,14 @@ import Interaction from "./core/Interaction";
 import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
 import Template from "@src/shared/agents/services/Template";
 import ThoughtService from "@src/shared/agents/services/ThoughtService";
+import {
+  getToolsFromClass,
+  invokeTool,
+} from "@src/shared/agents/decorators/tool";
+import {
+  ToolNotFoundError,
+  ToolParameterError,
+} from "@src/shared/agents/core/errors/ToolErrors";
 
 interface ThoughtAgentProps {
   language: string;
@@ -34,7 +42,7 @@ class ThoughtAgent implements Agent {
   protected readonly enableMultimodal: boolean;
   protected readonly enableReflection: boolean;
   protected readonly enableChainOfThoughts: boolean;
-  private readonly tools: ToolDefinition[] = [];
+  private readonly tools: ToolDefinition[];
   private readonly name: string;
   private readonly description: string;
   private readonly conversation: Conversation;
@@ -57,6 +65,7 @@ class ThoughtAgent implements Agent {
     this.enableChainOfThoughts = props.enableChainOfThoughts;
     this.name = name;
     this.description = description;
+    this.tools = [...getToolsFromClass(this.constructor.prototype)];
   }
 
   /**
@@ -408,13 +417,17 @@ class ThoughtAgent implements Agent {
       return args["thought"] as Thought;
     }
 
-    for (const member of this.getMemberOfSelf()) {
-      if (member === action && typeof this[member] === "function") {
-        // TODO: need to verify if arguments of function are correct
-        return this[member].apply(this, [
-          args,
-          this.conversation.getMessages(),
-        ]);
+    try {
+      const result = await invokeTool(this, action, args);
+      if (result instanceof Thought) {
+        return result;
+      } else {
+        return new Thought({ type: "functionReturn", returnValue: result });
+      }
+    } catch (error) {
+      // ignore ToolNotFoundError
+      if (!(error instanceof ToolNotFoundError)) {
+        throw error;
       }
     }
 

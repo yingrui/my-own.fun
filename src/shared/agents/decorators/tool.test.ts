@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { Tool } from "./tool";
+import { invokeTool, Tool } from "./tool";
+import {
+  InvalidToolParameterError,
+  RequiredParameterMissedError,
+  ToolNotFoundError,
+  ToolParameterTypeError,
+} from "@src/shared/agents/core/errors/ToolErrors";
 
 describe("ToolDecorators", () => {
   class TestAgent {
-    @Tool({ description: "add two numbers", required: ["left", "right"] })
-    add(left: number, right: number): number {
+    @Tool({
+      description: "add two numbers",
+      required: ["left", "right"],
+      properties: { left: { type: "number" }, right: { type: "number" } },
+    })
+    async add(left: number, right: number): Promise<number> {
+      // sleep 10 millisecond
+      await new Promise((resolve) => setTimeout(resolve, 10));
       return left + right;
     }
 
@@ -18,8 +30,9 @@ describe("ToolDecorators", () => {
     }
   }
 
+  const agent = new TestAgent();
+
   it("should get add tool", () => {
-    const agent = new TestAgent();
     const tool = TestAgent.prototype["__tool_methods"].find(
       (t) => t.name === "add",
     );
@@ -29,7 +42,6 @@ describe("ToolDecorators", () => {
   });
 
   it("should get write_file tool", () => {
-    const agent = new TestAgent();
     const tool = TestAgent.prototype["__tool_methods"].find(
       (t) => t.name === "write_file",
     );
@@ -40,5 +52,42 @@ describe("ToolDecorators", () => {
       text: { type: "string" },
       path: { type: "string" },
     });
+  });
+
+  it("should be able to invoke tool", async () => {
+    const result = await invokeTool(agent, "add", { left: 1, right: 2 });
+    expect(result).toBe(3);
+  });
+
+  it("should throw ToolNotFoundError", () => {
+    expect(() => {
+      invokeTool(agent, "unknown", { text: "text" });
+    }).toThrowError(new ToolNotFoundError("unknown"));
+  });
+
+  it("should throw RequiredParameterMissedError when parameter is not valid", () => {
+    expect(() => {
+      invokeTool(agent, "write_file", { text: "text" });
+    }).toThrowError(new RequiredParameterMissedError("write_file", "path"));
+  });
+
+  it("should throw InvalidToolParameterError when parameter is not valid", () => {
+    expect(() => {
+      invokeTool(agent, "write_file", {
+        text: "text",
+        path: "test.txt",
+        wrongParameter: "wrong",
+      });
+    }).toThrowError(
+      new InvalidToolParameterError("write_file", "wrongParameter"),
+    );
+  });
+
+  it("should throw ToolParameterTypeError when type is wrong", () => {
+    expect(() => {
+      invokeTool(agent, "write_file", { text: 123, path: "test.txt" });
+    }).toThrowError(
+      new ToolParameterTypeError("write_file", "text", "string", "number"),
+    );
   });
 });

@@ -8,6 +8,8 @@ import Thought from "@src/shared/agents/core/Thought";
 import intl from "react-intl-universal";
 import Environment from "@src/shared/agents/core/Environment";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
+import { Tool } from "@src/shared/agents/decorators/tool";
+import _ from "lodash";
 
 class GoogleAgent extends ThoughtAgent {
   private readonly pages = {
@@ -23,29 +25,18 @@ class GoogleAgent extends ThoughtAgent {
       "Seeker",
       intl.get("agent_description_seeker").d("Seeker, your search assistant"),
     );
-    this.addTool("google", "only when user want to visit google.", [
-      "userInput",
-    ]);
-    this.addTool(
-      "search",
-      "search content from duckduckgo api, this will not open duckduckgo webpage. if you want get direct answer, use this tool.",
-      ["userInput"],
-    );
-    this.addTool(
-      "open_url",
-      "When user input an url or if user intent to open an url in conversation messages, open given url in browser.",
-      ["url"],
-    );
-    this.addTool(
-      "visit",
-      `When user want to visit some website (search engine, calendar, cloud drive, news, etc.), 
-open the website or open the given url. the website type or url is required.`,
-      ["url", "userInput"],
-    ).setEnumParameter("website", Object.keys(this.pages));
+    this.getTools()
+      .find((t) => t.name === "visit")
+      .setEnumParameter("website", Object.keys(this.pages));
   }
 
-  async search(args: object, messages: ChatMessage[]): Promise<Thought> {
-    const userInput = args["userInput"];
+  @Tool({
+    description:
+      "search content from duckduckgo api, this will not open duckduckgo webpage. if you want get direct answer, use this tool.",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async search(userInput: string): Promise<Thought> {
     const goal = this.getCurrentInteraction().getGoal();
     const results = await ddg_search(userInput);
     const prompt = `## Role
@@ -103,9 +94,14 @@ There is a problem that you cannot get any information from current tab, it's po
 
   private urlIsOpened = "Url is opened.";
 
-  async open_url(args: object, messages: ChatMessage[]): Promise<Thought> {
+  @Tool({
+    description:
+      "When user input an url or if user intent to open an url in conversation messages, open given url in browser.",
+    required: ["url"],
+    properties: { url: { type: "string" } },
+  })
+  async open_url(url: string): Promise<Thought> {
     return new Promise<any>((resolve, reject) => {
-      const url = args["url"];
       if (!url) {
         resolve(
           new Thought({
@@ -140,23 +136,34 @@ There is a problem that you cannot get any information from current tab, it's po
     });
   }
 
-  async visit(args: object, messages: ChatMessage[]): Promise<Thought> {
+  @Tool({
+    description:
+      "When user want to visit some website (search engine, calendar, cloud drive, news, etc.), \n" +
+      "open the website or open the given url. the website type or url is required.",
+    required: ["website", "url", "userInput"],
+    properties: {
+      website: { type: "string" },
+      url: { type: "string" },
+      userInput: { type: "string" },
+    },
+  })
+  async visit(
+    website: string,
+    url: string,
+    userInput: string,
+  ): Promise<Thought> {
     const defaultUserInput = `please describe what is this webpage in ${this.language}`;
-    const userInput = args["userInput"] ?? defaultUserInput;
+    userInput = _.isEmpty(userInput) ? defaultUserInput : userInput;
     let result: Thought = null;
 
-    if (args["url"]) {
-      result = await this.open_url({ userInput, url: args["url"] }, messages);
-    }
-
-    const website = args["website"];
-    if (website) {
-      let url = args["url"];
+    if (!_.isEmpty(url)) {
+      result = await this.open_url(url);
+    } else if (!_.isEmpty(website)) {
       url = this.pages[website];
       if (!url) {
         throw new Error("Unknown website.");
       }
-      result = await this.open_url({ userInput, url: url }, messages);
+      result = await this.open_url(url);
     }
 
     if (result) {
@@ -175,12 +182,18 @@ There is a problem that you cannot get any information from current tab, it's po
 
     return new Thought({
       type: "error",
-      error: new Error(`Invalid visit action: ${args}`),
+      error: new Error(
+        `Invalid visit action: ${website}, ${url}, ${userInput}`,
+      ),
     });
   }
 
-  async google(args: object, messages: ChatMessage[]): Promise<Thought> {
-    const userInput = args["userInput"];
+  @Tool({
+    description: "when user want to visit google to get information.",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async google(userInput: string): Promise<Thought> {
     const goal = this.getConversation().getCurrentInteraction().getGoal();
     const url = await this.openGoogle(userInput);
     const content = await this.get_google_result(url, userInput);
@@ -247,6 +260,7 @@ ${goal}
           });
         }, 1000);
       }
+
       get_search_result(resolve);
     });
   }

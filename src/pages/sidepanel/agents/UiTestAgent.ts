@@ -8,6 +8,7 @@ import ChatMessage, {
   imageContent,
   textContent,
 } from "@src/shared/agents/core/ChatMessage";
+import { Tool } from "@src/shared/agents/decorators/tool";
 
 class UiTestAgent extends ThoughtAgent {
   constructor(props: ThoughtAgentProps) {
@@ -17,11 +18,6 @@ class UiTestAgent extends ThoughtAgent {
       intl
         .get("agent_description_qa_copilot")
         .d("QACopilot, your QA assistant"),
-    );
-    this.addTool(
-      "ui_test",
-      "understand user's instruct and generate an UI E2E test for current viewing webpage",
-      ["userInput"],
     );
   }
 
@@ -40,8 +36,13 @@ Reply sorry and ask user to refresh webpage, so you can get information from web
     });
   }
 
-  async ui_test(args: object, messages: ChatMessage[]): Promise<Thought> {
-    const userInput = args["userInput"];
+  @Tool({
+    description:
+      "understand user's instruct and generate an UI E2E test for current viewing webpage",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async ui_test(userInput: string): Promise<Thought> {
     const page = await get_html();
     if (!page) return this.handleCannotGetHtmlError();
 

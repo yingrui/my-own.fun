@@ -5,6 +5,7 @@ import WriterContext from "@src/pages/options/writer/context/WriterContext";
 import Environment from "@src/shared/agents/core/Environment";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import Thought from "@src/shared/agents/core/Thought";
+import { Tool } from "@src/shared/agents/decorators/tool";
 
 class WriterAgent extends ThoughtAgent {
   context: WriterContext;
@@ -12,21 +13,14 @@ class WriterAgent extends ThoughtAgent {
   constructor(props: ThoughtAgentProps, context: WriterContext) {
     super(props, "myFun", "I am good at write an article.");
     this.context = context;
-    this.addTool(
-      "autocomplete",
-      "help user to continue writing from the cursor.",
-      ["userInput"],
-    );
-
-    this.addTool(
-      "outline",
-      "help user to create or modify the outline for the article.",
-      ["userInput"],
-    );
   }
 
-  async outline(args: object, messages: ChatMessage[]): Promise<Thought> {
-    const userInput = args["userInput"];
+  @Tool({
+    description: "help user to create or modify the outline for the article.",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async outline(userInput: string): Promise<Thought> {
     const title = this.context.getTitle();
     const content = this.context.getContent();
     const outline = this.context.getOutline();
@@ -64,8 +58,12 @@ Please think about the structure of the article and provide an outline in markdo
     });
   }
 
-  async autocomplete(args: object, messages: ChatMessage[]): Promise<Thought> {
-    const userInput = args["userInput"];
+  @Tool({
+    description: "help user to continue writing from the cursor.",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async autocomplete(userInput: string): Promise<Thought> {
     const selectionRange = this.context.getSelectionRange();
     const firstPart = this.context
       .getContent()

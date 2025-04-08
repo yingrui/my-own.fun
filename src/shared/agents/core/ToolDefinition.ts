@@ -20,6 +20,15 @@ class ToolDefinition {
     this.required = required ?? [];
   }
 
+  getParameterNames(): string[] {
+    // return all parameter names
+    return Object.keys(this.properties);
+  }
+
+  getParameterType(parameter: string): string {
+    return this.properties[parameter].type;
+  }
+
   setStringParameter(name: string) {
     this.properties[name] = { type: "string" };
   }

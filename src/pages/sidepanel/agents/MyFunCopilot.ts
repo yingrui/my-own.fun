@@ -10,6 +10,8 @@ import ChatMessage, {
   imageContent,
   textContent,
 } from "@src/shared/agents/core/ChatMessage";
+import { Tool } from "@src/shared/agents/decorators/tool";
+import _ from "lodash";
 
 /**
  * myFun Copilot
@@ -23,18 +25,6 @@ class MyFunCopilot extends CompositeAgent {
     agents: ThoughtAgent[] = [],
   ) {
     super(props, name, description, agents);
-    this.addTools();
-  }
-
-  /**
-   * Add the self agent tools to chatCompletionTools and mapToolsAgents.
-   */
-  private addTools(): void {
-    this.addTool(
-      "summary",
-      "Based on current web page content, answer user's question or follow the user instruction to generate content for them.",
-      ["userInput", "task"],
-    );
   }
 
   private async handleCannotGetContentError(): Promise<Thought> {
@@ -52,7 +42,13 @@ Reply sorry and ask user to refresh webpage, so you can get information from web
     });
   }
 
-  async summary(args: object, messages: ChatMessage[]): Promise<Thought> {
+  @Tool({
+    description:
+      "Based on current web page content, answer user's question or follow the user instruction to generate content for them.",
+    required: ["userInput"],
+    properties: { userInput: { type: "string" } },
+  })
+  async summary(userInput: string): Promise<Thought> {
     const content = await get_content();
     if (!content) return this.handleCannotGetContentError();
 
@@ -85,43 +81,47 @@ The links are: {{links}}`,
       links: JSON.stringify(content.links),
     });
 
-    const userInput = this.get(
-      args,
-      "userInput",
-      `please summary the content in ${this.language}`,
-    );
+    userInput = _.isEmpty(userInput)
+      ? `please summary the content in ${this.language}`
+      : userInput;
     const screenshot = this.getCurrentEnvironment().screenshot;
     const replaceUserInput = this.enableMultimodal
       ? imageContent(userInput, screenshot)
       : textContent(userInput);
     return await this.chatCompletion({
-      messages: messages,
+      messages: this.getConversation().getMessages(),
       systemPrompt: prompt,
       userInput: replaceUserInput,
       stream: true,
     });
   }
 
-  private get(args: object, key: string, defaultValue: string): string {
-    const value = args[key];
-    if (!value) return defaultValue;
-    return value;
-  }
-
   /**
    * Generate text content for user
-   * @param {object} args - Arguments
-   * @param {ChatMessage[]} messages - Messages
+   * @param {string} userInput - User input
+   * @param {string} text - Text in editing area
+   * @param {number} selectionStart - Start position of selection
+   * @param {number} selectionEnd - End position of selection
    * @returns {Promise<any>} ChatCompletion
    */
-  async autocomplete(args: object, messages: ChatMessage[]): Promise<Thought> {
+  @Tool({
+    description: "Automatically generate content for user.",
+    properties: {
+      userInput: { type: "string" },
+      text: { type: "string" },
+      selectionStart: { type: "number" },
+      selectionEnd: { type: "number" },
+    },
+  })
+  async autocomplete(
+    userInput: string,
+    text: string,
+    selectionStart: number,
+    selectionEnd: number,
+  ): Promise<Thought> {
     const content = await get_content();
-    const userInput = args["userInput"];
-    const text = args["text"];
-    const selectionStart = args["selectionStart"];
-    const selectionEnd = args["selectionEnd"];
     let prompt = "";
-    if (text && selectionStart && selectionStart) {
+    if (text && selectionStart && selectionEnd) {
       prompt = this.autocompletePrompt(
         content,
         text,
@@ -149,7 +149,9 @@ Directly give the sentence continue to the end of given text. Do not repeat the 
         new ChatMessage({ role: "system", content: prompt }),
         new ChatMessage({
           role: "user",
-          content: `Continue writing in ${this.language}:`,
+          content: _.isEmpty(userInput)
+            ? `Continue writing in ${this.language}:`
+            : userInput,
         }),
       ],
     });
