@@ -20,10 +20,7 @@ import {
   getToolsFromClass,
   invokeTool,
 } from "@src/shared/agents/decorators/tool";
-import {
-  ToolNotFoundError,
-  ToolParameterError,
-} from "@src/shared/agents/core/errors/ToolErrors";
+import { ToolNotFoundError } from "@src/shared/agents/core/errors/ToolErrors";
 
 interface ThoughtAgentProps {
   language: string;
@@ -52,6 +49,7 @@ class ThoughtAgent implements Agent {
   private receiveStreamMessageListener: (msg: string) => void;
   private repo: ConversationRepository;
   private templateEngine: TemplateEngine;
+  private disabledTools: string[] = [];
 
   constructor(props: ThoughtAgentProps, name: string, description: string) {
     this.language = props.language;
@@ -77,6 +75,12 @@ class ThoughtAgent implements Agent {
 
   protected getCurrentInteraction(): Interaction {
     return this.getConversation().getCurrentInteraction();
+  }
+
+  setDisabledTool(tool: string): void {
+    if (!this.disabledTools.includes(tool)) {
+      this.disabledTools.push(tool);
+    }
   }
 
   /**
@@ -225,7 +229,9 @@ class ThoughtAgent implements Agent {
    * @returns {OpenAI.Chat.Completions.ChatCompletionTool[]} ChatCompletionTools
    */
   getToolCalls(): OpenAI.Chat.Completions.ChatCompletionTool[] {
-    return this.getTools().map((tool) => tool.getFunction());
+    return this.getTools()
+      .filter((t) => !this.disabledTools.includes(t.name))
+      .map((tool) => tool.getFunction());
   }
 
   /**
@@ -254,13 +260,18 @@ class ThoughtAgent implements Agent {
    */
   async chat(message: ChatMessage): Promise<Thought> {
     await this.onStartInteraction(message);
-    let result: Thought = null;
-
-    let plan = await this.plan();
+    let result = await this.plan();
     do {
-      result = await this.process(plan);
-      plan = await this.observe(result); // directly return the result if reflection is disabled
-    } while (this.enableReflection && plan && plan.hasActions());
+      result = await this.process(result);
+      if (result.type === "functionReturn") {
+        result = await this.thinkResult(result);
+      }
+      result = await this.observe(result); // directly return the result if reflection is disabled
+      if (result.type === "stream") {
+        const message = await this.readMessage(result);
+        result = this.thought(message);
+      }
+    } while (this.enableReflection && result && result.hasActions());
 
     const output = await this.onCompleted(result);
     return this.thought(output);
@@ -315,6 +326,25 @@ class ThoughtAgent implements Agent {
       return this.thought(message);
     }
     return await this.reflection();
+  }
+
+  private async thinkResult(result: Thought): Promise<Thought> {
+    const functionReturn = await result.getMessage();
+    const goal = this.getCurrentInteraction().getGoal();
+    const prompt = `## Context
+Considering the previous conversation, please answer the question based on the context.
+
+## User Intent & Goal
+${goal}
+
+## Tools Executed and Function Return
+${functionReturn}
+
+## Output
+`;
+    return await this.chatCompletion({
+      messages: [new ChatMessage({ role: "user", content: prompt })],
+    });
   }
 
   /**

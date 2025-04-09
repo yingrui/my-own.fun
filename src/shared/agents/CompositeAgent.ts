@@ -38,10 +38,14 @@ class CompositeAgent extends ThoughtAgent {
   private addAgent(agent: ThoughtAgent): void {
     this.subAgents.push(agent);
     for (const tool of agent.getTools()) {
-      this.getTools().push(tool);
-      const toolCall = tool.getFunction();
-      this.chatCompletionTools.push(toolCall);
-      this.mapToolsAgents[toolCall.function.name] = agent;
+      const tools = this.getTools();
+      // If the tool is not already in the tools list, add it
+      if (!tools.find((t) => t.name === tool.name)) {
+        tools.push(tool);
+        const toolCall = tool.getFunction();
+        this.chatCompletionTools.push(toolCall);
+        this.mapToolsAgents[toolCall.function.name] = agent;
+      }
     }
   }
 

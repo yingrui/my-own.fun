@@ -17,10 +17,7 @@ class AgentFactory extends BaseAgentFactory {
     this.setInitMessages(AgentFactory.getInitialMessages(config));
     this.setConversationRepository(new LocalConversationRepository());
 
-    const agents: ThoughtAgent[] = [];
-    if (config.enableSearch) {
-      agents.push(new GoogleAgent(props));
-    }
+    const agents: ThoughtAgent[] = [new GoogleAgent(props)];
 
     const agent = new MyFunAssistant(
       props,
@@ -29,9 +26,15 @@ class AgentFactory extends BaseAgentFactory {
       agents,
     );
 
-    const commands = [
+    let commands = [
       { value: "search", label: intl.get("command_search").d("/search") },
     ];
+
+    if (!config.enableSearch) {
+      agent.setDisabledTool("search");
+      commands = [];
+    }
+
     const delegateAgent = new DelegateAgent(
       agent,
       agents,
