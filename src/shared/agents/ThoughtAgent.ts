@@ -245,7 +245,9 @@ class ThoughtAgent implements Agent {
     message: ChatMessage,
   ): Promise<Thought> {
     await this.onStartInteraction(message);
-    const result = await this.execute(actions);
+    const result = await this.execute(actions).then((result) =>
+      this.postprocess(result),
+    );
     const output = await this.onCompleted(
       this.thought(await this.readMessage(result)),
     );
@@ -263,15 +265,8 @@ class ThoughtAgent implements Agent {
     let result = await this.plan();
     do {
       result = await this.process(result);
-      if (result.type === "functionReturn") {
-        result = await this.thinkResult(result);
-      }
       result = await this.observe(result); // directly return the result if reflection is disabled
-      if (result.type === "stream") {
-        const message = await this.readMessage(result);
-        result = this.thought(message);
-      }
-    } while (this.enableReflection && result && result.hasActions());
+    } while (this.enableReflection && result?.isAction());
 
     const output = await this.onCompleted(result);
     return this.thought(output);
@@ -302,14 +297,23 @@ class ThoughtAgent implements Agent {
 
   private async process(thought: Thought): Promise<Thought> {
     if (thought.type === "actions") {
-      return await this.execute(await this.check(thought.actions));
+      return this.check(thought.actions)
+        .then((actions) => this.execute(actions))
+        .then((result) => this.postprocess(result));
     } else if (["message", "stream"].includes(thought.type)) {
-      return await this.execute([this.replyAction(thought)]);
+      return this.execute([this.replyAction(thought)]);
     } else if (thought.type === "error") {
-      return thought;
+      return Promise.resolve(thought);
     }
 
     throw new Error("Unknown plan type");
+  }
+
+  private async postprocess(thought: Thought): Promise<Thought> {
+    if (thought.type === "functionReturn") {
+      return this.thinkResult(thought);
+    }
+    return thought;
   }
 
   /**
@@ -325,7 +329,11 @@ class ThoughtAgent implements Agent {
     if (!this.enableReflection) {
       return this.thought(message);
     }
-    return await this.reflection();
+    const thought = await this.reflection();
+    if (thought.type === "stream") {
+      return this.thought(await this.readMessage(thought));
+    }
+    return thought;
   }
 
   private async thinkResult(result: Thought): Promise<Thought> {
@@ -407,7 +415,7 @@ ${functionReturn}
    * 3. Control action flow
    * ...
    * @param {Action[]} actions - Actions
-   * @returns {Action[]} Actions
+   * @returns {Promise<Action[]>} Actions
    */
   async check(actions: Action[]): Promise<Action[]> {
     const messages = this.conversation.getMessages();

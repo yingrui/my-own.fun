@@ -124,7 +124,7 @@ class Thought {
     return message;
   }
 
-  public hasActions(): boolean {
+  public isAction(): boolean {
     return this.type === "actions" && this.actions.length > 0;
   }
 }
