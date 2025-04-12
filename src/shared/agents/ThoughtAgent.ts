@@ -21,7 +21,6 @@ import {
   invokeTool,
 } from "@src/shared/agents/decorators/tool";
 import { ToolNotFoundError } from "@src/shared/agents/core/errors/ToolErrors";
-import { Effect } from "effect";
 
 interface ThoughtAgentProps {
   language: string;
@@ -246,11 +245,7 @@ class ThoughtAgent implements Agent {
     message: ChatMessage,
   ): Promise<Thought> {
     await this.onStartInteraction(message);
-    const pipe = Effect.all([Effect.succeed(actions)]).pipe(
-      Effect.andThen(([a]) => this.execute(a)),
-      Effect.andThen((t) => this.postprocess(t)),
-    );
-    const result = await Effect.runPromise(pipe);
+    const result = await this.execute(actions);
     const output = await this.onCompleted(
       this.thought(await this.readMessage(result)),
     );
@@ -268,6 +263,9 @@ class ThoughtAgent implements Agent {
     let result = await this.plan();
     do {
       result = await this.process(result);
+      if (result.type === "functionReturn") {
+        result = await this.thinkResult(result);
+      }
       result = await this.observe(result); // directly return the result if reflection is disabled
       if (result.type === "stream") {
         const message = await this.readMessage(result);
@@ -304,33 +302,14 @@ class ThoughtAgent implements Agent {
 
   private async process(thought: Thought): Promise<Thought> {
     if (thought.type === "actions") {
-      const checkActions = Effect.promise(() => this.check(thought.actions));
-      const pipe = Effect.all([checkActions]).pipe(
-        Effect.andThen(([a]) => this.execute(a)),
-        Effect.andThen((t) => this.postprocess(t)),
-      );
-      return await Effect.runPromise(pipe);
+      return await this.execute(await this.check(thought.actions));
     } else if (["message", "stream"].includes(thought.type)) {
-      const actions = Effect.promise(() =>
-        Promise.resolve([this.replyAction(thought)]),
-      );
-      const pipe = Effect.all([actions]).pipe(
-        Effect.andThen(([a]) => this.execute(a)),
-        Effect.andThen((t) => this.postprocess(t)),
-      );
-      return await Effect.runPromise(pipe);
+      return await this.execute([this.replyAction(thought)]);
     } else if (thought.type === "error") {
       return thought;
     }
 
     throw new Error("Unknown plan type");
-  }
-
-  private async postprocess(thought: Thought): Promise<Thought> {
-    if (thought.type === "functionReturn") {
-      return await this.thinkResult(thought);
-    }
-    return thought;
   }
 
   /**
@@ -346,12 +325,7 @@ class ThoughtAgent implements Agent {
     if (!this.enableReflection) {
       return this.thought(message);
     }
-    const reflectionThought = await this.reflection();
-    if (reflectionThought.type === "stream") {
-      const message = await this.readMessage(reflectionThought);
-      return this.thought(message);
-    }
-    return reflectionThought;
+    return await this.reflection();
   }
 
   private async thinkResult(result: Thought): Promise<Thought> {
