@@ -13,6 +13,7 @@ class Template {
   agent: string;
   name: string;
   template: string;
+  signature: string;
   parameters: Parameter[];
 
   constructor(pojo: any) {
@@ -22,6 +23,7 @@ class Template {
     this.agent = pojo.agent;
     this.template = pojo.template;
     this.parameters = pojo.parameters;
+    this.signature = pojo.signature;
   }
 }
 

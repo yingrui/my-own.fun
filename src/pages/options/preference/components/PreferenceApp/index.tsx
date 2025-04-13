@@ -140,10 +140,7 @@ const PreferenceApp: React.FC = () => {
           ></BACopilotSettings>
         )}
         {selectedKey === PREFERENCE_MENU_KEYS.PROMPTS && (
-          <PromptSettings
-            config={initData}
-            onSaveSettings={onSaveSettings}
-          ></PromptSettings>
+          <PromptSettings config={initData}></PromptSettings>
         )}
       </Layout>
     </Layout>

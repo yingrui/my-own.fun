@@ -3,6 +3,7 @@ import type { LiquidOptions } from "liquidjs";
 import { Liquid } from "liquidjs";
 import Template from "@src/shared/agents/services/Template";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
+import { sha256 } from "@src/shared/utils/digest";
 
 /**
  * Liquid template engine implementation based on liquidjs
@@ -20,8 +21,11 @@ class LiquidTemplateEngine implements TemplateEngine {
   add(template: Template): TemplateEngine {
     this.templates.set(template.id, template.template);
     if (this.repo) {
-      this.repo.exists(template.id).then((exists) => {
+      this.repo.exists(template.id).then(async (exists) => {
         if (!exists) {
+          if (!template.signature) {
+            template.signature = await sha256(template.template);
+          }
           this.repo.save(template).catch((e) => {
             console.error(`Failed to save template ${template.id}: ${e}`);
           });

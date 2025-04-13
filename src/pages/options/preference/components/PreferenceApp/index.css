@@ -2,7 +2,7 @@
   height: 64px;
 }
 
-#architect-left-sider {
+#preference-left-sider {
   background-color: #fff;
   border-right-width: 1px;
   border-right-style: solid;
@@ -10,5 +10,5 @@
 }
 
 .ant-form-item {
-  margin-bottom: 8px; // 调整间距
+  margin-bottom: 8px;
 }

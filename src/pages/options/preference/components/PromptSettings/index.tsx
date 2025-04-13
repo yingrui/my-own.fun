@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Card, Table, Space, Tag, Button, Tooltip, message } from "antd";
+import {
+  Card,
+  Table,
+  Space,
+  Tag,
+  Button,
+  Tooltip,
+  message,
+  Modal,
+  Form,
+  Input,
+} from "antd";
 import type { TableColumnsType } from "antd";
 import {
   EditOutlined,
@@ -15,15 +26,22 @@ import intl from "react-intl-universal";
 
 interface PromptSettingsProps {
   config: GluonConfigure;
-  onSaveSettings: (values: any) => void;
 }
 
-const PromptSettings: React.FC<PromptSettingsProps> = ({
-  config,
-  onSaveSettings,
-}) => {
+interface EditTemplateForm {
+  name: string;
+  agent: string;
+  template: string;
+  parameters: string;
+  signature: string;
+}
+
+const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [form] = Form.useForm<EditTemplateForm>();
   const repository = new TemplateRepository(chrome.storage.local);
 
   const getTemplates = async () => {
@@ -60,23 +78,65 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({
     }
   };
 
+  const handleEdit = (template: Template) => {
+    setEditingTemplate(template);
+    form.setFieldsValue({
+      name: template.name,
+      agent: template.agent,
+      template: template.template,
+      parameters: JSON.stringify(template.parameters),
+      signature: template.signature,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      if (editingTemplate) {
+        const updatedTemplate = new Template({
+          ...editingTemplate,
+          template: values.template,
+        });
+        await repository.save(updatedTemplate);
+        message.success(
+          intl.get("template_save_success").d("Template saved successfully"),
+        );
+        await getTemplates();
+      }
+      setIsModalOpen(false);
+      setEditingTemplate(null);
+      form.resetFields();
+    } catch (error) {
+      message.error(
+        intl.get("template_save_error").d("Failed to save template"),
+      );
+      console.error("Failed to save template:", error);
+    }
+  };
+
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+    setEditingTemplate(null);
+    form.resetFields();
+  };
+
   const columns: TableColumnsType<Template> = [
     {
       title: intl.get("template_name").d("Name"),
       dataIndex: "name",
       key: "name",
       sorter: (a, b) => a.name.localeCompare(b.name),
+      render: (text, record) => (
+        <Tooltip title={`ID: ${record.id}`}>
+          <span>{text}</span>
+        </Tooltip>
+      ),
     },
     {
       title: intl.get("template_agent").d("Agent"),
       dataIndex: "agent",
       key: "agent",
-      filters: [
-        { text: "CodeReviewer", value: "CodeReviewer" },
-        { text: "BugAnalyzer", value: "BugAnalyzer" },
-        { text: "Documentation", value: "Documentation" },
-      ],
-      onFilter: (value, record) => record.agent === value,
     },
     {
       title: intl.get("template_parameters").d("Parameters"),
@@ -122,7 +182,11 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          <Button type="text" icon={<EditOutlined />} />
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+          />
           <Button
             type="text"
             danger
@@ -152,6 +216,57 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({
           pagination={{ pageSize: 10 }}
         />
       </Card>
+
+      <Modal
+        title={intl.get("template_edit").d("Edit Template")}
+        open={isModalOpen}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        width={800}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="name" label={intl.get("template_name").d("Name")}>
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item name="agent" label={intl.get("template_agent").d("Agent")}>
+            <Input disabled />
+          </Form.Item>
+
+          <Form.Item
+            name="template"
+            label={intl.get("template_content").d("Content")}
+            rules={[
+              {
+                required: true,
+                message: intl
+                  .get("template_content_required")
+                  .d("Please input template content"),
+              },
+            ]}
+          >
+            <Input.TextArea rows={6} />
+          </Form.Item>
+
+          <Form.Item
+            name="parameters"
+            label={intl.get("template_parameters").d("Parameters")}
+          >
+            <Input.TextArea
+              rows={4}
+              disabled
+              style={{ fontFamily: "monospace" }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="signature"
+            label={intl.get("template_signature").d("Signature")}
+          >
+            <Input disabled style={{ fontFamily: "monospace" }} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };
