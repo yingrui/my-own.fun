@@ -111,7 +111,14 @@ class Thought {
           throw new SensitiveTopicError();
         }
         const content = chunk.choices[0]?.delta?.content ?? "";
-        message = message + content;
+        if (content !== "") {
+          message = message + content;
+        }
+        const reasoningContent =
+          chunk.choices[0]?.delta?.reasoning_content ?? "";
+        if (reasoningContent !== "") {
+          message = message + reasoningContent;
+        }
       } else {
         // When stream is not from openai chat completion, but an AsyncIterator
         message = message + chunk.data;

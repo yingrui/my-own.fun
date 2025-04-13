@@ -2,7 +2,12 @@ import ChatMessage, { type MessageContent } from "../core/ChatMessage";
 import Thought, { ModelType } from "../core/Thought";
 import OpenAI from "openai";
 
-type ModelProvider = "zhipu.ai" | "openai.com" | "ollama" | "custom";
+type ModelProvider =
+  | "zhipu.ai"
+  | "openai.com"
+  | "ollama"
+  | "deepseek"
+  | "custom";
 
 interface ModelServiceProps {
   client: OpenAI;

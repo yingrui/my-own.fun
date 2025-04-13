@@ -5,7 +5,6 @@ import ThoughtAgent, {
 import Conversation from "@src/shared/agents/core/Conversation";
 import Agent from "@src/shared/agents/core/Agent";
 import ConversationRepository from "@src/shared/agents/ConversationRepository";
-import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
 import intl from "react-intl-universal";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import { locale } from "@src/shared/utils/i18n";
@@ -14,12 +13,12 @@ import type { ModelProvider } from "@src/shared/agents/services/ModelService";
 import ModelService from "@src/shared/agents/services/ModelService";
 import DefaultModelService from "@src/shared/agents/services/DefaultModelService";
 import GPTModelService from "@src/shared/agents/services/GPTModelService";
-import ReflectionService from "@src/shared/agents/services/ReflectionService";
 import PromptChainOfThoughtService from "@src/shared/agents/services/PromptChainOfThoughtService";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 import OllamaModelService from "@src/shared/agents/services/OllamaModelService";
+import DeepSeekModelService from "@src/shared/agents/services/DeepSeekModelService";
 
 class BaseAgentFactory {
   private repository: ConversationRepository;
@@ -80,6 +79,8 @@ class BaseAgentFactory {
         return new GPTModelService(modelServiceProps);
       case "ollama":
         return new OllamaModelService(modelServiceProps);
+      case "deepseek":
+        return new DeepSeekModelService(modelServiceProps);
       default:
         return new DefaultModelService(modelServiceProps);
     }
@@ -114,6 +115,8 @@ class BaseAgentFactory {
       return "zhipu.ai";
     } else if (baseURL.includes(":11434/v1")) {
       return "ollama";
+    } else if (baseURL.includes("api.deepseek.com")) {
+      return "deepseek";
     }
     return "custom";
   }

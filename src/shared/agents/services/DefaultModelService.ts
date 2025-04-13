@@ -304,7 +304,7 @@ class DefaultModelService implements ModelService {
   protected toAction(tool: ToolCall): Action {
     let args = {};
     try {
-      if (tool.function.arguments) {
+      if (tool.function.arguments && tool.function.arguments !== "") {
         args = JSON.parse(tool.function.arguments);
       }
     } catch (e) {
