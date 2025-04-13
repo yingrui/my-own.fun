@@ -58,6 +58,10 @@ class LocalRepository<T> implements Repository<T> {
     return defaultValue;
   }
 
+  async delete(key: string): Promise<void> {
+    await this.storage.remove(key);
+  }
+
   private async getKeys(startWith: string): Promise<string[]> {
     const keys = await this.storage.getKeys();
     return keys.filter((key) => key.startsWith(startWith)).sort();

@@ -7,6 +7,7 @@ import {
   ProfileOutlined,
   RobotOutlined,
   SettingOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import configureStorage, {
   GluonConfigure,
@@ -18,6 +19,7 @@ import useStorage from "@src/shared/hooks/useStorage";
 import BasicSettings from "@pages/options/preference/components/BasicSettings";
 import BACopilotSettings from "@pages/options/preference/components/BACopilot";
 import FeatureToggles from "@pages/options/preference/components/FeatureToggles";
+import PromptSettings from "@pages/options/preference/components/PromptSettings";
 
 const { Sider } = Layout;
 
@@ -25,6 +27,7 @@ const PREFERENCE_MENU_KEYS = {
   BASIC: "basic",
   BA_COPILOT: "ba_copilot",
   FEATURE_TOGGLES: "feature_toggles",
+  PROMPTS: "prompts",
 };
 
 const PreferenceApp: React.FC = () => {
@@ -49,6 +52,11 @@ const PreferenceApp: React.FC = () => {
       key: PREFERENCE_MENU_KEYS.BA_COPILOT,
       icon: <RobotOutlined />,
       label: intl.get("ba_copilot").d("BA Copilot"),
+    },
+    {
+      key: PREFERENCE_MENU_KEYS.PROMPTS,
+      icon: <MessageOutlined />,
+      label: intl.get("prompts").d("Prompts"),
     },
   ];
 
@@ -130,6 +138,12 @@ const PreferenceApp: React.FC = () => {
             config={initData}
             onSaveSettings={onSaveSettings}
           ></BACopilotSettings>
+        )}
+        {selectedKey === PREFERENCE_MENU_KEYS.PROMPTS && (
+          <PromptSettings
+            config={initData}
+            onSaveSettings={onSaveSettings}
+          ></PromptSettings>
         )}
       </Layout>
     </Layout>

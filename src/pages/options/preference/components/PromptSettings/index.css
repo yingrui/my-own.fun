@@ -1,0 +1,16 @@
+.prompt-settings {
+  padding: 24px;
+}
+
+.prompt-settings .ant-card {
+  margin-bottom: 24px;
+}
+
+.prompt-settings .ant-table {
+  margin-top: 16px;
+}
+
+.prompt-settings .ant-tag {
+  margin-right: 8px;
+  margin-bottom: 8px;
+} 

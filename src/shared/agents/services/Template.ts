@@ -17,7 +17,7 @@ class Template {
 
   constructor(pojo: any) {
     this.name = pojo.name;
-    this.id = `${Template["_from"]}${this.name}`;
+    this.id = `${Template.prototype["_from"]}${this.name}`;
 
     this.agent = pojo.agent;
     this.template = pojo.template;

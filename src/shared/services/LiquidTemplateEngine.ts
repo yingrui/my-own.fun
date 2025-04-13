@@ -1,5 +1,6 @@
 import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
-import { Liquid, LiquidOptions } from "liquidjs";
+import type { LiquidOptions } from "liquidjs";
+import { Liquid } from "liquidjs";
 import Template from "@src/shared/agents/services/Template";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 
@@ -18,6 +19,15 @@ class LiquidTemplateEngine implements TemplateEngine {
 
   add(template: Template): TemplateEngine {
     this.templates.set(template.id, template.template);
+    if (this.repo) {
+      this.repo.exists(template.id).then((exists) => {
+        if (!exists) {
+          this.repo.save(template).catch((e) => {
+            console.error(`Failed to save template ${template.id}: ${e}`);
+          });
+        }
+      });
+    }
     return this;
   }
 

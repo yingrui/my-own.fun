@@ -19,6 +19,7 @@ describe("LiquidTemplateEngine", () => {
 
   it("should render template with parameter", async () => {
     const template = stubTemplate("test-template");
+    expect(template.id).toBe("__template_test-template");
     const engine = new LiquidTemplateEngine({});
     const actualResult = await engine
       .add(template)
