@@ -134,7 +134,7 @@
   "tect_architecture_tips_no_data": "暂无数据",
   "template_actions": "操作",
   "template_add": "添加模板",
-  "template_agent": "智能体",
+  "template_class_name": "类名",
   "template_content": "内容",
   "template_content_required": "请输入模版内容",
   "template_delete_error": "删除模板失败",

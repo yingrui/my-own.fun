@@ -4,6 +4,7 @@ import { Liquid } from "liquidjs";
 import Template from "@src/shared/agents/services/Template";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 import { sha256 } from "@src/shared/utils/digest";
+import _ from "lodash";
 
 /**
  * Liquid template engine implementation based on liquidjs
@@ -26,6 +27,10 @@ class LiquidTemplateEngine implements TemplateEngine {
           if (!template.signature) {
             template.signature = await sha256(template.template);
           }
+          // Template.template field cannot be modified
+          // Set the modifiedTemplate to be the same as template, user can change this field.
+          template.modifiedTemplate = template.template;
+
           this.repo.save(template).catch((e) => {
             console.error(`Failed to save template ${template.id}: ${e}`);
           });
@@ -46,7 +51,8 @@ class LiquidTemplateEngine implements TemplateEngine {
   private async getTemplate(templateId: string): Promise<string> {
     if (this.repo) {
       if (await this.repo.find(templateId)) {
-        return (await this.repo.find(templateId, null)).template;
+        const t = await this.repo.find(templateId, null);
+        return _.isEmpty(t.modifiedTemplate) ? t.template : t.modifiedTemplate;
       }
     }
     return this.templates.get(templateId);

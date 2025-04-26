@@ -21,6 +21,7 @@ import {
   invokeTool,
 } from "@src/shared/agents/decorators/tool";
 import { ToolNotFoundError } from "@src/shared/agents/core/errors/ToolErrors";
+import { getClassName } from "@src/shared/utils/reflection";
 
 interface ThoughtAgentProps {
   language: string;
@@ -570,7 +571,7 @@ ${functionReturn}
     const t = new Template({
       name: name,
       template: template,
-      agent: this.getName(),
+      class: getClassName(this),
       parameters: parameters,
     });
     this.templateEngine.add(t);

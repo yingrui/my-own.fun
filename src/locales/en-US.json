@@ -134,7 +134,7 @@
   "tect_architecture_title": "Architectural Design Assistant",
   "template_actions": "Actions",
   "template_add": "Add Template",
-  "template_agent": "Agent",
+  "template_class_name": "Class Name",
   "template_content": "Content",
   "template_content_required": "Please input template content",
   "template_delete_error": "Failed to delete template",

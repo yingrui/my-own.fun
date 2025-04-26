@@ -10,9 +10,10 @@ interface Parameter {
 class Template {
   @Id
   id: string;
-  agent: string;
+  class: string;
   name: string;
   template: string;
+  modifiedTemplate: string;
   signature: string;
   parameters: Parameter[];
 
@@ -20,8 +21,9 @@ class Template {
     this.name = pojo.name;
     this.id = `${Template.prototype["_from"]}${this.name}`;
 
-    this.agent = pojo.agent;
+    this.class = pojo.class;
     this.template = pojo.template;
+    this.modifiedTemplate = pojo.modifiedTemplate;
     this.parameters = pojo.parameters;
     this.signature = pojo.signature;
   }

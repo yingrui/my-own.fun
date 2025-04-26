@@ -23,6 +23,7 @@ import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 import Template, { Parameter } from "@src/shared/agents/services/Template";
 import "./index.css";
 import intl from "react-intl-universal";
+import _ from "lodash";
 
 interface PromptSettingsProps {
   config: GluonConfigure;
@@ -30,7 +31,7 @@ interface PromptSettingsProps {
 
 interface EditTemplateForm {
   name: string;
-  agent: string;
+  class: string;
   template: string;
   parameters: string;
   signature: string;
@@ -82,8 +83,10 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
     setEditingTemplate(template);
     form.setFieldsValue({
       name: template.name,
-      agent: template.agent,
-      template: template.template,
+      class: template.class,
+      template: _.isEmpty(template.modifiedTemplate)
+        ? template.template
+        : template.modifiedTemplate,
       parameters: JSON.stringify(template.parameters),
       signature: template.signature,
     });
@@ -96,7 +99,7 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
       if (editingTemplate) {
         const updatedTemplate = new Template({
           ...editingTemplate,
-          template: values.template,
+          modifiedTemplate: values.template,
         });
         await repository.save(updatedTemplate);
         message.success(
@@ -134,9 +137,9 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
       ),
     },
     {
-      title: intl.get("template_agent").d("Agent"),
-      dataIndex: "agent",
-      key: "agent",
+      title: intl.get("template_class_name").d("Class Name"),
+      dataIndex: "class",
+      key: "class",
     },
     {
       title: intl.get("template_parameters").d("Parameters"),
@@ -145,10 +148,7 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
       render: (_, { parameters }) => (
         <>
           {parameters?.map((param: Parameter) => (
-            <Tooltip
-              key={param.name}
-              title={`${param.type}${param.defaultValue ? ` (default: ${param.defaultValue})` : ""}`}
-            >
+            <Tooltip key={param.name} title={JSON.stringify(param, null, 2)}>
               <Tag color="blue" icon={<CodeOutlined />}>
                 {param.name}
               </Tag>
@@ -161,8 +161,12 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
       title: intl.get("template_content").d("Content"),
       dataIndex: "template",
       key: "template",
-      render: (text) => (
-        <Tooltip title={text}>
+      render: (text, record) => (
+        <Tooltip
+          title={
+            _.isEmpty(record.modifiedTemplate) ? text : record.modifiedTemplate
+          }
+        >
           <span
             style={{
               display: "block",
@@ -172,7 +176,9 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
               whiteSpace: "nowrap",
             }}
           >
-            {text}
+            {_.isEmpty(record.modifiedTemplate)
+              ? text
+              : record.modifiedTemplate}
           </span>
         </Tooltip>
       ),
@@ -229,7 +235,10 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
             <Input disabled />
           </Form.Item>
 
-          <Form.Item name="agent" label={intl.get("template_agent").d("Agent")}>
+          <Form.Item
+            name="class"
+            label={intl.get("template_class_name").d("Class Name")}
+          >
             <Input disabled />
           </Form.Item>
 
