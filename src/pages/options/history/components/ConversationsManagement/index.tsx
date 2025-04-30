@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { TableColumnsType } from "antd";
-import { Space, Table, Tag, Tooltip } from "antd";
+import { Space, Table, Tag, Tooltip, Button, Popconfirm } from "antd";
 
 import {
   LikeOutlined,
@@ -103,6 +103,12 @@ const ConversationsManagement: React.FC<ConversationsManagementProps> = ({
         setRecords(await repository.findAll());
       }
     }
+  };
+
+  const deleteAllRecords = async () => {
+    await repository.deleteAll();
+    setRecords([]);
+    setBrief(recordsBrief([]));
   };
 
   const columns: TableColumnsType<ConversationRecord> = [
@@ -264,6 +270,23 @@ const ConversationsManagement: React.FC<ConversationsManagementProps> = ({
     <>
       <Space className={"conversation-records-desc"}>
         <span>{brief}</span>
+        <Popconfirm
+          title={intl
+            .get("options_app_history_delete_all_title")
+            .d("Delete all conversations")}
+          description={intl
+            .get("options_app_history_delete_all_description")
+            .d(
+              "Are you sure you want to delete all conversations? This action cannot be undone.",
+            )}
+          onConfirm={deleteAllRecords}
+          okText={intl.get("yes").d("Yes")}
+          cancelText={intl.get("no").d("No")}
+        >
+          <Button danger>
+            {intl.get("options_app_history_delete_all_button").d("Delete All")}
+          </Button>
+        </Popconfirm>
       </Space>
       <Table<ConversationRecord>
         rowKey="uuid"

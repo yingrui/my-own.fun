@@ -122,6 +122,11 @@ class LocalConversationRepository implements ConversationRepository {
     return conversations;
   }
 
+  async deleteAll(): Promise<void> {
+    const keys = await this.getKeys();
+    await this.storage.remove(keys);
+  }
+
   private async getKeys(): Promise<string[]> {
     const keys = await this.storage.getKeys();
     return keys.filter((key) => key.startsWith("conversation_")).sort();
