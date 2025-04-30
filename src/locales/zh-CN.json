@@ -62,6 +62,7 @@
   "multimodalModel": "多模态模型",
   "myfun_greeting": "您好! 请问需要什么帮助？",
   "myfun_initial_system_prompt": "我是趣趣，您的浏览器助手。\n您可以决定调用不同的工具或直接用 {language} 回答问题。\n输出格式应为 markdown 格式，如果可能的话可以使用 mermaid 格式生成图表。",
+  "no": "否",
   "open_more_tools": "更多工具",
   "open_side_panel": "召唤助手",
   "options_app_architect": "架构师",
@@ -119,6 +120,7 @@
   "options_search_ask_assistant": "趣搜",
   "options_search_textarea_placeholder": "输入回车开始AI搜索",
   "organization": "团队",
+  "original_template_content": "(原始模板)",
   "placeholder_side_panel_input": "`/`发出命令，`@`指定助手，输入回车确定提问",
   "prompts": "提示词",
   "reasoningModel": "推理模型",
@@ -134,6 +136,7 @@
   "tect_architecture_tips_no_data": "暂无数据",
   "template_actions": "操作",
   "template_add": "添加模板",
+  "template_allow_empty": "允许空模板",
   "template_class_name": "类名",
   "template_content": "内容",
   "template_content_required": "请输入模版内容",
@@ -163,5 +166,6 @@
   "user_journey_form_title": "为AI提供更多信息",
   "user_journey_save_success": "用户旅程已保存！",
   "user_journey_view_mode": "查看模式",
+  "yes": "是",
   "zh": "中文"
 }

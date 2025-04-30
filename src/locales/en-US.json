@@ -62,6 +62,7 @@
   "multimodalModel": "Multimodal Model",
   "myfun_greeting": "Hello! How can I assist you today?",
   "myfun_initial_system_prompt": "As an assistant or chrome copilot named myFun.\nYou can decide to call different tools or directly answer questions in {language}, should not add assistant in answer.\nOutput format should be in markdown format, and use mermaid format for diagram generation.",
+  "no": "No",
   "open_more_tools": "More Tools",
   "open_side_panel": "Side Panel",
   "options_app_architect": "Architect",
@@ -119,6 +120,7 @@
   "options_search_ask_assistant": "Ask myFun",
   "options_search_textarea_placeholder": "Hit Enter to search.",
   "organization": "Organization",
+  "original_template_content": "(Original Template)",
   "placeholder_side_panel_input": "`/` specify instruction, `@` find agent, type `Enter` ask question.",
   "prompts": "Prompts",
   "reasoningModel": "Reasoning Model",
@@ -134,6 +136,7 @@
   "tect_architecture_title": "Architectural Design Assistant",
   "template_actions": "Actions",
   "template_add": "Add Template",
+  "template_allow_empty": "Allow Empty",
   "template_class_name": "Class Name",
   "template_content": "Content",
   "template_content_required": "Please input template content",
@@ -163,5 +166,6 @@
   "user_journey_form_title": "Provide details for AI",
   "user_journey_save_success": "User journey saved successfully!",
   "user_journey_view_mode": "View Mode",
+  "yes": "Yes",
   "zh": "Chinese"
 }

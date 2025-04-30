@@ -127,12 +127,16 @@ class DefaultModelService implements ModelService {
     const { systemPrompt, userInput } = params;
     let { messages } = params;
 
-    if (systemPrompt && messages.length > 0 && messages[0].role === "system") {
+    if (systemPrompt && messages.length > 0) {
       const systemMessage = new ChatMessage({
         role: "system",
         content: systemPrompt,
       });
-      messages = [systemMessage, ...messages.slice(1)];
+      if (messages[0].role === "system") {
+        messages = [systemMessage, ...messages.slice(1)];
+      } else {
+        messages = [systemMessage, ...messages];
+      }
     }
 
     if (

@@ -1,6 +1,6 @@
 import { describe, it, afterEach, expect, vi } from "vitest";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
-import Template from "@src/shared/agents/services/Template";
+import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
 import _ from "lodash";
 
 describe("TemplateRepository", () => {
@@ -9,7 +9,7 @@ describe("TemplateRepository", () => {
   });
 
   const stubTemplate = (name: string) => {
-    const t = new Template({
+    const t = new PromptTemplate({
       name: name,
       template: "Hello, {{name}}!",
       parameters: [{ name: "name", type: "string", defaultValue: "world" }],
@@ -23,7 +23,7 @@ describe("TemplateRepository", () => {
       new Promise((resolve) => {
         resolve();
       }),
-    get: (any: any): Promise<{ [key: string]: Template }> =>
+    get: (any: any): Promise<{ [key: string]: PromptTemplate }> =>
       new Promise((resolve) => {
         resolve({ [template.id]: _.clone(template) });
       }),

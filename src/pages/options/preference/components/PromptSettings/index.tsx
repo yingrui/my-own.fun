@@ -20,7 +20,9 @@ import {
 } from "@ant-design/icons";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
-import Template, { Parameter } from "@src/shared/agents/services/Template";
+import PromptTemplate, {
+  Parameter,
+} from "@src/shared/agents/services/PromptTemplate";
 import "./index.css";
 import intl from "react-intl-universal";
 import _ from "lodash";
@@ -38,10 +40,12 @@ interface EditTemplateForm {
 }
 
 const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
-  const [templates, setTemplates] = useState<Template[]>([]);
+  const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<PromptTemplate | null>(
+    null,
+  );
   const [form] = Form.useForm<EditTemplateForm>();
   const repository = new TemplateRepository(chrome.storage.local);
 
@@ -64,7 +68,7 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
     getTemplates();
   }, []);
 
-  const deleteTemplate = async (template: Template) => {
+  const deleteTemplate = async (template: PromptTemplate) => {
     try {
       await repository.delete(template.id);
       message.success(
@@ -79,7 +83,7 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
     }
   };
 
-  const handleEdit = (template: Template) => {
+  const handleEdit = (template: PromptTemplate) => {
     setEditingTemplate(template);
     form.setFieldsValue({
       name: template.name,
@@ -97,7 +101,7 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
     try {
       const values = await form.validateFields();
       if (editingTemplate) {
-        const updatedTemplate = new Template({
+        const updatedTemplate = new PromptTemplate({
           ...editingTemplate,
           modifiedTemplate: values.template,
         });
@@ -124,7 +128,16 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
     form.resetFields();
   };
 
-  const columns: TableColumnsType<Template> = [
+  const getTemplateContent = (template: PromptTemplate) => {
+    if (template.allowEmptyTemplate) {
+      return template.modifiedTemplate;
+    }
+    return _.isEmpty(template.modifiedTemplate)
+      ? template.template
+      : template.modifiedTemplate;
+  };
+
+  const columns: TableColumnsType<PromptTemplate> = [
     {
       title: intl.get("template_name").d("Name"),
       dataIndex: "name",
@@ -176,11 +189,19 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
               whiteSpace: "nowrap",
             }}
           >
-            {_.isEmpty(record.modifiedTemplate)
-              ? text
-              : record.modifiedTemplate}
+            {getTemplateContent(record)}
           </span>
         </Tooltip>
+      ),
+    },
+    {
+      title: intl.get("template_allow_empty").d("Allow Empty"),
+      dataIndex: "allowEmptyTemplate",
+      key: "allowEmptyTemplate",
+      render: (allowEmpty: boolean) => (
+        <Tag color={allowEmpty ? "green" : "red"}>
+          {allowEmpty ? intl.get("yes").d("Yes") : intl.get("no").d("No")}
+        </Tag>
       ),
     },
     {
@@ -244,13 +265,22 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
 
           <Form.Item
             name="template"
-            label={intl.get("template_content").d("Content")}
+            label={`${intl.get("template_content").d("Content")} ${_.isEmpty(editingTemplate?.modifiedTemplate) ? intl.get("original_template_content").d("(Original Template)") : ""}`}
             rules={[
               {
-                required: true,
-                message: intl
-                  .get("template_content_required")
-                  .d("Please input template content"),
+                validator: (_, value) => {
+                  if (editingTemplate?.allowEmptyTemplate) {
+                    return Promise.resolve();
+                  }
+                  if (!value || value.trim() === "") {
+                    return Promise.reject(
+                      intl
+                        .get("template_content_required")
+                        .d("Please input template content"),
+                    );
+                  }
+                  return Promise.resolve();
+                },
               },
             ]}
           >

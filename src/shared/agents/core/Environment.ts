@@ -6,7 +6,7 @@ type WebPageContent = {
 };
 
 interface Environment {
-  systemPrompt: () => string;
+  systemPrompt: () => Promise<string>;
   content?: WebPageContent;
   screenshot?: string;
 }

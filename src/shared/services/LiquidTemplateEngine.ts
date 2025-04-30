@@ -1,7 +1,7 @@
 import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
 import type { LiquidOptions } from "liquidjs";
 import { Liquid } from "liquidjs";
-import Template from "@src/shared/agents/services/Template";
+import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 import { sha256 } from "@src/shared/utils/digest";
 import _ from "lodash";
@@ -19,7 +19,7 @@ class LiquidTemplateEngine implements TemplateEngine {
     this.repo = repo;
   }
 
-  add(template: Template): TemplateEngine {
+  add(template: PromptTemplate): TemplateEngine {
     this.templates.set(template.id, template.template);
     if (this.repo) {
       this.repo.exists(template.id).then(async (exists) => {
@@ -42,17 +42,19 @@ class LiquidTemplateEngine implements TemplateEngine {
 
   async render(templateId: string, data: any): Promise<string> {
     const template = await this.getTemplate(templateId);
-    if (!template) {
-      throw new Error(`Template ${templateId} not found`);
+    if (!!template || template === "") {
+      return await this.engine.parseAndRender(template, data);
     }
-    return await this.engine.parseAndRender(template, data);
+    throw new Error(`Template ${templateId} not found`);
   }
 
   private async getTemplate(templateId: string): Promise<string> {
     if (this.repo) {
       if (await this.repo.find(templateId)) {
         const t = await this.repo.find(templateId, null);
-        return _.isEmpty(t.modifiedTemplate) ? t.template : t.modifiedTemplate;
+        return _.isEmpty(t.modifiedTemplate) && !t.allowEmptyTemplate
+          ? t.template
+          : t.modifiedTemplate;
       }
     }
     return this.templates.get(templateId);

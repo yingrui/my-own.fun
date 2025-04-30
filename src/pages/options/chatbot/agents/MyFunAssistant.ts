@@ -26,7 +26,7 @@ class MyFunAssistant extends CompositeAgent {
    */
   async environment(): Promise<Environment> {
     return {
-      systemPrompt: () => this.systemPrompt(),
+      systemPrompt: async () => await this.systemPrompt(),
     };
   }
 
@@ -44,23 +44,32 @@ class MyFunAssistant extends CompositeAgent {
     const env = await this.environment();
     return this.chatCompletion({
       messages: this.getConversation().getMessages(),
-      systemPrompt: this.systemPrompt(),
+      systemPrompt: await this.systemPrompt(),
       userInput: this.userPrompt(),
     });
   }
 
-  systemPrompt(): string {
-    return `## Role
-As an AI assistant named ${this.getName()}, you're the smartest and funnest assistant in the history.
+  async systemPrompt(): Promise<string> {
+    const template = this.promptTemplate(
+      "SystemPrompt",
+      `## Role
+As an AI assistant named {{name}}, you're the smartest and funnest assistant in the history.
 
 ## User Intent & How to Help User
-${this.getCurrentInteraction().getGoal()}
+{{goal}}
 
 ## Task
 First, please think about the user's intent.
 Second, decide to call different tools, and if the tool parameter userInput is empty, please think about the user's goal as userInput. 
 If there is no suitable tool to call, please think about the user's goal and give the answer. 
-`;
+`,
+      [{ name: "name" }, { name: "goal" }],
+    );
+    template.allowEmptyTemplate = true;
+    return await this.renderPrompt(template.id, {
+      name: this.getName(),
+      goal: this.getCurrentInteraction().getGoal(),
+    });
   }
 
   userPrompt(): string {

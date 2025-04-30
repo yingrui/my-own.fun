@@ -1,7 +1,7 @@
-import Template from "@src/shared/agents/services/Template";
+import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
 
 interface TemplateEngine {
-  add(template: Template): TemplateEngine;
+  add(template: PromptTemplate): TemplateEngine;
 
   render(templateId: string, data: any): Promise<string>;
 }

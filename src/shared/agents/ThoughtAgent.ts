@@ -14,7 +14,7 @@ import ConversationRepository from "@src/shared/agents/ConversationRepository";
 import Agent from "./core/Agent";
 import Interaction from "./core/Interaction";
 import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
-import Template from "@src/shared/agents/services/Template";
+import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
 import ThoughtService from "@src/shared/agents/services/ThoughtService";
 import {
   getToolsFromClass,
@@ -288,7 +288,7 @@ class ThoughtAgent implements Agent {
       return new Thought({ type: "actions", actions: [] });
     }
 
-    const messages = this.messagesWithNewSystemPrompt();
+    const messages = await this.messagesWithNewSystemPrompt();
     return await this.toolsCall({
       messages: messages,
       tools: toolCalls,
@@ -362,20 +362,19 @@ ${functionReturn}
    */
   async environment(): Promise<Environment> {
     return new Promise<Environment>((resolve, reject) => {
-      resolve({ systemPrompt: () => "" });
+      resolve({ systemPrompt: async () => "" });
     });
   }
 
-  private messagesWithNewSystemPrompt() {
+  private async messagesWithNewSystemPrompt() {
     const env = this.getCurrentEnvironment();
+    const systemPrompt = await env.systemPrompt();
     const systemMessage = new ChatMessage({
       role: "system",
-      content: env.systemPrompt(),
+      content: systemPrompt,
     });
     const messages = this.conversation.getMessages();
-    return env.systemPrompt()
-      ? [systemMessage, ...messages.slice(1)]
-      : messages;
+    return systemPrompt ? [systemMessage, ...messages.slice(1)] : messages;
   }
 
   private async guessGoal(interaction: Interaction) {
@@ -477,9 +476,10 @@ ${functionReturn}
 
   protected async generateChatReply(args: object) {
     const env = await this.environment();
+    const systemPrompt = await env.systemPrompt();
     return this.chatCompletion({
       messages: this.getConversation().getMessages(),
-      systemPrompt: env.systemPrompt(),
+      systemPrompt: systemPrompt,
       userInput: args["userInput"],
     });
   }
@@ -567,12 +567,14 @@ ${functionReturn}
     name: string,
     template: string,
     parameters: any,
-  ): Template {
-    const t = new Template({
+    allowEmptyTemplate: boolean = false,
+  ): PromptTemplate {
+    const t = new PromptTemplate({
       name: name,
       template: template,
       class: getClassName(this),
       parameters: parameters,
+      allowEmptyTemplate: allowEmptyTemplate,
     });
     this.templateEngine.add(t);
     return t;
