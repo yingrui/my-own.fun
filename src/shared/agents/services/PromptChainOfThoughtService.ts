@@ -8,21 +8,27 @@ import ModelService from "./ModelService";
 import Environment from "../core/Environment";
 import Conversation from "../core/Conversation";
 import ToolDefinition from "../core/ToolDefinition";
-import ThoughtService from "@src/shared/agents/services/ThoughtService";
+import ThoughtService from "./ThoughtService";
+import TemplateEngine from "./TemplateEngine";
+import PromptTemplate from "./PromptTemplate";
+import { getClassName } from "../../utils/reflection";
 
 class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   private readonly modelService: ModelService;
   private readonly language: string;
   private enableChainOfThoughts: boolean;
+  private templateEngine: TemplateEngine;
 
   constructor(
     modelService: ModelService,
     language: string,
     enableChainOfThoughts: boolean,
+    templateEngine: TemplateEngine,
   ) {
     this.modelService = modelService;
     this.language = language;
     this.enableChainOfThoughts = enableChainOfThoughts;
+    this.templateEngine = templateEngine;
   }
 
   async goal(
@@ -34,7 +40,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
       messages: [
         new ChatMessage({
           role: "user",
-          content: this.getGoalPrompt(env, conversation),
+          content: await this.getGoalPrompt(env, conversation),
         }),
       ],
       stream: true,
@@ -315,41 +321,58 @@ ${conversationContent}
 `;
   }
 
-  private getGoalPrompt(env: Environment, conversation: Conversation): string {
-    const conversationContent = conversation.toJSONString();
-    const userInput = conversation
-      .getCurrentInteraction()
-      .inputMessage.getContentText();
-
-    const currenStatus = env.content
-      ? `## Status
+  private async getGoalPrompt(
+    env: Environment,
+    conversation: Conversation,
+  ): Promise<string> {
+    const parameters = {
+      conversationContent: conversation.toJSONString(),
+      userInput: conversation
+        .getCurrentInteraction()
+        .inputMessage.getContentText(),
+      currenStatus: env.content
+        ? `## Status
 The user is browsing webpage:
 - Title: ${env.content?.title}
-- URL: ${env.content?.url}
-`
-      : "";
+- URL: ${env.content?.url}`
+        : "",
+    };
 
-    return `## Role: Assistant
+    const template = new PromptTemplate({
+      name: "Think",
+      template: `## Role: Assistant
 ## Task
 Analysis user's goal based on user input and conversation, carefully check if the user intent relates to open tab.
 Consider the previous goals, if the goal is not change, could use previous goals.
-${this.enableChainOfThoughts ? "And then, give the thoughts of how to achieve the goal step by step." : ""}
 
-${currenStatus}
+And then, give the thoughts of how to achieve the goal step by step.
+
+{{currenStatus}}
 
 ## Output Format
 Keep the output goal short and precise, just one sentence, less than 50 words. 
-Note: user language is ${this.language}
+Note: user language is {{language}}
 
 ## Conversation Messages
 Analysis below json messages, each interaction contains user goal, user message and assistant message.
 \`\`\`json
-${conversationContent}
+{{conversationContent}}
 \`\`\`
 
 ### Current User Input
-${userInput}
-`;
+{{userInput}}
+`,
+      class: getClassName(this),
+      allowEmptyTemplate: false,
+      parameters: [
+        { name: "currenStatus" },
+        { name: "language" },
+        { name: "conversationContent" },
+        { name: "userInput" },
+      ],
+    });
+    this.templateEngine.add(template);
+    return this.templateEngine.render(template.id, parameters);
   }
 }
 

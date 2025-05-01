@@ -19,12 +19,15 @@ import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 import OllamaModelService from "@src/shared/agents/services/OllamaModelService";
 import DeepSeekModelService from "@src/shared/agents/services/DeepSeekModelService";
+import TemplateEngine from "../agents/services/TemplateEngine";
 
 class BaseAgentFactory {
   private repository: ConversationRepository;
   private initMessages: ChatMessage[];
 
   thoughtAgentProps(config: GluonConfigure): ThoughtAgentProps {
+    const templateRepository = new TemplateRepository(chrome.storage.local);
+    const templateEngine = new LiquidTemplateEngine({}, templateRepository);
     const modelService = this.createModelService(config);
     const language = intl.get(locale(config.language)).d("English");
     const enableChainOfThoughts = config.enableChainOfThoughts ?? false;
@@ -34,12 +37,9 @@ class BaseAgentFactory {
             modelService,
             language,
             enableChainOfThoughts,
+            templateEngine,
           )
         : null;
-    const templateEngine = new LiquidTemplateEngine(
-      {},
-      new TemplateRepository(chrome.storage.local),
-    );
     return {
       language: language,
       conversation: new Conversation(),
@@ -125,11 +125,13 @@ class BaseAgentFactory {
     modelService: ModelService,
     language: string,
     enableChainOfThoughts: boolean,
+    templateEngine: TemplateEngine,
   ): PromptChainOfThoughtService {
     return new PromptChainOfThoughtService(
       modelService,
       language,
       enableChainOfThoughts,
+      templateEngine,
     );
   }
 }
