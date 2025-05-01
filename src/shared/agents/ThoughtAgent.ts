@@ -22,6 +22,7 @@ import {
 } from "@src/shared/agents/decorators/tool";
 import { ToolNotFoundError } from "@src/shared/agents/core/errors/ToolErrors";
 import { getClassName } from "@src/shared/utils/reflection";
+import _ from "lodash";
 
 interface ThoughtAgentProps {
   language: string;
@@ -374,7 +375,12 @@ ${functionReturn}
       content: systemPrompt,
     });
     const messages = this.conversation.getMessages();
-    return systemPrompt ? [systemMessage, ...messages.slice(1)] : messages;
+    if (messages[0].role === "system") {
+      return _.isEmpty(systemPrompt)
+        ? messages.slice(1)
+        : [systemMessage, ...messages.slice(1)];
+    }
+    return messages;
   }
 
   private async guessGoal(interaction: Interaction) {
