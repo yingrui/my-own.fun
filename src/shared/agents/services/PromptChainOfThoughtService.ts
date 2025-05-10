@@ -12,6 +12,7 @@ import ThoughtService from "./ThoughtService";
 import TemplateEngine from "./TemplateEngine";
 import PromptTemplate from "./PromptTemplate";
 import { getClassName } from "../../utils/reflection";
+import Interaction from "../core/Interaction";
 
 class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   private readonly modelService: ModelService;
@@ -326,7 +327,9 @@ ${conversationContent}
     conversation: Conversation,
   ): Promise<string> {
     const parameters = {
-      conversationContent: conversation.toJSONString(),
+      conversationContent: conversation.toJSONString(
+        (i: Interaction) => !!i.inputMessage && !!i.outputMessage,
+      ),
       userInput: conversation
         .getCurrentInteraction()
         .inputMessage.getContentText(),

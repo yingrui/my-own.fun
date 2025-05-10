@@ -91,13 +91,17 @@ class Conversation {
     return this.datetime;
   }
 
-  public toJSONString(): string {
+  public toJSONString(
+    filter: (interaction: Interaction) => boolean = () => true,
+  ): string {
     return JSON.stringify(
-      this.interactions.map((i) => ({
-        goal: i.getGoal() ?? "",
-        user: i.inputMessage?.getContentText() ?? "",
-        assistant: i.outputMessage?.getContentText() ?? "",
-      })),
+      this.interactions
+        .filter((i) => filter(i))
+        .map((i) => ({
+          goal: i.getGoal() ?? "",
+          user: i.inputMessage?.getContentText() ?? "",
+          assistant: i.outputMessage?.getContentText() ?? "",
+        })),
     );
   }
 }

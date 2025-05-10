@@ -227,14 +227,7 @@ const PromptSettings: React.FC<PromptSettingsProps> = ({ config }) => {
 
   return (
     <div className="prompt-settings">
-      <Card
-        title={intl.get("template_management").d("Template Management")}
-        extra={
-          <Button type="primary" icon={<PlusOutlined />}>
-            {intl.get("template_add").d("Add Template")}
-          </Button>
-        }
-      >
+      <Card title={intl.get("template_management").d("Template Management")}>
         <Table
           columns={columns}
           dataSource={templates}
