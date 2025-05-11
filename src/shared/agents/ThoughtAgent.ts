@@ -388,6 +388,7 @@ ${functionReturn}
       const goal = await this.thoughtService.goal(
         this.getCurrentEnvironment(),
         this.getConversation(),
+        this.getTools(),
         (msg) => interaction.setGoal(msg),
       );
       interaction.setGoal(goal);
@@ -488,10 +489,6 @@ ${functionReturn}
       systemPrompt: systemPrompt,
       userInput: args["userInput"],
     });
-  }
-
-  private getMemberOfSelf(): string[] {
-    return Object.getOwnPropertyNames(Object.getPrototypeOf(this));
   }
 
   /**

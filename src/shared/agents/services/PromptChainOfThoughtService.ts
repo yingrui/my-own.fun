@@ -35,13 +35,14 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   async goal(
     env: Environment,
     conversation: Conversation,
+    tools: ToolDefinition[],
     notifyMessageChanged: (msg: string) => void = undefined,
   ): Promise<string> {
     const thought = await this.modelService.chatCompletion({
       messages: [
         new ChatMessage({
           role: "user",
-          content: await this.getGoalPrompt(env, conversation),
+          content: await this.getGoalPrompt(env, conversation, tools),
         }),
       ],
       stream: true,
@@ -329,6 +330,7 @@ ${conversationContent}
   private async getGoalPrompt(
     env: Environment,
     conversation: Conversation,
+    tools: ToolDefinition[],
   ): Promise<string> {
     const parameters = {
       conversationContent: conversation.toJSONString(
@@ -343,18 +345,31 @@ The user is browsing webpage:
 - Title: ${env.content?.title}
 - URL: ${env.content?.url}`
         : "",
+      tools: tools.map((t) => t.toJSONString()).join("\n"),
     };
 
     const template = new PromptTemplate({
       name: "Think",
-      template: `## Role: Assistant
+      template: `## Role
+You're an agent to be able to plan and use tools to help user to achieve their goal.
+
 ## Task
-Analysis user's goal based on user input and conversation, carefully check if the user intent relates to open tab.
+Analysis user's goal based on input and the context in this conversation.
+And then, give the thoughts of how to achieve the goal step by step.
 Consider the previous goals, if the goal is not change, could use previous goals.
 
-And then, give the thoughts of how to achieve the goal step by step.
-
 {{currenStatus}}
+
+## Tools
+{{tools}}
+
+## Output Example
+**Goal**: 学习并整理和数据科学有关的技术方向
+
+**Steps**:
+ - [ ] 搜索数据科学有关的资料，关键词：数据科学 热门方向
+ - [ ] 打开搜索结果，保存到临时剪切板
+ - [ ] 整理并回答用户问题
 
 ## Output Format
 Keep the output goal short and precise, just one sentence, less than 50 words. 
@@ -376,6 +391,7 @@ Analysis below json messages, each interaction contains user goal, user message 
         { name: "language" },
         { name: "conversationContent" },
         { name: "userInput" },
+        { name: "tools" },
       ],
     });
     this.templateEngine.add(template);

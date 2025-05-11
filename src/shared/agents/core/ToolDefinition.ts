@@ -58,6 +58,10 @@ class ToolDefinition {
     };
   }
 
+  public toJSONString() {
+    return JSON.stringify(this.getFunction());
+  }
+
   private getParameters() {
     if (this.required.length > 0) {
       return {
