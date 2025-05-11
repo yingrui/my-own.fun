@@ -50,6 +50,8 @@ class Thought {
   public readonly error?: Error;
   public readonly returnValue?: any;
   private streamMessage: string;
+  private streamReasoningMessage: string;
+  private streamMessageWithReasoning: string;
 
   constructor({
     type,
@@ -75,14 +77,14 @@ class Thought {
     notifyMessageChanged: (msg: string) => void = undefined,
   ): Promise<string> {
     if (this.type === "stream") {
-      if (this.streamMessage) {
-        return this.streamMessage;
+      if (this.streamMessageWithReasoning) {
+        return this.streamMessageWithReasoning;
       }
-      this.streamMessage = await this.readMessageFromStream(
+      this.streamMessageWithReasoning = await this.readMessageFromStream(
         this.stream,
         notifyMessageChanged,
       );
-      return this.streamMessage;
+      return this.streamMessageWithReasoning;
     } else if (this.type === "message") {
       return this.message;
     } else if (this.type === "functionReturn") {
@@ -104,6 +106,7 @@ class Thought {
     notifyMessageChanged: (msg: string) => void,
   ): Promise<string> {
     let message = "";
+    let reasoningMessage = "";
     for await (const chunk of stream) {
       if (chunk.choices) {
         const finishReason = chunk.choices[0]?.finish_reason;
@@ -117,7 +120,7 @@ class Thought {
         const reasoningContent =
           chunk.choices[0]?.delta?.reasoning_content ?? "";
         if (reasoningContent !== "") {
-          message = message + reasoningContent;
+          reasoningMessage = reasoningMessage + reasoningContent;
         }
       } else {
         // When stream is not from openai chat completion, but an AsyncIterator
@@ -125,8 +128,24 @@ class Thought {
       }
       // Notify message changed, for rendering in UI
       if (notifyMessageChanged) {
-        notifyMessageChanged(message);
+        notifyMessageChanged(
+          this.formatMessageWithReasoning(message, reasoningMessage),
+        );
       }
+    }
+    this.streamReasoningMessage = reasoningMessage;
+    this.streamMessage = message;
+    return this.formatMessageWithReasoning(message, reasoningMessage);
+  }
+
+  private formatMessageWithReasoning(
+    message: string,
+    reasoningMessage: string,
+  ): string {
+    if (reasoningMessage) {
+      // Compactible with Ollama
+      // Add <think> and </think> to the reasoning message
+      return "<think>\n" + reasoningMessage + "</think>\n\n" + message;
     }
     return message;
   }

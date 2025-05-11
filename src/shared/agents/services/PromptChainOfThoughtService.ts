@@ -49,7 +49,11 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
       useReasoningModel: true,
       responseType: "text",
     });
-    return thought.getMessage(notifyMessageChanged);
+    const goal = await thought.getMessage(notifyMessageChanged);
+    if (this.modelService.reasoningModel) {
+      return goal.replace(/<think>[\s\S]*?<\/think>/g, "");
+    }
+    return goal;
   }
 
   async reflection(
