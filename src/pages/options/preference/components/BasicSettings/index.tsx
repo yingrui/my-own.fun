@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Form, Input, Layout, Select } from "antd";
+import { Button, Form, Input, Layout, Select, InputNumber } from "antd";
 import "./index.css";
 import { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
@@ -84,6 +84,13 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({
               label={intl.get("multimodalModel").d("Multimodal Model")}
             >
               <Input placeholder="glm-4v-plus" />
+            </Form.Item>
+            <Form.Item
+              name="contextLength"
+              label={intl.get("contextLength").d("Context Length")}
+              initialValue={5}
+            >
+              <InputNumber min={0} max={20} style={{ width: "100%" }} />
             </Form.Item>
             <Form.Item
               name="language"
