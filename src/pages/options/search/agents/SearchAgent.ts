@@ -8,7 +8,11 @@ class SearchAgent extends ThoughtAgent {
   searchResults: any;
 
   constructor(props: ThoughtAgentProps) {
-    super(props, "myFun", "I can search anything for you.");
+    super({
+      ...props,
+      name: "myFun",
+      description: "I can search anything for you.",
+    });
   }
 
   setSearchResults(results: any) {

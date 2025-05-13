@@ -4,7 +4,11 @@ import ChatMessage from "@src/shared/agents/core/ChatMessage";
 
 class BrowserCopilot extends ThoughtAgent {
   constructor(props) {
-    super(props, "myFun", "I am myFun, let me guess what you want.");
+    super({
+      ...props,
+      name: "myFun",
+      description: "I am myFun, let me guess what you want.",
+    });
   }
 
   private async getWebpageContent() {

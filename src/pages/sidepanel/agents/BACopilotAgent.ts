@@ -21,13 +21,13 @@ class BACopilotAgent extends ThoughtAgent {
     baCopilotTechDescription: string,
     apiKey: string,
   ) {
-    super(
-      props,
-      "BACopilot",
-      intl
+    super({
+      ...props,
+      name: "BACopilot",
+      description: intl
         .get("agent_description_ba_copilot")
         .d("BACopilot, your BA assistant"),
-    );
+    });
 
     this.baCopilotKnowledgeApi = baCopilotKnowledgeApi;
     this.baCopilotApi = baCopilotApi;

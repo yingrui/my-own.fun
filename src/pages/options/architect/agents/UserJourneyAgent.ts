@@ -6,7 +6,11 @@ import ChatMessage from "@src/shared/agents/core/ChatMessage";
 
 class UserJourneyAgent extends ThoughtAgent {
   constructor(props: ThoughtAgentProps) {
-    super(props, "myFun", "I am good at user journey");
+    super({
+      ...props,
+      name: "myFun",
+      description: "I am good at user journey",
+    });
   }
 
   async userJourney(

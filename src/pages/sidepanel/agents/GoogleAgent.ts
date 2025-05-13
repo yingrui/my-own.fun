@@ -20,11 +20,13 @@ class GoogleAgent extends ThoughtAgent {
   };
 
   constructor(props: ThoughtAgentProps) {
-    super(
-      props,
-      "Seeker",
-      intl.get("agent_description_seeker").d("Seeker, your search assistant"),
-    );
+    super({
+      ...props,
+      name: "Seeker",
+      description: intl
+        .get("agent_description_seeker")
+        .d("Seeker, your search assistant"),
+    });
     this.getTools()
       .find((t) => t.name === "visit")
       .setEnumParameter("website", Object.keys(this.pages));
@@ -172,7 +174,10 @@ There is a problem that you cannot get any information from current tab, it's po
         const env = await this.environment();
         return await this.chatCompletion({
           messages: [
-            new ChatMessage({ role: "system", content: env.systemPrompt() }),
+            new ChatMessage({
+              role: "system",
+              content: await env.systemPrompt(),
+            }),
             new ChatMessage({ role: "user", content: userInput }),
           ],
         });
@@ -278,7 +283,7 @@ ${goal}
           ? content.text.slice(0, maxContentLength)
           : content.text;
       return {
-        systemPrompt: () => `${this.getInitialSystemMessage()}
+        systemPrompt: async () => `${this.getInitialSystemMessage()}
 
 ## Situation
 Current user is viewing the page: ${content.title}, the url is ${content.url}, the content is:
@@ -286,7 +291,7 @@ ${textContent}.
 The links are: ${JSON.stringify(content.links)}`,
       };
     } else {
-      return { systemPrompt: () => this.getInitialSystemMessage() };
+      return { systemPrompt: async () => this.getInitialSystemMessage() };
     }
   }
 

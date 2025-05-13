@@ -20,7 +20,11 @@ class CompositeAgent extends ThoughtAgent {
     description: string,
     agents: ThoughtAgent[] = [],
   ) {
-    super(props, name, description);
+    super({
+      ...props,
+      name,
+      description,
+    });
 
     for (const agent of agents) {
       this.addAgent(agent);

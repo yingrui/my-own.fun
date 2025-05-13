@@ -6,7 +6,11 @@ import ChatMessage from "@src/shared/agents/core/ChatMessage";
 
 class ElevatorPitchAgent extends ThoughtAgent {
   constructor(props: ThoughtAgentProps) {
-    super(props, "myFun", "I am good at write an elevator pitch.");
+    super({
+      ...props,
+      name: "myFun",
+      description: "I am good at write an elevator pitch.",
+    });
   }
 
   async elevatorPitch(

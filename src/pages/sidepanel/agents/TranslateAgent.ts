@@ -9,13 +9,13 @@ import _ from "lodash";
 
 class TranslateAgent extends ThoughtAgent {
   constructor(props: ThoughtAgentProps) {
-    super(
-      props,
-      "Translator",
-      intl
+    super({
+      ...props,
+      name: "Translator",
+      description: intl
         .get("agent_description_translator")
         .d("Translator, your translation assistant"),
-    );
+    });
   }
 
   @Tool({

@@ -34,6 +34,8 @@ interface ThoughtAgentProps {
   reflectionService?: ReflectionService;
   thoughtService?: ThoughtService;
   templateEngine?: TemplateEngine;
+  name?: string;
+  description?: string;
 }
 
 class ThoughtAgent implements Agent {
@@ -53,19 +55,30 @@ class ThoughtAgent implements Agent {
   private templateEngine: TemplateEngine;
   private disabledTools: string[] = [];
 
-  constructor(props: ThoughtAgentProps, name: string, description: string) {
-    this.language = props.language;
-    this.conversation = props.conversation;
-    this.modelService = props.modelService;
+  constructor(props: ThoughtAgentProps) {
+    // Initialize required properties
+    Object.assign(this, {
+      language: props.language,
+      conversation: props.conversation,
+      modelService: props.modelService,
+      enableMultimodal: props.enableMultimodal,
+      enableReflection: props.enableReflection,
+      enableChainOfThoughts: props.enableChainOfThoughts,
+      name: props.name,
+      description: props.description,
+    });
+
+    // Initialize optional services
     this.templateEngine = props.templateEngine;
     this.reflectionService = props.reflectionService;
     this.thoughtService = props.thoughtService;
-    this.enableMultimodal = props.enableMultimodal;
-    this.enableReflection = props.enableReflection;
-    this.enableChainOfThoughts = props.enableChainOfThoughts;
-    this.name = name;
-    this.description = description;
-    this.tools = [...getToolsFromClass(this.constructor.prototype)];
+
+    // Initialize tools
+    this.tools = this.initializeTools();
+  }
+
+  private initializeTools(): ToolDefinition[] {
+    return [...getToolsFromClass(this.constructor.prototype)];
   }
 
   /**

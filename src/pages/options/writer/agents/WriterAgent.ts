@@ -11,7 +11,11 @@ class WriterAgent extends ThoughtAgent {
   context: WriterContext;
 
   constructor(props: ThoughtAgentProps, context: WriterContext) {
-    super(props, "myFun", "I am good at write an article.");
+    super({
+      ...props,
+      name: "myFun",
+      description: "I am good at write an article.",
+    });
     this.context = context;
   }
 
@@ -115,7 +119,7 @@ ${userInput}
       if (title) {
         resolve({
           systemPrompt:
-            () => `As an article writer assistant named myFun. Here’s how you can help users:
+            async () => `As an article writer assistant named myFun. Here's how you can help users:
 
 * Title: you can help users with the title of the article.
 * Outline: you can help users with the structure of the article.
@@ -129,7 +133,7 @@ ${content}.`,
         });
       } else {
         resolve({
-          systemPrompt: () =>
+          systemPrompt: async () =>
             `As an assistant named myFun. You can help users writing with given information.`,
           screenshot,
         });

@@ -6,11 +6,11 @@ import ChatMessage from "@src/shared/agents/core/ChatMessage";
 
 class TechArchitectAgent extends ThoughtAgent {
   constructor(props: ThoughtAgentProps) {
-    super(
-      props,
-      "myFun",
-      "I am good at draw system technical architecture diagram",
-    );
+    super({
+      ...props,
+      name: "myFun",
+      description: "I am good at draw system technical architecture diagram",
+    });
   }
 
   async drawTechArchitecture(userInput: string): Promise<Thought> {

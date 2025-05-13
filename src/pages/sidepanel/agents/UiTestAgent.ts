@@ -12,13 +12,13 @@ import { Tool } from "@src/shared/agents/decorators/tool";
 
 class UiTestAgent extends ThoughtAgent {
   constructor(props: ThoughtAgentProps) {
-    super(
-      props,
-      "QACopilot",
-      intl
+    super({
+      ...props,
+      name: "QACopilot",
+      description: intl
         .get("agent_description_qa_copilot")
         .d("QACopilot, your QA assistant"),
-    );
+    });
   }
 
   async handleCannotGetHtmlError(): Promise<Thought> {

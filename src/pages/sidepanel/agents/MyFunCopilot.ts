@@ -205,7 +205,7 @@ Do not repeat the content before and after caret position.
           ? content.text.slice(0, maxContentLength)
           : content.text;
       return {
-        systemPrompt: () => `## Role
+        systemPrompt: async () => `## Role
 As a web browser assistant or chrome copilot, named ${this.getName()}.
 You're good at data extraction, data analysis, summarization, wikipedia, and many kinds of internet tools or websites.
 
@@ -238,7 +238,7 @@ Output format should be in markdown format, and use mermaid format for diagram g
       };
     } else {
       return {
-        systemPrompt: () => this.getInitialSystemMessage(),
+        systemPrompt: async () => this.getInitialSystemMessage(),
         content,
         screenshot,
       };
