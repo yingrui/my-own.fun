@@ -30,6 +30,7 @@ interface ThoughtAgentProps {
   enableMultimodal: boolean;
   enableReflection: boolean;
   enableChainOfThoughts: boolean;
+  contextLength: number;
   modelService: ModelService;
   reflectionService?: ReflectionService;
   thoughtService?: ThoughtService;
@@ -43,6 +44,7 @@ class ThoughtAgent implements Agent {
   protected readonly enableMultimodal: boolean;
   protected readonly enableReflection: boolean;
   protected readonly enableChainOfThoughts: boolean;
+  protected readonly contextLength: number;
   private readonly tools: ToolDefinition[];
   private readonly name: string;
   private readonly description: string;
@@ -64,6 +66,7 @@ class ThoughtAgent implements Agent {
       enableMultimodal: props.enableMultimodal,
       enableReflection: props.enableReflection,
       enableChainOfThoughts: props.enableChainOfThoughts,
+      contextLength: props.contextLength,
       name: props.name,
       description: props.description,
     });
@@ -387,7 +390,7 @@ ${functionReturn}
       role: "system",
       content: systemPrompt,
     });
-    const messages = this.conversation.getMessages();
+    const messages = this.conversation.getMessages(this.contextLength);
     if (messages[0].role === "system") {
       return _.isEmpty(systemPrompt)
         ? messages.slice(1)
@@ -498,7 +501,7 @@ ${functionReturn}
     const env = await this.environment();
     const systemPrompt = await env.systemPrompt();
     return this.chatCompletion({
-      messages: this.getConversation().getMessages(),
+      messages: this.getConversation().getMessages(this.contextLength),
       systemPrompt: systemPrompt,
       userInput: args["userInput"],
     });

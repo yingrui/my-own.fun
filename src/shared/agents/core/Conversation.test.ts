@@ -28,6 +28,7 @@ describe("Conversation", () => {
       }),
     );
     const json = conversation.toJSONString(
+      -1,
       (interaction) => !!interaction.outputMessage,
     );
     expect(json).toBe("[]");

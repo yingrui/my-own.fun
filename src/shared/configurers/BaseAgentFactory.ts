@@ -30,14 +30,14 @@ class BaseAgentFactory {
     const templateEngine = new LiquidTemplateEngine({}, templateRepository);
     const modelService = this.createModelService(config);
     const language = intl.get(locale(config.language)).d("English");
-    const enableChainOfThoughts = config.enableChainOfThoughts ?? false;
+    const contextLength = config.contextLength ?? 5;
     const chainOfThoughtService =
       config.enableReflection || config.enableChainOfThoughts
         ? this.createReflectionService(
             modelService,
             language,
-            enableChainOfThoughts,
             templateEngine,
+            contextLength,
           )
         : null;
     return {
@@ -45,7 +45,8 @@ class BaseAgentFactory {
       conversation: new Conversation(),
       enableMultimodal: config.enableMultimodal ?? false,
       enableReflection: config.enableReflection ?? false,
-      enableChainOfThoughts: enableChainOfThoughts,
+      enableChainOfThoughts: config.enableChainOfThoughts ?? false,
+      contextLength: contextLength,
       modelService: modelService,
       reflectionService: chainOfThoughtService,
       thoughtService: chainOfThoughtService,
@@ -124,14 +125,14 @@ class BaseAgentFactory {
   private createReflectionService(
     modelService: ModelService,
     language: string,
-    enableChainOfThoughts: boolean,
     templateEngine: TemplateEngine,
+    contextLength: number,
   ): PromptChainOfThoughtService {
     return new PromptChainOfThoughtService(
       modelService,
       language,
-      enableChainOfThoughts,
       templateEngine,
+      contextLength,
     );
   }
 }

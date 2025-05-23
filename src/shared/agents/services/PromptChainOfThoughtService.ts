@@ -17,19 +17,19 @@ import Interaction from "../core/Interaction";
 class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   private readonly modelService: ModelService;
   private readonly language: string;
-  private enableChainOfThoughts: boolean;
   private templateEngine: TemplateEngine;
+  private readonly contextLength: number;
 
   constructor(
     modelService: ModelService,
     language: string,
-    enableChainOfThoughts: boolean,
     templateEngine: TemplateEngine,
+    contextLength: number,
   ) {
     this.modelService = modelService;
     this.language = language;
-    this.enableChainOfThoughts = enableChainOfThoughts;
     this.templateEngine = templateEngine;
+    this.contextLength = contextLength;
   }
 
   async goal(
@@ -173,7 +173,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     env: Environment,
     conversation: Conversation,
   ): string {
-    const conversationContent = conversation.toJSONString();
+    const conversationContent = conversation.toJSONString(this.contextLength);
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -252,7 +252,7 @@ ${conversationContent}
     conversation: Conversation,
     feedback: string,
   ): string {
-    const conversationContent = conversation.toJSONString();
+    const conversationContent = conversation.toJSONString(this.contextLength);
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -290,7 +290,7 @@ ${conversationContent}
     env: Environment,
     conversation: Conversation,
   ): string {
-    const conversationContent = conversation.toJSONString();
+    const conversationContent = conversation.toJSONString(this.contextLength);
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -334,6 +334,7 @@ ${conversationContent}
   ): Promise<string> {
     const parameters = {
       conversationContent: conversation.toJSONString(
+        this.contextLength,
         (i: Interaction) => !!i.inputMessage && !!i.outputMessage,
       ),
       userInput: conversation

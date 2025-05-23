@@ -75,8 +75,22 @@ class Conversation {
     return this;
   }
 
-  getMessages(): ChatMessage[] {
-    return this.messages;
+  getMessages(contextLength: number = -1): ChatMessage[] {
+    if (this.messages.length === 0 || contextLength < 0) {
+      return this.messages;
+    }
+    // if contextLength is 0, return empty array
+    const sliceMessages =
+      contextLength === 0 ? [] : this.messages.slice(-contextLength);
+    // if the first message is a system message, return the slice
+    if (sliceMessages.length > 0 && sliceMessages[0].role === "system") {
+      return sliceMessages;
+    }
+    // if the first message is a system message, add the system message to the sliced messages
+    if (this.messages.length > 0 && this.messages[0].role === "system") {
+      return [this.messages[0], ...sliceMessages];
+    }
+    return sliceMessages;
   }
 
   public getKey(): string {
@@ -92,17 +106,25 @@ class Conversation {
   }
 
   public toJSONString(
+    contextLength: number = -1,
     filter: (interaction: Interaction) => boolean = () => true,
   ): string {
-    return JSON.stringify(
-      this.interactions
-        .filter((i) => filter(i))
-        .map((i) => ({
-          goal: i.getGoal() ?? "",
-          user: i.inputMessage?.getContentText() ?? "",
-          assistant: i.outputMessage?.getContentText() ?? "",
-        })),
-    );
+    if (contextLength === 0) {
+      return JSON.stringify([]);
+    }
+
+    let interactions = [...this.interactions];
+    if (contextLength > 0) {
+      interactions = interactions.slice(-contextLength);
+    }
+    interactions = interactions.filter((i) => filter(i));
+
+    const jsonObjects = interactions.map((i) => ({
+      goal: i.getGoal() ?? "",
+      user: i.inputMessage?.getContentText() ?? "",
+      assistant: i.outputMessage?.getContentText() ?? "",
+    }));
+    return JSON.stringify(jsonObjects);
   }
 }
 
