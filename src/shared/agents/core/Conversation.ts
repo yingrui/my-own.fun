@@ -100,17 +100,31 @@ class Conversation {
   public getDatetime(): string {
     return this.datetime;
   }
+}
 
-  public toJSONString(
+interface ConversationSerializer {
+  toString(conversation: Conversation): string;
+}
+
+class ConversationJsonSerializer implements ConversationSerializer {
+  private readonly contextLength: number = -1;
+  private readonly filter: (interaction: Interaction) => boolean;
+
+  constructor(
     contextLength: number = -1,
     filter: (interaction: Interaction) => boolean = () => true,
-  ): string {
-    if (contextLength === 0) {
+  ) {
+    this.contextLength = contextLength;
+    this.filter = filter;
+  }
+
+  private toJSONString(conversation: Conversation): string {
+    if (this.contextLength === 0) {
       return JSON.stringify([]);
     }
 
-    let interactions = this.getInteractions(contextLength);
-    interactions = interactions.filter((i) => filter(i));
+    let interactions = conversation.getInteractions(this.contextLength);
+    interactions = interactions.filter((i) => this.filter(i));
 
     const jsonObjects = interactions.map((i) => ({
       goal: i.getGoal() ?? "",
@@ -119,6 +133,11 @@ class Conversation {
     }));
     return JSON.stringify(jsonObjects);
   }
+
+  toString(conversation: Conversation): string {
+    return this.toJSONString(conversation);
+  }
 }
 
 export default Conversation;
+export { ConversationSerializer, ConversationJsonSerializer };

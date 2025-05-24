@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import Conversation from "./Conversation";
+import Conversation, { ConversationJsonSerializer } from "./Conversation";
 import ChatMessage from "./ChatMessage";
 
 describe("Conversation", () => {
@@ -42,21 +42,22 @@ describe("Conversation", () => {
           content: "Hello, world!",
         }),
       ]);
-      const json = conversation.toJSONString();
+      const json = new ConversationJsonSerializer().toString(conversation);
       expect(json).toBe('[{"goal":"","user":"Hello, world!","assistant":""}]');
     });
 
-    it("should be able to filter chat messages when converting a conversation to Json", () => {
+    it("should be able to filter interactions with output message", () => {
       const conversation = stub([
         new ChatMessage({
           role: "user",
           content: "Hello, world!",
         }),
       ]);
-      const json = conversation.toJSONString(
+      const serializer = new ConversationJsonSerializer(
         -1,
         (interaction) => !!interaction.outputMessage,
       );
+      const json = serializer.toString(conversation);
       expect(json).toBe("[]");
     });
   });

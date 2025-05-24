@@ -6,7 +6,7 @@ import ReflectionService, {
 import Thought from "../core/Thought";
 import ModelService from "./ModelService";
 import Environment from "../core/Environment";
-import Conversation from "../core/Conversation";
+import Conversation, { ConversationJsonSerializer } from "../core/Conversation";
 import ToolDefinition from "../core/ToolDefinition";
 import ThoughtService from "./ThoughtService";
 import TemplateEngine from "./TemplateEngine";
@@ -173,7 +173,9 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     env: Environment,
     conversation: Conversation,
   ): string {
-    const conversationContent = conversation.toJSONString(this.contextLength);
+    const conversationContent = new ConversationJsonSerializer(
+      this.contextLength,
+    ).toString(conversation);
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -252,7 +254,9 @@ ${conversationContent}
     conversation: Conversation,
     feedback: string,
   ): string {
-    const conversationContent = conversation.toJSONString(this.contextLength);
+    const conversationContent = new ConversationJsonSerializer(
+      this.contextLength,
+    ).toString(conversation);
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -290,7 +294,9 @@ ${conversationContent}
     env: Environment,
     conversation: Conversation,
   ): string {
-    const conversationContent = conversation.toJSONString(this.contextLength);
+    const conversationContent = new ConversationJsonSerializer(
+      this.contextLength,
+    ).toString(conversation);
     const text =
       env.content?.text?.length > 1024 * 5
         ? env.content?.text?.slice(0, 1024 * 5)
@@ -333,10 +339,10 @@ ${conversationContent}
     tools: ToolDefinition[],
   ): Promise<string> {
     const parameters = {
-      conversationContent: conversation.toJSONString(
+      conversationContent: new ConversationJsonSerializer(
         this.contextLength,
         (i: Interaction) => !!i.inputMessage && !!i.outputMessage,
-      ),
+      ).toString(conversation),
       userInput: conversation
         .getCurrentInteraction()
         .inputMessage.getContentText(),
