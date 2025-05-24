@@ -19,20 +19,18 @@ class Interaction {
   statusMessage: string; // the message of the status
   agentName: string; // the name of the agent
   inputMessage: ChatMessage;
-  inputMessageIndex: number;
   outputMessage?: ChatMessage;
   environment?: Environment;
 
   listener: () => void;
 
-  public constructor(chatMessage: ChatMessage, chatMessages: ChatMessage[]) {
+  public constructor(chatMessage: ChatMessage) {
     this.goal = "";
     this.intent = "";
     this.status = "Start";
     this.statusMessage = "";
     this.agentName = "";
     this.inputMessage = chatMessage;
-    this.inputMessageIndex = chatMessages.lastIndexOf(chatMessage);
     this.uuid = uuidv4();
     this.datetime = new Date().toISOString();
   }

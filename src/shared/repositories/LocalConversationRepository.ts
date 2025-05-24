@@ -23,7 +23,6 @@ interface InteractionRecord {
   statusMessage: string;
   agentName: string;
   inputMessage: ChatMessage;
-  inputMessageIndex: number;
   outputMessage?: ChatMessage;
   like?: boolean;
 }

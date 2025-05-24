@@ -5,11 +5,9 @@ import ChatMessage from "./ChatMessage";
 class Conversation {
   private readonly uuid: string;
   private readonly datetime: string;
-  interactions: Interaction[] = [];
-  messages: ChatMessage[];
+  private interactions: Interaction[] = [];
 
-  constructor(messages: ChatMessage[] = []) {
-    this.messages = messages;
+  constructor() {
     this.uuid = uuidv4();
     this.datetime = new Date().toISOString();
   }
@@ -24,26 +22,14 @@ class Conversation {
   }
 
   private appendUserMessage(message: ChatMessage): Conversation {
-    if (message.role === "user") {
-      this.messages.push(message);
-      this.interactions.push(new Interaction(message, this.messages));
-    } else {
-      console.error("Only user messages can be appended to the conversation");
-    }
+    this.interactions.push(new Interaction(message));
     return this;
   }
 
   private appendAssistantMessage(message: ChatMessage): Conversation {
-    if (message.role === "assistant") {
-      this.messages.push(message);
-      if (this.getCurrentInteraction()) {
-        // When agent can only handle some tasks, there is won't be any interaction.
-        this.getCurrentInteraction().setOutputMessage(message);
-      }
-    } else {
-      console.error(
-        "Only assistant messages can be appended to the conversation",
-      );
+    if (this.getCurrentInteraction()) {
+      // When agent can only handle some tasks, there is won't be any interaction.
+      this.getCurrentInteraction().setOutputMessage(message);
     }
     return this;
   }
@@ -69,28 +55,38 @@ class Conversation {
     return found;
   }
 
+  public getInteractions(contextLength: number = -1): Interaction[] {
+    if (contextLength === 0) {
+      return [];
+    }
+
+    let interactions = [...this.interactions];
+    if (contextLength > 0) {
+      interactions = interactions.slice(-contextLength);
+    }
+    return interactions;
+  }
+
   reset(messages: ChatMessage[]): Conversation {
-    this.messages = [...messages];
     this.interactions.length = 0; // Clear the interactions
+    for (const message of messages) {
+      this.appendMessage(message);
+    }
     return this;
   }
 
   getMessages(contextLength: number = -1): ChatMessage[] {
-    if (this.messages.length === 0 || contextLength < 0) {
-      return this.messages;
+    const interactions = this.getInteractions(contextLength);
+    const messages: ChatMessage[] = [];
+    for (const interaction of interactions) {
+      if (interaction.inputMessage) {
+        messages.push(interaction.inputMessage);
+      }
+      if (interaction.outputMessage) {
+        messages.push(interaction.outputMessage);
+      }
     }
-    // if contextLength is 0, return empty array
-    const sliceMessages =
-      contextLength === 0 ? [] : this.messages.slice(-contextLength);
-    // if the first message is a system message, return the slice
-    if (sliceMessages.length > 0 && sliceMessages[0].role === "system") {
-      return sliceMessages;
-    }
-    // if the first message is a system message, add the system message to the sliced messages
-    if (this.messages.length > 0 && this.messages[0].role === "system") {
-      return [this.messages[0], ...sliceMessages];
-    }
-    return sliceMessages;
+    return messages;
   }
 
   public getKey(): string {
@@ -113,10 +109,7 @@ class Conversation {
       return JSON.stringify([]);
     }
 
-    let interactions = [...this.interactions];
-    if (contextLength > 0) {
-      interactions = interactions.slice(-contextLength);
-    }
+    let interactions = this.getInteractions(contextLength);
     interactions = interactions.filter((i) => filter(i));
 
     const jsonObjects = interactions.map((i) => ({
