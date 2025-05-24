@@ -1,6 +1,15 @@
 import Conversation from "../core/Conversation";
 import Environment from "../core/Environment";
 import ToolDefinition from "../core/ToolDefinition";
+
+interface PlanResult {
+  goal: string; // The goal of the interaction
+  steps: string[]; // The plan steps
+  reasoning?: string; // The reasoning message returned by the model
+  content: string; // The content message returned by the model
+  result: string; // The whole message returned by the model
+}
+
 interface ThoughtService {
   /**
    * Analysis user's goal
@@ -13,7 +22,8 @@ interface ThoughtService {
     conversation: Conversation,
     tools: ToolDefinition[],
     notifyMessageChanged: (msg: string) => void,
-  ): Promise<string>;
+  ): Promise<PlanResult>;
 }
 
 export default ThoughtService;
+export { PlanResult };

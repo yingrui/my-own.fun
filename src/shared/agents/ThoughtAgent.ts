@@ -12,7 +12,7 @@ import ModelService, {
 import ReflectionService from "./services/ReflectionService";
 import ConversationRepository from "@src/shared/agents/ConversationRepository";
 import Agent from "./core/Agent";
-import Interaction from "./core/Interaction";
+import Interaction, { Step } from "./core/Interaction";
 import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
 import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
 import ThoughtService from "@src/shared/agents/services/ThoughtService";
@@ -401,13 +401,22 @@ ${functionReturn}
 
   private async guessGoal(interaction: Interaction) {
     if (this.enableChainOfThoughts && this.thoughtService) {
-      const goal = await this.thoughtService.goal(
+      const planResult = await this.thoughtService.goal(
         this.getCurrentEnvironment(),
         this.getConversation(),
         this.getTools(),
         (msg) => interaction.setGoal(msg),
       );
-      interaction.setGoal(goal);
+      interaction.setGoal(planResult.goal);
+      interaction.addStep(
+        Step.plan(
+          planResult.goal,
+          planResult.steps,
+          planResult.reasoning,
+          planResult.content,
+          planResult.result,
+        ),
+      );
     }
   }
 

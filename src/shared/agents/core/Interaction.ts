@@ -9,6 +9,47 @@ type InteractionStatus =
   | "Executing"
   | "Completed";
 
+/**
+ * A step is a single action taken by the agent.
+ * - Type: plan, the agent is understanding the user intent, and output is the goal of the interaction
+ * - Type: intent, the agent is choosing the actions to execute, and output is the action and the arguments
+ * - Type: execute, the agent is executing the action with the arguments, and output is the action result
+ * - Type: reflect, the agent is reflecting on the action result, and output is the result of the reflection
+ * It contains the reasoning, action, action arguments, action result, result, and error.
+ */
+class Step {
+  type: "plan" | "intent" | "execute" | "reflect" = "execute";
+  action: string = "";
+  arguments: any = {};
+  actionResult: any = {};
+
+  reasoning: string = "";
+  content: string = "";
+  result: string = "";
+
+  error?: string;
+  datetime: string = new Date().toISOString();
+
+  public static plan(
+    goal: string,
+    steps: string[],
+    reasoning: string,
+    content: string,
+    result: string,
+  ): Step {
+    const step = new Step();
+    step.type = "plan";
+    step.actionResult = {
+      goal: goal,
+      steps: steps,
+    };
+    step.reasoning = reasoning;
+    step.content = content;
+    step.result = result;
+    return step;
+  }
+}
+
 class Interaction {
   private readonly uuid: string;
   private readonly datetime: string;
@@ -21,6 +62,7 @@ class Interaction {
   inputMessage: ChatMessage;
   outputMessage?: ChatMessage;
   environment?: Environment;
+  steps: Step[] = [];
 
   listener: () => void;
 
@@ -62,6 +104,11 @@ class Interaction {
     this.notify();
   }
 
+  public addStep(step: Step) {
+    this.steps.push(step);
+    this.notify();
+  }
+
   public setIntent(intent: string, intentArguments: any) {
     this.intent = intent;
     this.intentArguments = intentArguments;
@@ -96,3 +143,4 @@ class Interaction {
 
 export default Interaction;
 export type { InteractionStatus };
+export { Step };

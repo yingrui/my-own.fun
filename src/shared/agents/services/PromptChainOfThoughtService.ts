@@ -8,7 +8,7 @@ import ModelService from "./ModelService";
 import Environment from "../core/Environment";
 import Conversation, { ConversationJsonSerializer } from "../core/Conversation";
 import ToolDefinition from "../core/ToolDefinition";
-import ThoughtService from "./ThoughtService";
+import ThoughtService, { PlanResult } from "./ThoughtService";
 import TemplateEngine from "./TemplateEngine";
 import PromptTemplate from "./PromptTemplate";
 import { getClassName } from "../../utils/reflection";
@@ -37,7 +37,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     conversation: Conversation,
     tools: ToolDefinition[],
     notifyMessageChanged: (msg: string) => void = undefined,
-  ): Promise<string> {
+  ): Promise<PlanResult> {
     const thought = await this.modelService.chatCompletion({
       messages: [
         new ChatMessage({
@@ -50,11 +50,18 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
       useReasoningModel: true,
       responseType: "text",
     });
-    const goal = await thought.getMessage(notifyMessageChanged);
-    if (this.modelService.reasoningModel) {
-      return goal.replace(/<think>[\s\S]*?<\/think>/g, "");
-    }
-    return goal;
+    const result = await thought.getMessage(notifyMessageChanged);
+    const match = result.match(/<think>([\s\S]*?)<\/think>/g);
+    const reasoning = match ? match[0] : undefined;
+    const goal = result.replace(/<think>[\s\S]*?<\/think>/g, "");
+    // TODO: Need to parse the goal and steps in future
+    return {
+      goal,
+      steps: [],
+      reasoning: reasoning,
+      content: goal,
+      result: result,
+    };
   }
 
   async reflection(
