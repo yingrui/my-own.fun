@@ -1,29 +1,27 @@
-import OpenAI from "openai";
+import ConversationRepository from "@src/shared/agents/ConversationRepository";
+import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import ThoughtAgent, {
   ThoughtAgentProps,
 } from "@src/shared/agents/ThoughtAgent";
-import Conversation from "@src/shared/agents/core/Conversation";
 import Agent from "@src/shared/agents/core/Agent";
-import ConversationRepository from "@src/shared/agents/ConversationRepository";
-import intl from "react-intl-universal";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
-import { locale } from "@src/shared/utils/i18n";
-import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
-import type { ModelProvider } from "@src/shared/agents/services/ModelService";
-import ModelService from "@src/shared/agents/services/ModelService";
+import Conversation from "@src/shared/agents/core/Conversation";
+import DeepSeekModelService from "@src/shared/agents/services/DeepSeekModelService";
 import DefaultModelService from "@src/shared/agents/services/DefaultModelService";
 import GPTModelService from "@src/shared/agents/services/GPTModelService";
-import PromptChainOfThoughtService from "@src/shared/agents/services/PromptChainOfThoughtService";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
-import TemplateRepository from "@src/shared/repositories/TemplateRepository";
+import type { ModelProvider } from "@src/shared/agents/services/ModelService";
+import ModelService from "@src/shared/agents/services/ModelService";
 import OllamaModelService from "@src/shared/agents/services/OllamaModelService";
-import DeepSeekModelService from "@src/shared/agents/services/DeepSeekModelService";
+import PromptChainOfThoughtService from "@src/shared/agents/services/PromptChainOfThoughtService";
+import TemplateRepository from "@src/shared/repositories/TemplateRepository";
+import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
+import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
+import { locale } from "@src/shared/utils/i18n";
+import OpenAI from "openai";
+import intl from "react-intl-universal";
 import TemplateEngine from "../agents/services/TemplateEngine";
 
 class BaseAgentFactory {
   private repository: ConversationRepository;
-  private initMessages: ChatMessage[];
 
   thoughtAgentProps(config: GluonConfigure): ThoughtAgentProps {
     const templateRepository = new TemplateRepository(chrome.storage.local);
@@ -88,10 +86,6 @@ class BaseAgentFactory {
   }
 
   postCreateAgent(agent: Agent): Agent {
-    if (this.initMessages && this.initMessages.length > 0) {
-      agent.getConversation().reset(this.initMessages);
-    }
-
     if (
       this.repository &&
       (agent instanceof DelegateAgent || agent instanceof ThoughtAgent)
@@ -103,10 +97,6 @@ class BaseAgentFactory {
 
   public setConversationRepository(repository: ConversationRepository) {
     this.repository = repository;
-  }
-
-  public setInitMessages(initMessages: ChatMessage[]) {
-    this.initMessages = initMessages;
   }
 
   private getModelProvider(baseURL: string): ModelProvider {

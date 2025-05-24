@@ -1,17 +1,17 @@
-import React, { useEffect, useRef } from "react";
-import withSuspense from "@src/shared/hoc/withSuspense";
-import withErrorBoundary from "@src/shared/hoc/withErrorBoundary";
-import { Typography } from "antd";
-import styles from "./SidePanel.module.scss";
-import intl from "react-intl-universal";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import { installContentScriptCommandListener } from "@src/shared/utils";
 import useStorage from "@root/src/shared/hooks/useStorage";
 import configureStorage from "@root/src/shared/storages/gluonConfig";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
+import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import ChatConversation, {
   ChatConversationRef,
 } from "@src/shared/components/ChatConversation";
+import withErrorBoundary from "@src/shared/hoc/withErrorBoundary";
+import withSuspense from "@src/shared/hoc/withSuspense";
+import { installContentScriptCommandListener } from "@src/shared/utils";
+import { Typography } from "antd";
+import { useEffect, useRef } from "react";
+import intl from "react-intl-universal";
+import styles from "./SidePanel.module.scss";
 
 const { Text } = Typography;
 

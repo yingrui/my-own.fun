@@ -1,29 +1,26 @@
-import React, { useRef, useState } from "react";
 import { Button, Layout, Typography } from "antd";
+import React, { useRef, useState } from "react";
 
-import "./WriterAssistant.css";
+import { CloseOutlined } from "@ant-design/icons";
 import WriterContext from "@pages/options/writer/context/WriterContext";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
+import styles from "@pages/sidepanel/SidePanel.module.scss";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import ChatConversation, {
   ChatConversationRef,
 } from "@src/shared/components/ChatConversation";
-import { CloseOutlined } from "@ant-design/icons";
 import intl from "react-intl-universal";
-import styles from "@pages/sidepanel/SidePanel.module.scss";
+import "./WriterAssistant.css";
 
 const { Sider } = Layout;
 const { Text } = Typography;
 
 interface WriterAssistantProps {
   context: WriterContext;
-  initMessages: ChatMessage[];
   agent: DelegateAgent;
 }
 
 const WriterAssistant: React.FC<WriterAssistantProps> = ({
   context,
-  initMessages,
   agent,
 }) => {
   const [chatCollapsed, setChatCollapsed] = useState(true);

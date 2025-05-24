@@ -1,19 +1,18 @@
-import ThoughtAgent from "@src/shared/agents/ThoughtAgent";
+import Agent from "@src/shared/agents/core/Agent";
 import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import MyFunCopilot from "./MyFunCopilot";
+import ThoughtAgent from "@src/shared/agents/ThoughtAgent";
+import BaseAgentFactory from "@src/shared/configurers/BaseAgentFactory";
+import LocalConversationRepository from "@src/shared/repositories/LocalConversationRepository";
+import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
+import intl from "react-intl-universal";
 import BACopilotAgent from "./BACopilotAgent";
+import GoogleAgent from "./GoogleAgent";
+import MyFunCopilot from "./MyFunCopilot";
 import TranslateAgent from "./TranslateAgent";
 import UiTestAgent from "./UiTestAgent";
-import GoogleAgent from "./GoogleAgent";
-import Agent from "@src/shared/agents/core/Agent";
-import LocalConversationRepository from "@src/shared/repositories/LocalConversationRepository";
-import intl from "react-intl-universal";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
-import BaseAgentFactory from "@src/shared/configurers/BaseAgentFactory";
-import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 
 class AgentFactory extends BaseAgentFactory {
-  create(config: GluonConfigure, initMessages: ChatMessage[]): Agent {
+  create(config: GluonConfigure): Agent {
     const props = this.thoughtAgentProps(config);
 
     const baCopilotKnowledgeApi = config.baCopilotKnowledgeApi ?? "";
@@ -21,7 +20,6 @@ class AgentFactory extends BaseAgentFactory {
     const baCopilotApi = config.baCopilotApi ?? "";
     const apiKey = config.apiKey ?? "";
 
-    this.setInitMessages(initMessages);
     this.setConversationRepository(new LocalConversationRepository());
 
     const agents: ThoughtAgent[] = [
@@ -66,29 +64,6 @@ class AgentFactory extends BaseAgentFactory {
 
     this.postCreateAgent(delegateAgent);
     return delegateAgent;
-  }
-
-  public static getInitialSystemMessage(language: string): string {
-    return intl.get("myfun_initial_system_prompt", { language: language })
-      .d(`As an assistant or chrome copilot named myFun.
-You can decide to call different tools or directly answer questions in ${language}, should not add assistant in answer.
-Output format should be in markdown format, and use mermaid format for diagram generation.`);
-  }
-
-  public static getInitialMessages(language: string): ChatMessage[] {
-    const messages = [
-      new ChatMessage({
-        role: "system",
-        content: AgentFactory.getInitialSystemMessage(language),
-      }),
-      new ChatMessage({
-        role: "assistant",
-        content: intl
-          .get("myfun_greeting")
-          .d("Hello! How can I assist you today?"),
-      }),
-    ];
-    return messages;
   }
 }
 

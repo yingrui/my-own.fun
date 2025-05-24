@@ -44,7 +44,7 @@ class MyFunAssistant extends CompositeAgent {
     const env = await this.environment();
     return this.chatCompletion({
       messages: this.getConversation().getMessages(),
-      systemPrompt: await this.systemPrompt(),
+      systemPrompt: await env.systemPrompt(),
       userInput: this.userPrompt(),
     });
   }

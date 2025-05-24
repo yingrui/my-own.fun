@@ -19,21 +19,8 @@ const WriterApp: React.FC<WriterAppProps> = ({ config }) => {
   const [documentLoaded, setDocumentLoaded] = useState(false);
   const contextRef = useRef(new WriterContext(config));
   const agentRef = useRef(
-    new WriterAgentFactory().create(config, contextRef.current, []),
+    new WriterAgentFactory().create(config, contextRef.current),
   );
-  const initMessages = [
-    new ChatMessage({
-      role: "system",
-      content: `As an assistant named myFun. You can help users writing with given information.`,
-    }),
-    new ChatMessage({
-      role: "assistant",
-      content: intl
-        .get("options_app_writer_assistant_greeting")
-        .d("Ask me anything about writing!"),
-      name: "myFun",
-    }),
-  ];
 
   useEffect(() => {
     const repository = new DocumentRepository();
@@ -54,7 +41,6 @@ const WriterApp: React.FC<WriterAppProps> = ({ config }) => {
           />
           <WriterAssistant
             context={contextRef.current}
-            initMessages={initMessages}
             agent={agentRef.current}
           ></WriterAssistant>
         </>

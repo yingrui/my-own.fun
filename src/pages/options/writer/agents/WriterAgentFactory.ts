@@ -1,17 +1,12 @@
 import WriterContext from "@src/pages/options/writer/context/WriterContext";
-import WriterAgent from "./WriterAgent";
+import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import BaseAgentFactory from "@src/shared/configurers/BaseAgentFactory";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import WriterAgent from "./WriterAgent";
 
 class WriterAgentFactory extends BaseAgentFactory {
-  create(
-    config: GluonConfigure,
-    context: WriterContext,
-    initMessages: ChatMessage[],
-  ): DelegateAgent {
+  create(config: GluonConfigure, context: WriterContext): DelegateAgent {
     const props = this.thoughtAgentProps(config);
     props.enableMultimodal = false;
     props.enableReflection = false;
@@ -31,7 +26,6 @@ class WriterAgentFactory extends BaseAgentFactory {
         label: intl.get("options_app_writer_command_search").d("/search"),
       },
     ];
-    this.setInitMessages(initMessages);
 
     const writerAgent = new WriterAgent(props, context);
     const delegateAgent = new DelegateAgent(

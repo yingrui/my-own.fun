@@ -1,23 +1,22 @@
-import React, {
+import ChatMessage from "@src/shared/agents/core/ChatMessage";
+import SensitiveTopicError from "@src/shared/agents/core/errors/SensitiveTopicError";
+import Thought from "@src/shared/agents/core/Thought";
+import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import Message from "@src/shared/components/Message";
+import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
+import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
+import { delay } from "@src/shared/utils";
+import { type MentionProps, Mentions } from "antd";
+import type { MentionsRef } from "antd/lib/mentions";
+import {
   forwardRef,
   useEffect,
   useImperativeHandle,
   useRef,
   useState,
 } from "react";
-import { type MentionProps, Mentions } from "antd";
 import intl from "react-intl-universal";
-import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import style from "./ChatConversation.module.scss";
-import Message from "@src/shared/components/Message";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
-import type { MentionsRef } from "antd/lib/mentions";
-import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
-import { delay } from "@src/shared/utils";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import SensitiveTopicError from "@src/shared/agents/core/errors/SensitiveTopicError";
-import Thought from "@src/shared/agents/core/Thought";
-import AgentFactory from "@pages/options/chatbot/agents/AgentFactory";
 
 interface ChatConversationProps {
   config: GluonConfigure;
@@ -74,10 +73,10 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         text.startsWith("/c") ||
         text.startsWith("/cl")
       ) {
-        const cloneInitMessages = [...AgentFactory.getInitialMessages(config)];
-        agent.getConversation().reset(cloneInitMessages);
+        const initMessages = [];
+        agent.getConversation().reset(initMessages);
         messages.length = 0;
-        setList(cloneInitMessages);
+        setList(initMessages);
         setText("");
         return;
       }
