@@ -22,6 +22,7 @@ export type GluonConfigure = {
   enableMultimodal: boolean;
   enableChainOfThoughts: boolean;
   enableSearch: boolean;
+  logLevel: string;
   // below are for options app
   enableOptionsAppSearch: boolean;
   enableOptionsAppChatbot: boolean;
@@ -50,6 +51,7 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   enableMultimodal: false,
   enableChainOfThoughts: false,
   enableSearch: true,
+  logLevel: "info",
   // below are for options app
   enableOptionsAppSearch: true,
   enableOptionsAppChatbot: false,

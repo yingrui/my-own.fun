@@ -19,6 +19,7 @@ import { locale } from "@src/shared/utils/i18n";
 import OpenAI from "openai";
 import intl from "react-intl-universal";
 import TemplateEngine from "../agents/services/TemplateEngine";
+import { LogLevel } from "../agents/services/LogService";
 
 class BaseAgentFactory {
   private repository: ConversationRepository;
@@ -49,6 +50,7 @@ class BaseAgentFactory {
       reflectionService: chainOfThoughtService,
       thoughtService: chainOfThoughtService,
       templateEngine: templateEngine,
+      logLevel: (config.logLevel as LogLevel) ?? "info",
     };
   }
 

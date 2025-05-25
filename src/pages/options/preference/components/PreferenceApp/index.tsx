@@ -8,10 +8,9 @@ import {
   RobotOutlined,
   SettingOutlined,
   MessageOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
-import configureStorage, {
-  GluonConfigure,
-} from "@src/shared/storages/gluonConfig";
+import configureStorage from "@src/shared/storages/gluonConfig";
 import "./index.css";
 import intl from "react-intl-universal";
 import _, { isEqual } from "lodash";
@@ -20,6 +19,7 @@ import BasicSettings from "@pages/options/preference/components/BasicSettings";
 import BACopilotSettings from "@pages/options/preference/components/BACopilot";
 import FeatureToggles from "@pages/options/preference/components/FeatureToggles";
 import PromptSettings from "@pages/options/preference/components/PromptSettings";
+import SystemSettings from "@pages/options/preference/components/SystemSettings";
 
 const { Sider } = Layout;
 
@@ -28,6 +28,7 @@ const PREFERENCE_MENU_KEYS = {
   BA_COPILOT: "ba_copilot",
   FEATURE_TOGGLES: "feature_toggles",
   PROMPTS: "prompts",
+  SYSTEM: "system",
 };
 
 const PreferenceApp: React.FC = () => {
@@ -57,6 +58,11 @@ const PreferenceApp: React.FC = () => {
       key: PREFERENCE_MENU_KEYS.PROMPTS,
       icon: <MessageOutlined />,
       label: intl.get("prompts").d("Prompts"),
+    },
+    {
+      key: PREFERENCE_MENU_KEYS.SYSTEM,
+      icon: <ToolOutlined />,
+      label: intl.get("system").d("System"),
     },
   ];
 
@@ -141,6 +147,12 @@ const PreferenceApp: React.FC = () => {
         )}
         {selectedKey === PREFERENCE_MENU_KEYS.PROMPTS && (
           <PromptSettings config={initData}></PromptSettings>
+        )}
+        {selectedKey === PREFERENCE_MENU_KEYS.SYSTEM && (
+          <SystemSettings
+            config={initData}
+            onSaveSettings={onSaveSettings}
+          ></SystemSettings>
         )}
       </Layout>
     </Layout>

@@ -1,0 +1,15 @@
+.system-settings-app {
+  padding: 24px;
+  width: 100%;
+}
+
+.system-settings {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+}
+
+.form-container {
+  padding: 24px;
+  width: 600px;
+} 

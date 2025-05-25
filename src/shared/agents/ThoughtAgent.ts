@@ -28,6 +28,7 @@ import ReflectionService, {
   EvaluationScore,
   ReflectionStatus,
 } from "./services/ReflectionService";
+import LogService, { LogLevel } from "./services/LogService";
 
 interface ThoughtAgentProps {
   language: string;
@@ -37,6 +38,7 @@ interface ThoughtAgentProps {
   enableChainOfThoughts: boolean;
   contextLength: number;
   modelService: ModelService;
+  logLevel: LogLevel;
   reflectionService?: ReflectionService;
   thoughtService?: ThoughtService;
   templateEngine?: TemplateEngine;
@@ -62,6 +64,7 @@ class ThoughtAgent implements Agent {
   private templateEngine: TemplateEngine;
   private disabledTools: string[] = [];
   private step: Step;
+  private logger: LogService;
 
   constructor(props: ThoughtAgentProps) {
     // Initialize required properties
@@ -75,6 +78,7 @@ class ThoughtAgent implements Agent {
       contextLength: props.contextLength,
       name: props.name,
       description: props.description,
+      logger: new LogService(props.logLevel),
     });
 
     // Initialize optional services
@@ -146,6 +150,10 @@ class ThoughtAgent implements Agent {
         name: this.getName(),
       }),
     );
+    this.logger.debug({
+      message: "ThoughtAgent: onCompleted",
+      interaction: this.getConversation().getCurrentInteraction(),
+    });
     await this.record();
 
     return message;
