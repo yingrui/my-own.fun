@@ -1,28 +1,33 @@
-import OpenAI from "openai";
-import ToolDefinition from "./core/ToolDefinition";
-import Conversation from "./core/Conversation";
-import Thought from "./core/Thought";
-import Environment from "./core/Environment";
-import type { MessageContent } from "./core/ChatMessage";
-import ChatMessage from "./core/ChatMessage";
-import ModelService, {
-  ChatCompletionParams,
-  ChatCompletionTools,
-} from "./services/ModelService";
-import ReflectionService from "./services/ReflectionService";
 import ConversationRepository from "@src/shared/agents/ConversationRepository";
-import Agent from "./core/Agent";
-import Interaction, { Step } from "./core/Interaction";
-import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
-import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
-import ThoughtService from "@src/shared/agents/services/ThoughtService";
+import { ToolNotFoundError } from "@src/shared/agents/core/errors/ToolErrors";
 import {
   getToolsFromClass,
   invokeTool,
 } from "@src/shared/agents/decorators/tool";
-import { ToolNotFoundError } from "@src/shared/agents/core/errors/ToolErrors";
+import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
+import TemplateEngine from "@src/shared/agents/services/TemplateEngine";
+import ThoughtService, {
+  PlanResult,
+} from "@src/shared/agents/services/ThoughtService";
 import { getClassName } from "@src/shared/utils/reflection";
 import _ from "lodash";
+import OpenAI from "openai";
+import Agent from "./core/Agent";
+import type { MessageContent } from "./core/ChatMessage";
+import ChatMessage from "./core/ChatMessage";
+import Conversation from "./core/Conversation";
+import Environment from "./core/Environment";
+import Interaction, { Step } from "./core/Interaction";
+import Thought from "./core/Thought";
+import ToolDefinition from "./core/ToolDefinition";
+import ModelService, {
+  ChatCompletionParams,
+  ChatCompletionTools,
+} from "./services/ModelService";
+import ReflectionService, {
+  EvaluationScore,
+  ReflectionStatus,
+} from "./services/ReflectionService";
 
 interface ThoughtAgentProps {
   language: string;
@@ -56,6 +61,7 @@ class ThoughtAgent implements Agent {
   private repo: ConversationRepository;
   private templateEngine: TemplateEngine;
   private disabledTools: string[] = [];
+  private step: Step;
 
   constructor(props: ThoughtAgentProps) {
     // Initialize required properties
@@ -295,9 +301,11 @@ class ThoughtAgent implements Agent {
    * @returns {Promise<Thought>} ThinkResult
    */
   async plan(): Promise<Thought> {
-    const interaction = this.conversation.getCurrentInteraction();
-    interaction.setStatus("Planning", `${this.getName()} is thinking...`);
-    await this.guessGoal(interaction);
+    const interaction = this.beginPlan();
+    const planResult = await this.guessGoal(interaction);
+    if (planResult) {
+      this.planCompleted(planResult);
+    }
 
     const toolCalls = this.getToolCalls();
     if (toolCalls.length === 0) {
@@ -313,18 +321,104 @@ class ThoughtAgent implements Agent {
     });
   }
 
+  // Processing State Machine
+  private beginPlan(): Interaction {
+    const interaction = this.conversation.getCurrentInteraction();
+    interaction.setStatus("Planning", `${this.getName()} is thinking...`);
+    return interaction;
+  }
+
+  private planCompleted(planResult: PlanResult): void {
+    const interaction = this.conversation.getCurrentInteraction();
+    interaction.setGoal(planResult.goal);
+    interaction.addStep(
+      Step.plan(
+        planResult.goal,
+        planResult.steps,
+        planResult.reasoning,
+        planResult.content,
+        planResult.result,
+      ),
+    );
+  }
+
+  private beginProcess(): void {
+    this.step = new Step();
+    this.conversation.getCurrentInteraction().addStep(this.step);
+  }
+
+  private confirmProcessAction(action: Action): void {
+    this.step.type = "execute";
+    this.step.action = action.name;
+    this.step.arguments = action.arguments;
+  }
+
+  private updateProcessActionResult(result: any): void {
+    this.step.actionResult = result;
+  }
+
+  private updateProcessActionError(error: Error): void {
+    this.step.error = error;
+  }
+
+  private processCompleted(result: string): void {
+    const match = result.match(/<think>([\s\S]*?)<\/think>/g);
+    const reasoning = match ? match[0] : undefined;
+    const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
+    this.step.result = result;
+    this.step.reasoning = reasoning;
+    this.step.content = content;
+    this.step = null;
+  }
+
+  private beginReflection(): void {
+    this.step = new Step();
+    const interaction = this.conversation.getCurrentInteraction();
+    interaction.setStatus("Reflecting", `${this.getName()} is reflecting...`);
+  }
+
+  private reflectionCompleted(
+    status: ReflectionStatus,
+    result: string,
+    evaluation: EvaluationScore,
+  ): void {
+    if (status === "revised") {
+      this.step.type = "reflect";
+      this.step.action = "revise";
+      this.step.arguments = evaluation;
+      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
+      const reasoning = match ? match[0] : undefined;
+      const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
+      this.step.result = result;
+      this.step.reasoning = reasoning;
+      this.step.content = content;
+
+      const interaction = this.conversation.getCurrentInteraction();
+      interaction.addStep(this.step);
+    }
+
+    this.step = null;
+  }
+
   private async process(thought: Thought): Promise<Thought> {
+    this.beginProcess();
+
     if (thought.type === "actions") {
       return this.check(thought.actions)
         .then((actions) => this.execute(actions))
-        .then((result) => this.postprocess(result));
+        .then((r) => this.postprocess(r));
     } else if (["message", "stream"].includes(thought.type)) {
-      return this.execute([this.replyAction(thought)]);
+      const action = this.replyAction(thought);
+      this.confirmProcessAction(action);
+      return this.execute([action]);
     } else if (thought.type === "error") {
+      this.updateProcessActionError(thought.error);
       return Promise.resolve(thought);
+    } else {
+      const error = new Error("Unknown plan type");
+      this.updateProcessActionError(error);
+      throw error;
     }
-
-    throw new Error("Unknown plan type");
   }
 
   private async postprocess(thought: Thought): Promise<Thought> {
@@ -344,18 +438,18 @@ class ThoughtAgent implements Agent {
       return result;
     }
     const message = await this.readMessage(result);
+    this.processCompleted(message);
     if (!this.enableReflection) {
       return this.thought(message);
     }
     const thought = await this.reflection();
-    if (thought.type === "stream") {
-      return this.thought(await this.readMessage(thought));
-    }
+
     return thought;
   }
 
   private async thinkResult(result: Thought): Promise<Thought> {
     const functionReturn = await result.getMessage();
+    this.updateProcessActionResult(functionReturn);
     const goal = this.getCurrentInteraction().getGoal();
     const prompt = `## Context
 Considering the previous conversation, please answer the question based on the context.
@@ -399,25 +493,18 @@ ${functionReturn}
     return messages;
   }
 
-  private async guessGoal(interaction: Interaction) {
+  private async guessGoal(
+    interaction: Interaction,
+  ): Promise<PlanResult | null> {
     if (this.enableChainOfThoughts && this.thoughtService) {
-      const planResult = await this.thoughtService.goal(
+      return await this.thoughtService.goal(
         this.getCurrentEnvironment(),
         this.getConversation(),
         this.getTools(),
         (msg) => interaction.setGoal(msg),
       );
-      interaction.setGoal(planResult.goal);
-      interaction.addStep(
-        Step.plan(
-          planResult.goal,
-          planResult.steps,
-          planResult.reasoning,
-          planResult.content,
-          planResult.result,
-        ),
-      );
     }
+    return null;
   }
 
   /**
@@ -428,16 +515,30 @@ ${functionReturn}
     if (!this.enableReflection) {
       return null;
     }
+    this.beginReflection();
 
-    const interaction = this.conversation.getCurrentInteraction();
-    interaction.setStatus("Reflecting", `${this.getName()} is reflecting...`);
     this.getCurrentInteraction().environment = await this.environment();
-
-    return await this.reflectionService.reflection(
+    const reflectionResult = await this.reflectionService.reflection(
       this.getCurrentEnvironment(),
       this.conversation,
       this.getTools(),
     );
+
+    let thought = reflectionResult.thought;
+    let result = "";
+    if (thought.type === "stream") {
+      result = await this.readMessage(thought);
+      thought = this.thought(result);
+    } else if (thought.type === "message") {
+      result = await thought.getMessage();
+    }
+
+    this.reflectionCompleted(
+      reflectionResult.status,
+      result,
+      reflectionResult.evaluation,
+    );
+    return thought;
   }
 
   /**
@@ -449,15 +550,16 @@ ${functionReturn}
    * @param {Action[]} actions - Actions
    * @returns {Promise<Action[]>} Actions
    */
-  async check(actions: Action[]): Promise<Action[]> {
+  private async check(actions: Action[]): Promise<Action[]> {
     const messages = this.conversation.getMessages();
-    const interaction = this.conversation.getCurrentInteraction();
     // TODO: Implement tracking dialogue state
     if (actions.length === 0) {
-      return [this.chatAction(messages[messages.length - 1].content)];
+      const action = this.chatAction(messages[messages.length - 1].content);
+      this.confirmProcessAction(action);
+      return [action];
     }
-    // TODO: The connections between intent and actions are missing.
-    interaction.setIntent(actions[0].name, actions[0].arguments);
+    // Record the action to the step
+    this.confirmProcessAction(actions[0]);
     return actions;
   }
 

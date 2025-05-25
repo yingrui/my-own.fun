@@ -13,6 +13,19 @@ class Suggestions {
   links: string[]; // Links to visit
 }
 
+type ReflectionStatus =
+  | "finished"
+  | "revised"
+  | "actions"
+  | "error"
+  | "unknown";
+
+interface ReflectionResult {
+  thought: Thought;
+  status: ReflectionStatus;
+  evaluation?: EvaluationScore;
+}
+
 interface ReflectionService {
   /**
    * Reflection
@@ -24,7 +37,7 @@ interface ReflectionService {
     env: Environment,
     conversation: Conversation,
     tools: ToolDefinition[],
-  ): Promise<Thought>;
+  ): Promise<ReflectionResult>;
 
   /**
    * Revise current output message
@@ -49,4 +62,5 @@ interface ReflectionService {
 }
 
 export default ReflectionService;
-export { EvaluationScore, Suggestions };
+export { EvaluationScore, Suggestions, ReflectionResult };
+export type { ReflectionStatus };

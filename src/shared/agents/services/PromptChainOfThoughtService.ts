@@ -1,6 +1,7 @@
 import ChatMessage from "../core/ChatMessage";
 import ReflectionService, {
   EvaluationScore,
+  ReflectionResult,
   Suggestions,
 } from "./ReflectionService";
 import Thought from "../core/Thought";
@@ -68,7 +69,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     env: Environment,
     conversation: Conversation,
     tools: ToolDefinition[],
-  ): Promise<Thought> {
+  ): Promise<ReflectionResult> {
     const result = await this.reviewConversation(tools, env, conversation);
 
     if (result.type === "message") {
@@ -77,22 +78,33 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
         const evaluation: string = score.evaluation || "finished";
         if (evaluation === "finished") {
           // If the answer is good enough, then return the previous message
-          return this.previousMessage(conversation);
+          return {
+            status: "finished",
+            thought: this.previousMessage(conversation),
+            evaluation: score,
+          };
         }
         if (evaluation === "suggest") {
-          return await this.revise(env, conversation, score);
+          return {
+            status: "revised",
+            thought: await this.revise(env, conversation, score),
+            evaluation: score,
+          };
         }
       } catch (e) {
-        return new Thought({
-          type: "error",
-          error: new Error("Invalid JSON format"),
-        });
+        return {
+          status: "error",
+          thought: new Thought({
+            type: "error",
+            error: new Error("Invalid JSON format"),
+          }),
+        };
       }
     } else if (result.type === "actions") {
-      return result;
+      return { status: "actions", thought: result };
     }
     // If the result is not message or actions, then return the previous message
-    return this.previousMessage(conversation);
+    return { status: "unknown", thought: this.previousMessage(conversation) };
   }
 
   private previousMessage(conversation: Conversation) {

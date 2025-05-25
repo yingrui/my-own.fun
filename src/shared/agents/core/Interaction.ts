@@ -18,7 +18,7 @@ type InteractionStatus =
  * It contains the reasoning, action, action arguments, action result, result, and error.
  */
 class Step {
-  type: "plan" | "intent" | "execute" | "reflect" = "execute";
+  type: "plan" | "execute" | "reflect" = "execute";
   action: string = "";
   arguments: any = {};
   actionResult: any = {};
@@ -27,7 +27,7 @@ class Step {
   content: string = "";
   result: string = "";
 
-  error?: string;
+  error?: Error;
   datetime: string = new Date().toISOString();
 
   public static plan(
