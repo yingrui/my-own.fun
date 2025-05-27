@@ -9,7 +9,6 @@ interface ConversationRecord {
   rounds: number;
   recordStatus: "Kept" | "Unkept";
   states: string[];
-  messages: ChatMessage[];
   interactions: InteractionRecord[];
 }
 
@@ -86,7 +85,6 @@ class LocalConversationRepository implements ConversationRepository {
         _.intent ? _.intent : defaultDialogueState,
       ),
       recordStatus: conversation.recordStatus !== "Kept" ? "Unkept" : "Kept",
-      messages: conversation.messages.map((msg) => new ChatMessage(msg)),
       interactions: this.loadInteractions(conversation.interactions),
     };
   }
