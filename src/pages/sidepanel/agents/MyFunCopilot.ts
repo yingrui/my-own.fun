@@ -60,9 +60,10 @@ Reply sorry and ask user to refresh webpage, so you can get information from web
 
     const template = this.promptTemplate(
       "Summary",
-      `You're an assistant and good at summarization,
+      `You're a consultant from McKinsey and good at summarization,
 Please summarize the content in: {{language}}, and consider the language of user input.
-The output should be short & clear, and in markdown format, if it need be diagram, please use mermaid format.
+Your answer should be short & clear, and the UI chat component can interpret markdown format output, if you want to use diagram, please consider mermaid chart.
+
 The user is reading an article: {{title}}.
 The content text is: {{text}}
 The links are: {{links}}`,
