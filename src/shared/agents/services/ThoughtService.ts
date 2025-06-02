@@ -1,5 +1,6 @@
 import Conversation from "../core/Conversation";
 import Environment from "../core/Environment";
+import Thought from "../core/Thought";
 import ToolDefinition from "../core/ToolDefinition";
 
 interface PlanResult {
@@ -21,8 +22,7 @@ interface ThoughtService {
     env: Environment,
     conversation: Conversation,
     tools: ToolDefinition[],
-    notifyMessageChanged: (msg: string) => void,
-  ): Promise<PlanResult>;
+  ): Promise<Thought>;
 }
 
 export default ThoughtService;

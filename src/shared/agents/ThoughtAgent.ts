@@ -505,12 +505,26 @@ ${functionReturn}
     interaction: Interaction,
   ): Promise<PlanResult | null> {
     if (this.enableChainOfThoughts && this.thoughtService) {
-      return await this.thoughtService.goal(
+      const thought = await this.thoughtService.goal(
         this.getCurrentEnvironment(),
         this.getConversation(),
         this.getTools(),
-        (msg) => interaction.setGoal(msg),
       );
+
+      const result = await thought.getMessage((msg) =>
+        interaction.setGoal(msg),
+      );
+      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
+      const reasoning = match ? match[0] : undefined;
+      const goal = result.replace(/<think>[\s\S]*?<\/think>/g, "");
+      // TODO: Need to parse the goal and steps in future
+      return {
+        goal,
+        steps: [],
+        reasoning: reasoning,
+        content: goal,
+        result: result,
+      };
     }
     return null;
   }

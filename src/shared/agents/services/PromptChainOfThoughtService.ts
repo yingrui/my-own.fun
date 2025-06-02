@@ -37,9 +37,8 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     env: Environment,
     conversation: Conversation,
     tools: ToolDefinition[],
-    notifyMessageChanged: (msg: string) => void = undefined,
-  ): Promise<PlanResult> {
-    const thought = await this.modelService.chatCompletion({
+  ): Promise<Thought> {
+    return await this.modelService.chatCompletion({
       messages: [
         new ChatMessage({
           role: "user",
@@ -51,18 +50,6 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
       useReasoningModel: true,
       responseType: "text",
     });
-    const result = await thought.getMessage(notifyMessageChanged);
-    const match = result.match(/<think>([\s\S]*?)<\/think>/g);
-    const reasoning = match ? match[0] : undefined;
-    const goal = result.replace(/<think>[\s\S]*?<\/think>/g, "");
-    // TODO: Need to parse the goal and steps in future
-    return {
-      goal,
-      steps: [],
-      reasoning: reasoning,
-      content: goal,
-      result: result,
-    };
   }
 
   async reflection(
