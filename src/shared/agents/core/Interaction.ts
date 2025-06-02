@@ -29,25 +29,6 @@ class Step {
 
   error?: Error;
   datetime: string = new Date().toISOString();
-
-  public static plan(
-    goal: string,
-    steps: string[],
-    reasoning: string,
-    content: string,
-    result: string,
-  ): Step {
-    const step = new Step();
-    step.type = "plan";
-    step.actionResult = {
-      goal: goal,
-      steps: steps,
-    };
-    step.reasoning = reasoning;
-    step.content = content;
-    step.result = result;
-    return step;
-  }
 }
 
 class Interaction {

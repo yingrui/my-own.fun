@@ -333,21 +333,25 @@ class ThoughtAgent implements Agent {
   private beginPlan(): Interaction {
     const interaction = this.conversation.getCurrentInteraction();
     interaction.setStatus("Planning", `${this.getName()} is thinking...`);
+    this.step = new Step();
+    this.step.type = "plan";
+    interaction.addStep(this.step);
     return interaction;
   }
 
   private planCompleted(planResult: PlanResult): void {
     const interaction = this.conversation.getCurrentInteraction();
     interaction.setGoal(planResult.goal);
-    interaction.addStep(
-      Step.plan(
-        planResult.goal,
-        planResult.steps,
-        planResult.reasoning,
-        planResult.content,
-        planResult.result,
-      ),
-    );
+
+    this.step.actionResult = planResult;
+    this.step.actionResult = {
+      goal: planResult.goal,
+      steps: planResult.steps,
+    };
+    this.step.reasoning = planResult.reasoning;
+    this.step.content = planResult.content;
+    this.step.result = planResult.result;
+    this.step = null;
   }
 
   private beginProcess(): void {
