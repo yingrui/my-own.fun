@@ -121,11 +121,13 @@ class ThoughtAgent implements Agent {
    *  2. When calling the executeCommand method
    * @returns {void}
    */
-  private async onStartInteraction(message: ChatMessage): Promise<void> {
-    this.getConversation().appendMessage(message);
-    const interaction = this.getCurrentInteraction();
-    // Perception
-    interaction.environment = await this.environment();
+  private async startInteraction(message: ChatMessage): Promise<void> {
+    const environment = await this.environment();
+    this.getConversation().startInteraction(
+      message,
+      environment,
+      this.getName(),
+    );
   }
 
   /**
@@ -135,20 +137,10 @@ class ThoughtAgent implements Agent {
    * 3. Review the conversation, reflect, and then execute the actions
    * @param result
    */
-  private async onCompleted(result: Thought): Promise<string> {
-    this.getCurrentInteraction().setStatus("Completed", "");
-
-    if (result.type === "error") {
-      return result.error.message;
-    }
-
-    const message = await result.getMessage();
-    this.getCurrentInteraction().setOutputMessage(
-      new ChatMessage({
-        role: "assistant",
-        content: message,
-        name: this.getName(),
-      }),
+  private async completeInteraction(result: Thought): Promise<string> {
+    const message = await this.getConversation().completeInteraction(
+      result,
+      this.getName(),
     );
     this.logger.debug({
       message: "ThoughtAgent: onCompleted",
@@ -271,11 +263,11 @@ class ThoughtAgent implements Agent {
     actions: Action[],
     message: ChatMessage,
   ): Promise<Thought> {
-    await this.onStartInteraction(message);
+    await this.startInteraction(message);
     const result = await this.execute(actions).then((result) =>
       this.postprocess(result),
     );
-    const output = await this.onCompleted(
+    const output = await this.completeInteraction(
       this.thought(await this.readMessage(result)),
     );
     return this.thought(output);
@@ -288,14 +280,14 @@ class ThoughtAgent implements Agent {
    * @async
    */
   async chat(message: ChatMessage): Promise<Thought> {
-    await this.onStartInteraction(message);
+    await this.startInteraction(message);
     let result = await this.plan();
     do {
       result = await this.process(result);
       result = await this.observe(result); // directly return the result if reflection is disabled
     } while (this.enableReflection && result?.isAction());
 
-    const output = await this.onCompleted(result);
+    const output = await this.completeInteraction(result);
     return this.thought(output);
   }
 

@@ -1,6 +1,8 @@
 import Interaction from "./Interaction";
 import { v4 as uuidv4 } from "uuid";
 import ChatMessage from "./ChatMessage";
+import Environment from "./Environment";
+import Thought from "./Thought";
 
 class Conversation {
   private readonly uuid: string;
@@ -31,6 +33,41 @@ class Conversation {
       this.getCurrentInteraction().setOutputMessage(message);
     }
     return this;
+  }
+
+  public async startInteraction(
+    message: ChatMessage,
+    environment: Environment,
+    agentName: string,
+  ): Promise<void> {
+    this.appendMessage(message);
+    const interaction = this.getCurrentInteraction();
+    // Perception
+    interaction.environment = environment;
+    interaction.setAgentName(agentName);
+  }
+
+  public async completeInteraction(
+    result: Thought,
+    agentName: string,
+  ): Promise<string> {
+    this.getCurrentInteraction().setStatus("Completed", "");
+    this.getCurrentInteraction().setAgentName(agentName);
+
+    if (result.type === "error") {
+      return result.error.message;
+    }
+
+    const message = await result.getMessage();
+    this.getCurrentInteraction().setOutputMessage(
+      new ChatMessage({
+        role: "assistant",
+        content: message,
+        name: agentName,
+      }),
+    );
+
+    return message;
   }
 
   public getCurrentInteraction(): Interaction {
