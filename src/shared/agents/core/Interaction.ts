@@ -54,12 +54,31 @@ class Interaction {
     this.statusMessage = "";
     this.agentName = "";
     this.inputMessage = chatMessage;
+    this.outputMessage = new ChatMessage({
+      role: "assistant",
+      content: "",
+      name: "",
+    });
     this.uuid = uuidv4();
     this.datetime = new Date().toISOString();
   }
 
   public setOutputMessage(message: ChatMessage) {
     this.outputMessage = message;
+  }
+
+  public updateOutputMessage(name: string, content: string) {
+    if (this.outputMessage) {
+      this.outputMessage.name = name;
+      this.outputMessage.content = content;
+    } else {
+      this.outputMessage = new ChatMessage({
+        role: "assistant",
+        content: content,
+        name: name,
+      });
+    }
+    this.notify();
   }
 
   public setStatus(status: InteractionStatus, statusMessage: string) {
@@ -88,6 +107,10 @@ class Interaction {
   public addStep(step: Step) {
     this.steps.push(step);
     this.notify();
+  }
+
+  public getSteps(): Step[] {
+    return this.steps;
   }
 
   public setIntent(intent: string, intentArguments: any) {

@@ -143,7 +143,7 @@ class ThoughtAgent implements Agent {
     }
 
     const message = await result.getMessage();
-    this.getConversation().appendMessage(
+    this.getCurrentInteraction().setOutputMessage(
       new ChatMessage({
         role: "assistant",
         content: message,
@@ -168,14 +168,9 @@ class ThoughtAgent implements Agent {
   private async readMessage(thought: Thought): Promise<string> {
     const message = await thought.getMessage((msg) => {
       this.notifyMessageChanged(msg);
+      this.getCurrentInteraction().updateOutputMessage(this.getName(), msg);
     });
-    this.getCurrentInteraction().setOutputMessage(
-      new ChatMessage({
-        role: "assistant",
-        content: message,
-        name: this.getName(),
-      }),
-    );
+    this.getCurrentInteraction().updateOutputMessage(this.getName(), message);
     return message;
   }
 
@@ -515,9 +510,9 @@ ${functionReturn}
         this.getTools(),
       );
 
-      const result = await thought.getMessage((msg) =>
-        interaction.setGoal(msg),
-      );
+      const result = await thought.getMessage((msg) => {
+        interaction.setGoal(msg);
+      });
       const match = result.match(/<think>([\s\S]*?)<\/think>/g);
       const reasoning = match ? match[0] : undefined;
       const goal = result.replace(/<think>[\s\S]*?<\/think>/g, "");

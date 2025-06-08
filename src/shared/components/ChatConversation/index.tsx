@@ -40,7 +40,6 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     const mentionRef = useRef<MentionsRef>();
     const [text, setText] = useState<string>();
     const [prefix, setPrefix] = useState<PrefixType>("@");
-    const [currentText, setCurrentText] = useState<string>();
     const [generating, setGenerating] = useState<boolean>();
     const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
     const commandRef = useRef<boolean>();
@@ -107,12 +106,6 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         }
 
         try {
-          agent.onMessageChange((msg) => {
-            setCurrentText(msg);
-            setTimeout(() => {
-              scrollToBottom();
-            });
-          });
           const thought = await generate_func();
           message = await thought.getMessage();
         } catch (e) {
@@ -120,7 +113,6 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         }
 
         appendMessage("assistant", message);
-        setCurrentText("");
       } finally {
         setGenerating(false);
       }
@@ -197,31 +189,20 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         <div className={style.chat}>
           <div className={style.chatList}>
             <div>
-              {messages
-                .filter((msg) => msg.role != "system")
-                .map((msg, i) => (
+              {agent
+                .getConversation()
+                .getMessagesWithInteraction()
+                .map(({ message, interaction }, i) => (
                   <Message
                     key={i}
                     index={i}
-                    role={msg.role}
-                    content={msg.content}
-                    interaction={
-                      msg.role === "assistant"
-                        ? agent.getConversation().getInteraction(msg)
-                        : undefined
-                    }
-                    name={msg.name}
+                    role={message.role}
+                    content={message.content}
+                    interaction={interaction}
+                    name={message.name}
+                    loading={interaction.getStatus() !== "Completed"}
                   ></Message>
                 ))}
-              {generating && (
-                <Message
-                  role="assistant"
-                  name={agent.getName()}
-                  interaction={agent.getConversation().getCurrentInteraction()}
-                  content={currentText}
-                  loading
-                ></Message>
-              )}
               <div className="scroll-anchor" ref={messagesRef}></div>
             </div>
           </div>

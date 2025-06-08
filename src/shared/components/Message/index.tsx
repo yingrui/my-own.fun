@@ -15,6 +15,7 @@ import CodeBlock, {
   remarkPlugins,
 } from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
 import ReactMarkdown from "react-markdown";
+import UserMessage from "./UserMessage";
 
 interface MessageProps {
   index?: number;
@@ -29,25 +30,28 @@ const getChainOfThoughts = (
   interaction: Interaction,
 ): CollapseProps["items"] => {
   if (interaction && interaction.getGoal()) {
-    return [
-      {
-        key: "1",
-        label: intl.get("side_panel_interaction_goal").d("Thought"),
-        children: (
-          <ReactMarkdown
-            components={{
-              code: (props) => {
-                return <CodeBlock {...props} loading={false} />;
-              },
-            }}
-            rehypePlugins={rehypePlugins as any}
-            remarkPlugins={remarkPlugins as any}
-          >
-            {interaction.getGoal().replaceAll(/<[/]?think>/g, "")}
-          </ReactMarkdown>
-        ),
-      },
-    ];
+    return interaction
+      .getSteps()
+      .filter((step) => !!step.reasoning)
+      .map((step, index) => {
+        return {
+          key: index.toString(),
+          label: intl.get("side_panel_interaction_goal").d("Thought"),
+          children: (
+            <ReactMarkdown
+              components={{
+                code: (props) => {
+                  return <CodeBlock {...props} loading={false} />;
+                },
+              }}
+              rehypePlugins={rehypePlugins as any}
+              remarkPlugins={remarkPlugins as any}
+            >
+              {step.reasoning.replaceAll(/<[/]?think>/g, "")}
+            </ReactMarkdown>
+          ),
+        };
+      });
   } else {
     return [];
   }
@@ -55,7 +59,6 @@ const getChainOfThoughts = (
 
 const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   const { index, role, content, loading, name, interaction } = props;
-  const isAssistant = role === "assistant";
   const [chainOfThoughts, setChainOfThoughts] = useState<
     CollapseProps["items"]
   >(getChainOfThoughts(interaction));
@@ -69,6 +72,13 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
       return content.find((c) => c.type === "text")?.text;
     }
     return content as string;
+  }
+
+  function getUserInputMessage(): string {
+    if (role === "user") {
+      return interaction.inputMessage.getContentText();
+    }
+    return "";
   }
 
   function handleCopy() {
@@ -87,30 +97,31 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   }
 
   function shouldSpin(): boolean {
-    return (
-      isAssistant && interaction && interaction.getStatus() !== "Completed"
-    );
+    return interaction && interaction.getStatus() !== "Completed";
   }
 
   function hasChainOfThought(): boolean {
     const hasGoal = !!interaction && !!interaction.getGoal();
-    return isAssistant && interaction && hasGoal;
+    return interaction && hasGoal;
+  }
+
+  if (role === "user") {
+    return (
+      <UserMessage
+        role={role}
+        content={getUserInputMessage()}
+        interaction={interaction}
+      />
+    );
   }
 
   return (
-    <div
-      ref={messagesRef}
-      className={`message-item ${isAssistant ? "message-assistant" : ""}`}
-    >
-      {isAssistant && (
-        <div className="avatar">
-          <img className="bot-avatar" src="/icons/logo.png" />
-          <span>{name}</span>
-        </div>
-      )}
-      <div
-        className={`message-content ${isAssistant ? "bot-message-content" : "user-message-content"}`}
-      >
+    <div ref={messagesRef} className={"message-item message-assistant"}>
+      <div className="avatar">
+        <img className="bot-avatar" src="/icons/logo.png" />
+        <span>{name}</span>
+      </div>
+      <div className={"message-content bot-message-content"}>
         {shouldSpin() && (
           // When content is empty
           <div className={"message-spin"}>
@@ -132,15 +143,12 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
           <Collapse accordion items={chainOfThoughts} ghost={true} />
         )}
         <MarkdownPreview loading={loading} content={getContent()} />
-        {isAssistant && !loading && index > 0 && (
+        {!loading && index > 0 && (
           <div>
             <CopyOutlined className="copy-icon" onClick={handleCopy} />
           </div>
         )}
       </div>
-      {!isAssistant && (
-        <img className="user-avatar" src="/icons/user-icon.png" />
-      )}
     </div>
   );
 });

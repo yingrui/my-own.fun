@@ -27,8 +27,7 @@ class Conversation {
   }
 
   private appendAssistantMessage(message: ChatMessage): Conversation {
-    if (this.getCurrentInteraction()) {
-      // When agent can only handle some tasks, there is won't be any interaction.
+    if (this.interactions.length > 0) {
       this.getCurrentInteraction().setOutputMessage(message);
     }
     return this;
@@ -36,23 +35,6 @@ class Conversation {
 
   public getCurrentInteraction(): Interaction {
     return this.interactions[this.interactions.length - 1];
-  }
-
-  public getInteraction(message: ChatMessage): Interaction {
-    const found = this.interactions.findLast((interaction) => {
-      if (message.role === "user") {
-        return (
-          interaction.inputMessage.getContentText() === message.getContentText()
-        );
-      } else if (message.role === "assistant" && interaction.outputMessage) {
-        return (
-          interaction.outputMessage.getContentText() ===
-          message.getContentText()
-        );
-      }
-      return false;
-    });
-    return found;
   }
 
   public getInteractions(contextLength: number = -1): Interaction[] {
@@ -76,14 +58,31 @@ class Conversation {
   }
 
   getMessages(contextLength: number = -1): ChatMessage[] {
-    const interactions = this.getInteractions(contextLength);
-    const messages: ChatMessage[] = [];
-    for (const interaction of interactions) {
+    return this.getMessagesWithInteraction(contextLength).map(
+      ({ message }) => message,
+    );
+  }
+
+  getMessagesWithInteraction(contextLength: number = -1): {
+    message: ChatMessage;
+    interaction: Interaction;
+  }[] {
+    const messages: {
+      message: ChatMessage;
+      interaction: Interaction;
+    }[] = [];
+    for (const interaction of this.getInteractions(contextLength)) {
       if (interaction.inputMessage) {
-        messages.push(interaction.inputMessage);
+        messages.push({
+          message: interaction.inputMessage,
+          interaction: interaction,
+        });
       }
       if (interaction.outputMessage) {
-        messages.push(interaction.outputMessage);
+        messages.push({
+          message: interaction.outputMessage,
+          interaction: interaction,
+        });
       }
     }
     return messages;
