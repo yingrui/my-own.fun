@@ -160,9 +160,17 @@ class ThoughtAgent implements Agent {
   private async readMessage(thought: Thought): Promise<string> {
     const message = await thought.getMessage((msg) => {
       this.notifyMessageChanged(msg);
-      this.getCurrentInteraction().updateOutputMessage(this.getName(), msg);
+      this.step.setMessage(msg);
+      this.getCurrentInteraction().updateOutputMessage(
+        this.getName(),
+        this.step.content,
+      );
     });
-    this.getCurrentInteraction().updateOutputMessage(this.getName(), message);
+    this.step.setMessage(message);
+    this.getCurrentInteraction().updateOutputMessage(
+      this.getName(),
+      this.step.content,
+    );
     return message;
   }
 
@@ -504,6 +512,7 @@ ${functionReturn}
 
       const result = await thought.getMessage((msg) => {
         interaction.setGoal(msg);
+        this.step.setMessage(msg);
       });
       const match = result.match(/<think>([\s\S]*?)<\/think>/g);
       const reasoning = match ? match[0] : undefined;

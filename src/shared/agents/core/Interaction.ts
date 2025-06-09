@@ -29,6 +29,24 @@ class Step {
 
   error?: Error;
   datetime: string = new Date().toISOString();
+
+  public setMessage(message: string) {
+    this.result = message;
+    if (message.startsWith("<think>")) {
+      const match = message.match(/<think>([\s\S]*?)<\/think>/g);
+      if (match) {
+        const reasoning = match[0];
+        const content = message.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+        this.reasoning = reasoning; // The reasoning is the first part of the message.
+        this.content = content; // The content is the rest of the message.
+      } else {
+        this.reasoning = message.replace(/<think>/g, "");
+        this.content = ""; // The content is empty because the reasoning is not complete yet.
+      }
+    } else {
+      this.content = message;
+    }
+  }
 }
 
 class Interaction {
@@ -41,7 +59,7 @@ class Interaction {
   statusMessage: string; // the message of the status
   agentName: string; // the name of the agent
   inputMessage: ChatMessage;
-  outputMessage?: ChatMessage;
+  outputMessage: ChatMessage;
   environment?: Environment;
   steps: Step[] = [];
 
@@ -96,6 +114,10 @@ class Interaction {
   }
 
   public getGoal(): string {
+    const step = this.steps.find((step) => step.type === "plan");
+    if (step) {
+      return step.result;
+    }
     return this.goal;
   }
 

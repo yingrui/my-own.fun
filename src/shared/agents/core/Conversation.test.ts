@@ -55,7 +55,7 @@ describe("Conversation", () => {
       ]);
       const serializer = new ConversationJsonSerializer(
         -1,
-        (interaction) => !!interaction.outputMessage,
+        (interaction) => interaction.outputMessage.getContentText() !== "",
       );
       const json = serializer.toString(conversation);
       expect(json).toBe("[]");

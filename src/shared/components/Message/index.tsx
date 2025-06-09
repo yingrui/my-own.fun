@@ -26,7 +26,7 @@ interface MessageProps {
   interaction?: Interaction;
 }
 
-const getChainOfThoughts = (
+const getStepComponents = (
   interaction: Interaction,
 ): CollapseProps["items"] => {
   if (interaction && interaction.getGoal()) {
@@ -35,7 +35,7 @@ const getChainOfThoughts = (
       .filter((step) => !!step.reasoning)
       .map((step, index) => {
         return {
-          key: index.toString(),
+          key: index,
           label: intl.get("side_panel_interaction_goal").d("Thought"),
           children: (
             <ReactMarkdown
@@ -59,9 +59,9 @@ const getChainOfThoughts = (
 
 const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   const { index, role, content, loading, name, interaction } = props;
-  const [chainOfThoughts, setChainOfThoughts] = useState<
-    CollapseProps["items"]
-  >(getChainOfThoughts(interaction));
+  const [steps, setSteps] = useState<CollapseProps["items"]>(
+    getStepComponents(interaction),
+  );
   const [statusMessage, setStatusMessage] = useState<string>(
     interaction ? interaction.getStatusMessage() : "",
   );
@@ -88,7 +88,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
 
   if (interaction) {
     interaction.onChange(() => {
-      setChainOfThoughts(getChainOfThoughts(interaction));
+      setSteps(getStepComponents(interaction));
       setStatusMessage(interaction.getStatusMessage());
       setTimeout(() => {
         scrollToBottom();
@@ -134,13 +134,13 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
         {hasChainOfThought() && shouldSpin() && (
           <Collapse
             accordion
-            items={chainOfThoughts}
-            defaultActiveKey={1}
+            items={steps}
+            activeKey={steps.length - 1}
             ghost={true}
           />
         )}
         {hasChainOfThought() && !shouldSpin() && (
-          <Collapse accordion items={chainOfThoughts} ghost={true} />
+          <Collapse accordion items={steps} ghost={true} />
         )}
         <MarkdownPreview loading={loading} content={getContent()} />
         {!loading && index > 0 && (
