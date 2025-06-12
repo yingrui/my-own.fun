@@ -25,20 +25,13 @@ interface MessageProps {
 const getStepComponents = (
   interaction: Interaction,
 ): CollapseProps["items"] => {
-  if (interaction && interaction.getGoal()) {
-    return interaction
-      .getSteps()
-      .filter((step) => !!step.reasoning)
-      .map((step, index) => {
-        return {
-          key: index,
-          label: step.type,
-          children: <StepComponent step={step} interaction={interaction} />,
-        };
-      });
-  } else {
-    return [];
-  }
+  return interaction.getSteps().map((step, index) => {
+    return {
+      key: index,
+      label: step.type,
+      children: <StepComponent step={step} interaction={interaction} />,
+    };
+  });
 };
 
 const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
@@ -84,11 +77,6 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
     return interaction && interaction.getStatus() !== "Completed";
   }
 
-  function hasChainOfThought(): boolean {
-    const hasGoal = !!interaction && !!interaction.getGoal();
-    return interaction && hasGoal;
-  }
-
   if (role === "user") {
     return (
       <UserMessage
@@ -115,7 +103,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
             )}
           </div>
         )}
-        {hasChainOfThought() && shouldSpin() && (
+        {shouldSpin() && (
           <Collapse
             accordion
             items={steps}
@@ -123,9 +111,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
             ghost={true}
           />
         )}
-        {hasChainOfThought() && !shouldSpin() && (
-          <Collapse accordion items={steps} ghost={true} />
-        )}
+        {!shouldSpin() && <Collapse accordion items={steps} ghost={true} />}
         <MarkdownPreview loading={loading} content={getContent()} />
         {!loading && index > 0 && (
           <div>
