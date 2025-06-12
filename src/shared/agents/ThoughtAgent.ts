@@ -272,12 +272,13 @@ class ThoughtAgent implements Agent {
     message: ChatMessage,
   ): Promise<Thought> {
     await this.startInteraction(message);
+    this.beginProcess();
     const result = await this.execute(actions).then((result) =>
       this.postprocess(result),
     );
-    const output = await this.completeInteraction(
-      this.thought(await this.readMessage(result)),
-    );
+    const resultMessage = await this.readMessage(result);
+    this.processCompleted(resultMessage);
+    const output = await this.completeInteraction(this.thought(resultMessage));
     return this.thought(output);
   }
 
