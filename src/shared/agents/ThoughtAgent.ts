@@ -338,11 +338,14 @@ class ThoughtAgent implements Agent {
     const interaction = this.conversation.getCurrentInteraction();
     interaction.setGoal(planResult.goal);
 
-    this.step.actionResult = planResult;
-    this.step.actionResult = {
-      goal: planResult.goal,
-      steps: planResult.steps,
-    };
+    this.step.actionResult = JSON.stringify(
+      {
+        goal: planResult.goal,
+        steps: planResult.steps,
+      },
+      null,
+      2,
+    );
     this.step.reasoning = planResult.reasoning;
     this.step.content = planResult.content;
     this.step.result = planResult.result;
@@ -360,7 +363,7 @@ class ThoughtAgent implements Agent {
     this.step.arguments = action.arguments;
   }
 
-  private updateProcessActionResult(result: any): void {
+  private updateProcessActionResult(result: string): void {
     this.step.actionResult = result;
   }
 

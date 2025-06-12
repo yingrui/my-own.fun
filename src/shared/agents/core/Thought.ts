@@ -90,7 +90,7 @@ class Thought {
     } else if (this.type === "functionReturn") {
       return this.isString(this.returnValue)
         ? this.returnValue
-        : JSON.stringify(this.returnValue);
+        : JSON.stringify(this.returnValue, null, 2);
     } else if (this.type === "error") {
       throw this.error;
     }

@@ -21,7 +21,7 @@ class Step {
   type: "plan" | "execute" | "reflect" = "execute";
   action: string = "";
   arguments: any = {};
-  actionResult: any = {};
+  actionResult: string = "";
 
   reasoning: string = "";
   content: string = "";

@@ -1,20 +1,16 @@
-import { message, Spin, Collapse } from "antd";
-import type { CollapseProps } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
-import "./index.css";
-import MarkdownPreview from "@src/shared/components/Message/MarkdownPreview";
-import copy from "copy-to-clipboard";
-import Interaction from "@src/shared/agents/core/Interaction";
-import React, { useState } from "react";
 import type { MessageContent } from "@src/shared/agents/core/ChatMessage";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
-import intl from "react-intl-universal";
+import Interaction from "@src/shared/agents/core/Interaction";
+import MarkdownPreview from "@src/shared/components/Message/MarkdownPreview";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
-import CodeBlock, {
-  rehypePlugins,
-  remarkPlugins,
-} from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
-import ReactMarkdown from "react-markdown";
+import type { CollapseProps } from "antd";
+import { Collapse, message, Spin } from "antd";
+import copy from "copy-to-clipboard";
+import React, { useState } from "react";
+import intl from "react-intl-universal";
+import "./index.css";
+import StepComponent from "./StepComponent";
 import UserMessage from "./UserMessage";
 
 interface MessageProps {
@@ -36,20 +32,8 @@ const getStepComponents = (
       .map((step, index) => {
         return {
           key: index,
-          label: intl.get("side_panel_interaction_goal").d("Thought"),
-          children: (
-            <ReactMarkdown
-              components={{
-                code: (props) => {
-                  return <CodeBlock {...props} loading={false} />;
-                },
-              }}
-              rehypePlugins={rehypePlugins as any}
-              remarkPlugins={remarkPlugins as any}
-            >
-              {step.reasoning.replaceAll(/<[/]?think>/g, "")}
-            </ReactMarkdown>
-          ),
+          label: step.type,
+          children: <StepComponent step={step} interaction={interaction} />,
         };
       });
   } else {

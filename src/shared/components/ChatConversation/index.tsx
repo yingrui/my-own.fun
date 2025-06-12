@@ -17,6 +17,7 @@ import {
 } from "react";
 import intl from "react-intl-universal";
 import style from "./ChatConversation.module.scss";
+import Interaction from "../../agents/core/Interaction";
 
 interface ChatConversationProps {
   config: GluonConfigure;
@@ -47,8 +48,19 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     const [messages, setList] = useState<ChatMessage[]>([
       ...agent.getConversation().getMessages(),
     ]);
+    const [messagesWithInteraction, setMessagesWithInteraction] = useState<
+      {
+        message: ChatMessage;
+        interaction: Interaction;
+      }[]
+    >(agent.getConversation().getMessagesWithInteraction());
 
     useEffect(() => {
+      agent.getConversation().onInteractionStarted(() => {
+        setMessagesWithInteraction(
+          agent.getConversation().getMessagesWithInteraction(),
+        );
+      });
       if (question) {
         generateReply(question, () =>
           agent.chat(messages[messages.length - 1]),
@@ -189,20 +201,17 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         <div className={style.chat}>
           <div className={style.chatList}>
             <div>
-              {agent
-                .getConversation()
-                .getMessagesWithInteraction()
-                .map(({ message, interaction }, i) => (
-                  <Message
-                    key={i}
-                    index={i}
-                    role={message.role}
-                    content={message.content}
-                    interaction={interaction}
-                    name={message.name}
-                    loading={interaction.getStatus() !== "Completed"}
-                  ></Message>
-                ))}
+              {messagesWithInteraction.map(({ message, interaction }, i) => (
+                <Message
+                  key={i}
+                  index={i}
+                  role={message.role}
+                  content={message.content}
+                  interaction={interaction}
+                  name={message.name}
+                  loading={interaction.getStatus() !== "Completed"}
+                ></Message>
+              ))}
               <div className="scroll-anchor" ref={messagesRef}></div>
             </div>
           </div>

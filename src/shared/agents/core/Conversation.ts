@@ -8,6 +8,7 @@ class Conversation {
   private readonly uuid: string;
   private readonly datetime: string;
   private interactions: Interaction[] = [];
+  private onInteractionStartedCallback: () => void = () => {};
 
   constructor() {
     this.uuid = uuidv4();
@@ -35,6 +36,10 @@ class Conversation {
     return this;
   }
 
+  public onInteractionStarted(callback: () => void): void {
+    this.onInteractionStartedCallback = callback;
+  }
+
   public async startInteraction(
     message: ChatMessage,
     environment: Environment,
@@ -45,6 +50,7 @@ class Conversation {
     // Perception
     interaction.environment = environment;
     interaction.setAgentName(agentName);
+    this.onInteractionStartedCallback();
   }
 
   public async completeInteraction(
