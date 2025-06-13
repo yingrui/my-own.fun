@@ -5,7 +5,7 @@ import CodeBlock, {
   remarkPlugins,
 } from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
 import Interaction, { Step } from "@src/shared/agents/core/Interaction";
-import { Typography, Space, Divider } from "antd";
+import { Typography, Space, Divider, Collapse } from "antd";
 import ExpandableJsonMarkdown from "./ExpandableJsonMarkdown";
 
 const { Text, Paragraph } = Typography;
@@ -56,9 +56,28 @@ const StepComponent: React.FC<StepComponentProps> = ({ step, interaction }) => {
     );
   };
 
+  const hasActionContent = () => {
+    return (
+      (step.type === "execute" && step.action) ||
+      (step.actionResult && Object.keys(step.actionResult).length > 0)
+    );
+  };
+
+  const items = hasActionContent()
+    ? [
+        {
+          key: "action",
+          label: "Action",
+          children: renderActionContent(step),
+        },
+      ]
+    : [];
+
   return (
     <Space direction="vertical" style={{ width: "100%" }}>
-      {renderActionContent(step)}
+      {hasActionContent() && (
+        <Collapse items={items} ghost={true} expandIconPosition="end" />
+      )}
 
       {step.reasoning && renderMarkdown(step.reasoning)}
 

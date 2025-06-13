@@ -8,7 +8,6 @@ import type { CollapseProps } from "antd";
 import { Collapse, message, Spin } from "antd";
 import copy from "copy-to-clipboard";
 import React, { useState } from "react";
-import intl from "react-intl-universal";
 import "./index.css";
 import StepComponent from "./StepComponent";
 import UserMessage from "./UserMessage";
