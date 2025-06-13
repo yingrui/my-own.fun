@@ -6,18 +6,20 @@ import CodeBlock, {
   remarkPlugins,
 } from "./MarkDownBlock/CodeBlock";
 
-interface ExpandableMarkdownProps {
+interface ExpandableJsonMarkdownProps {
   content: string;
   maxLength?: number;
   maxLines?: number;
+  defaultExpanded?: boolean;
 }
 
-const ExpandableMarkdown: React.FC<ExpandableMarkdownProps> = ({
+const ExpandableJsonMarkdown: React.FC<ExpandableJsonMarkdownProps> = ({
   content,
   maxLength = 500,
   maxLines = 5,
+  defaultExpanded = true,
 }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   const shouldTruncate = () => {
     if (content.length > maxLength) return true;
@@ -44,7 +46,7 @@ const ExpandableMarkdown: React.FC<ExpandableMarkdownProps> = ({
       rehypePlugins={rehypePlugins as any}
       remarkPlugins={remarkPlugins as any}
     >
-      {text}
+      {`\`\`\`json\n${text}\n\`\`\``}
     </ReactMarkdown>
   );
 
@@ -66,4 +68,4 @@ const ExpandableMarkdown: React.FC<ExpandableMarkdownProps> = ({
   );
 };
 
-export default ExpandableMarkdown;
+export default ExpandableJsonMarkdown;

@@ -107,7 +107,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
           <Collapse
             accordion
             items={steps}
-            activeKey={steps.length - 1}
+            activeKey={steps.length - 1} // the last step is expanded
             ghost={true}
           />
         )}

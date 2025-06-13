@@ -6,7 +6,7 @@ import CodeBlock, {
 } from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
 import Interaction, { Step } from "@src/shared/agents/core/Interaction";
 import { Typography, Space, Divider } from "antd";
-import ExpandableMarkdown from "./ExpandableMarkdown";
+import ExpandableJsonMarkdown from "./ExpandableJsonMarkdown";
 
 const { Text, Paragraph } = Typography;
 
@@ -30,26 +30,35 @@ const StepComponent: React.FC<StepComponentProps> = ({ step, interaction }) => {
     </ReactMarkdown>
   );
 
+  const renderActionContent = (step: Step) => {
+    return (
+      <>
+        {step.type === "execute" && step.action && (
+          <>
+            {renderMarkdown(
+              `\`${step.action}\`${step.arguments ? ` with arguments: \n\`\`\`json\n${JSON.stringify(step.arguments, null, 2)}\n\`\`\`` : ""}`,
+            )}
+          </>
+        )}
+
+        {step.actionResult && Object.keys(step.actionResult).length > 0 && (
+          <>
+            <Divider style={{ margin: "8px 0" }} />
+            <ExpandableJsonMarkdown
+              content={step.actionResult}
+              maxLength={500}
+              maxLines={5}
+              defaultExpanded={false}
+            />
+          </>
+        )}
+      </>
+    );
+  };
+
   return (
     <Space direction="vertical" style={{ width: "100%" }}>
-      {step.type === "execute" && step.action && (
-        <>
-          {renderMarkdown(
-            `\`${step.action}\`${step.arguments ? ` with arguments: \n\`\`\`json\n${JSON.stringify(step.arguments, null, 2)}\n\`\`\`` : ""}`,
-          )}
-        </>
-      )}
-
-      {step.actionResult && Object.keys(step.actionResult).length > 0 && (
-        <>
-          <Divider style={{ margin: "8px 0" }} />
-          <ExpandableMarkdown
-            content={`\`\`\`json\n${step.actionResult}\n\`\`\``}
-            maxLength={500}
-            maxLines={5}
-          />
-        </>
-      )}
+      {renderActionContent(step)}
 
       {step.reasoning && renderMarkdown(step.reasoning)}
 
