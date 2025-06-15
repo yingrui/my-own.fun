@@ -6,6 +6,7 @@ import CodeBlock, {
 } from "@src/shared/components/Message/MarkDownBlock/CodeBlock";
 import Interaction, { Step } from "@src/shared/agents/core/Interaction";
 import { Typography, Space, Divider, Collapse } from "antd";
+import { ToolOutlined } from "@ant-design/icons";
 import ExpandableJsonMarkdown from "./ExpandableJsonMarkdown";
 
 const { Text, Paragraph } = Typography;
@@ -67,7 +68,7 @@ const StepComponent: React.FC<StepComponentProps> = ({ step, interaction }) => {
     ? [
         {
           key: "action",
-          label: "Action",
+          label: "More details",
           children: renderActionContent(step),
         },
       ]
@@ -75,10 +76,6 @@ const StepComponent: React.FC<StepComponentProps> = ({ step, interaction }) => {
 
   return (
     <Space direction="vertical" style={{ width: "100%" }}>
-      {hasActionContent() && (
-        <Collapse items={items} ghost={true} expandIconPosition="end" />
-      )}
-
       {step.reasoning && renderMarkdown(step.reasoning)}
 
       {step.content && (
@@ -96,6 +93,14 @@ const StepComponent: React.FC<StepComponentProps> = ({ step, interaction }) => {
           </Text>
           <Paragraph type="danger">{step.error.message}</Paragraph>
         </>
+      )}
+
+      {hasActionContent() && (
+        <Collapse
+          items={items}
+          ghost={true}
+          expandIcon={() => <ToolOutlined />}
+        />
       )}
     </Space>
   );
