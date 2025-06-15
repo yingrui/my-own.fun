@@ -501,6 +501,7 @@ ${functionReturn}
    */
   private async check(actions: Action[]): Promise<Action[]> {
     const messages = this.conversation.getMessages();
+    const interaction = this.getCurrentInteraction();
     // TODO: Implement tracking dialogue state
     if (actions.length === 0) {
       const action = this.chatAction(messages[messages.length - 1].content);
