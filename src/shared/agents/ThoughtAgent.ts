@@ -63,7 +63,6 @@ class ThoughtAgent implements Agent {
   private repo: ConversationRepository;
   private templateEngine: TemplateEngine;
   private disabledTools: string[] = [];
-  private step: Step;
   private logger: LogService;
 
   constructor(props: ThoughtAgentProps) {
@@ -160,17 +159,23 @@ class ThoughtAgent implements Agent {
   private async readMessage(thought: Thought): Promise<string> {
     const message = await thought.getMessage((msg) => {
       this.notifyMessageChanged(msg);
-      this.step.setMessage(msg);
+      const currentStep = this.getCurrentInteraction().getCurrentStep();
+      if (currentStep) {
+        currentStep.setMessage(msg);
+        this.getCurrentInteraction().updateOutputMessage(
+          this.getName(),
+          currentStep.content,
+        );
+      }
+    });
+    const currentStep = this.getCurrentInteraction().getCurrentStep();
+    if (currentStep) {
+      currentStep.setMessage(message);
       this.getCurrentInteraction().updateOutputMessage(
         this.getName(),
-        this.step.content,
+        currentStep.content,
       );
-    });
-    this.step.setMessage(message);
-    this.getCurrentInteraction().updateOutputMessage(
-      this.getName(),
-      this.step.content,
-    );
+    }
     return message;
   }
 
@@ -302,15 +307,15 @@ class ThoughtAgent implements Agent {
    * @returns {Promise<Thought>} ThinkResult
    */
   async plan(): Promise<Thought> {
-    const interaction = this.beginPlan();
+    const interaction = this.getCurrentInteraction();
+    interaction.beginPlan();
     const planResult = await this.guessGoal(interaction);
     if (planResult) {
-      this.planCompleted(planResult);
+      interaction.planCompleted(planResult);
     }
 
     const toolCalls = this.getToolCalls();
     if (toolCalls.length === 0) {
-      // return empty list if there is no tool
       return new Thought({ type: "actions", actions: [] });
     }
 
@@ -322,94 +327,9 @@ class ThoughtAgent implements Agent {
     });
   }
 
-  // Processing State Machine
-  private beginPlan(): Interaction {
-    const interaction = this.conversation.getCurrentInteraction();
-    interaction.setStatus("Planning", `${this.getName()} is thinking...`);
-    this.step = new Step();
-    this.step.type = "plan";
-    interaction.addStep(this.step);
-    return interaction;
-  }
-
-  private planCompleted(planResult: PlanResult): void {
-    const interaction = this.conversation.getCurrentInteraction();
-    interaction.setGoal(planResult.goal);
-
-    this.step.actionResult = JSON.stringify(
-      {
-        goal: planResult.goal,
-        steps: planResult.steps,
-      },
-      null,
-      2,
-    );
-    this.step.reasoning = planResult.reasoning;
-    this.step.content = planResult.content;
-    this.step.result = planResult.result;
-    this.step = null;
-  }
-
-  private beginProcess(): void {
-    this.step = new Step();
-    this.conversation.getCurrentInteraction().addStep(this.step);
-  }
-
-  private confirmProcessAction(action: Action): void {
-    this.step.type = "execute";
-    this.step.action = action.name;
-    this.step.arguments = action.arguments;
-  }
-
-  private updateProcessActionResult(result: string): void {
-    this.step.actionResult = result;
-  }
-
-  private updateProcessActionError(error: Error): void {
-    this.step.error = error;
-  }
-
-  private processCompleted(result: string): void {
-    const match = result.match(/<think>([\s\S]*?)<\/think>/g);
-    const reasoning = match ? match[0] : undefined;
-    const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
-    this.step.result = result;
-    this.step.reasoning = reasoning;
-    this.step.content = content;
-    this.step = null;
-  }
-
-  private beginReflection(): void {
-    this.step = new Step();
-    const interaction = this.conversation.getCurrentInteraction();
-    interaction.setStatus("Reflecting", `${this.getName()} is reflecting...`);
-  }
-
-  private reflectionCompleted(
-    status: ReflectionStatus,
-    result: string,
-    evaluation: EvaluationScore,
-  ): void {
-    if (status === "revised") {
-      this.step.type = "reflect";
-      this.step.action = "revise";
-      this.step.arguments = evaluation;
-      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
-      const reasoning = match ? match[0] : undefined;
-      const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
-      this.step.result = result;
-      this.step.reasoning = reasoning;
-      this.step.content = content;
-
-      const interaction = this.conversation.getCurrentInteraction();
-      interaction.addStep(this.step);
-    }
-
-    this.step = null;
-  }
-
   private async process(thought: Thought): Promise<Thought> {
-    this.beginProcess();
+    const interaction = this.getCurrentInteraction();
+    interaction.beginProcess();
 
     if (thought.type === "actions") {
       return this.check(thought.actions)
@@ -417,14 +337,14 @@ class ThoughtAgent implements Agent {
         .then((r) => this.postprocess(r));
     } else if (["message", "stream"].includes(thought.type)) {
       const action = this.replyAction(thought);
-      this.confirmProcessAction(action);
+      interaction.confirmProcessAction(action);
       return this.execute([action]);
     } else if (thought.type === "error") {
-      this.updateProcessActionError(thought.error);
+      interaction.updateProcessActionError(thought.error);
       return Promise.resolve(thought);
     } else {
       const error = new Error("Unknown plan type");
-      this.updateProcessActionError(error);
+      interaction.updateProcessActionError(error);
       throw error;
     }
   }
@@ -446,7 +366,8 @@ class ThoughtAgent implements Agent {
       return result;
     }
     const message = await this.readMessage(result);
-    this.processCompleted(message);
+    const interaction = this.getCurrentInteraction();
+    interaction.processCompleted(message);
     if (!this.enableReflection) {
       return this.thought(message);
     }
@@ -457,8 +378,9 @@ class ThoughtAgent implements Agent {
 
   private async thinkResult(result: Thought): Promise<Thought> {
     const functionReturn = await result.getMessage();
-    this.updateProcessActionResult(functionReturn);
-    const goal = this.getCurrentInteraction().getGoal();
+    const interaction = this.getCurrentInteraction();
+    interaction.updateProcessActionResult(functionReturn);
+    const goal = interaction.getGoal();
     const prompt = `## Context
 Considering the previous conversation, please answer the question based on the context.
 
@@ -513,7 +435,10 @@ ${functionReturn}
 
       const result = await thought.getMessage((msg) => {
         interaction.setGoal(msg);
-        this.step.setMessage(msg);
+        const currentStep = interaction.getCurrentStep();
+        if (currentStep) {
+          currentStep.setMessage(msg);
+        }
       });
       const match = result.match(/<think>([\s\S]*?)<\/think>/g);
       const reasoning = match ? match[0] : undefined;
@@ -538,9 +463,10 @@ ${functionReturn}
     if (!this.enableReflection) {
       return null;
     }
-    this.beginReflection();
+    const interaction = this.getCurrentInteraction();
+    interaction.beginReflection();
 
-    this.getCurrentInteraction().environment = await this.environment();
+    interaction.environment = await this.environment();
     const reflectionResult = await this.reflectionService.reflection(
       this.getCurrentEnvironment(),
       this.conversation,
@@ -556,7 +482,7 @@ ${functionReturn}
       result = await thought.getMessage();
     }
 
-    this.reflectionCompleted(
+    interaction.reflectionCompleted(
       reflectionResult.status,
       result,
       reflectionResult.evaluation,
@@ -578,11 +504,11 @@ ${functionReturn}
     // TODO: Implement tracking dialogue state
     if (actions.length === 0) {
       const action = this.chatAction(messages[messages.length - 1].content);
-      this.confirmProcessAction(action);
+      interaction.confirmProcessAction(action);
       return [action];
     }
     // Record the action to the step
-    this.confirmProcessAction(actions[0]);
+    interaction.confirmProcessAction(actions[0]);
     return actions;
   }
 
@@ -592,7 +518,7 @@ ${functionReturn}
    * @returns {Promise<Thought>} ChatCompletion
    */
   async execute(actions: Action[]): Promise<Thought> {
-    const interaction = this.conversation.getCurrentInteraction();
+    const interaction = this.getCurrentInteraction();
     const actionNameList = actions.map((a) => a.name);
     interaction.setStatus(
       "Executing",

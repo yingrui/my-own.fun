@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from "uuid";
 import ChatMessage from "./ChatMessage";
 import Environment from "./Environment";
+import { PlanResult } from "@src/shared/agents/services/ThoughtService";
+import {
+  EvaluationScore,
+  ReflectionStatus,
+} from "@src/shared/agents/services/ReflectionService";
 
 type InteractionStatus =
   | "Start"
@@ -62,6 +67,7 @@ class Interaction {
   outputMessage: ChatMessage;
   environment?: Environment;
   steps: Step[] = [];
+  currentStep: Step | null = null;
 
   listener: () => void;
 
@@ -164,6 +170,101 @@ class Interaction {
 
   public getDatetime(): string {
     return this.datetime;
+  }
+
+  // State Management Methods
+  public beginPlan(): void {
+    this.setStatus("Planning", `${this.agentName} is thinking...`);
+    this.currentStep = new Step();
+    this.currentStep.type = "plan";
+    this.addStep(this.currentStep);
+  }
+
+  public planCompleted(planResult: PlanResult): void {
+    this.setGoal(planResult.goal);
+
+    if (this.currentStep) {
+      this.currentStep.actionResult = JSON.stringify(
+        {
+          goal: planResult.goal,
+          steps: planResult.steps,
+        },
+        null,
+        2,
+      );
+      this.currentStep.reasoning = planResult.reasoning;
+      this.currentStep.content = planResult.content;
+      this.currentStep.result = planResult.result;
+      this.currentStep = null;
+    }
+  }
+
+  public beginProcess(): void {
+    this.currentStep = new Step();
+    this.addStep(this.currentStep);
+  }
+
+  public confirmProcessAction(action: { name: string; arguments: any }): void {
+    if (this.currentStep) {
+      this.currentStep.type = "execute";
+      this.currentStep.action = action.name;
+      this.currentStep.arguments = action.arguments;
+    }
+  }
+
+  public updateProcessActionResult(result: string): void {
+    if (this.currentStep) {
+      this.currentStep.actionResult = result;
+    }
+  }
+
+  public updateProcessActionError(error: Error): void {
+    if (this.currentStep) {
+      this.currentStep.error = error;
+    }
+  }
+
+  public processCompleted(result: string): void {
+    if (this.currentStep) {
+      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
+      const reasoning = match ? match[0] : undefined;
+      const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
+      this.currentStep.result = result;
+      this.currentStep.reasoning = reasoning;
+      this.currentStep.content = content;
+      this.currentStep = null;
+    }
+  }
+
+  public beginReflection(): void {
+    this.currentStep = new Step();
+    this.setStatus("Reflecting", `${this.agentName} is reflecting...`);
+  }
+
+  public reflectionCompleted(
+    status: ReflectionStatus,
+    result: string,
+    evaluation: EvaluationScore,
+  ): void {
+    if (status === "revised" && this.currentStep) {
+      this.currentStep.type = "reflect";
+      this.currentStep.action = "revise";
+      this.currentStep.arguments = evaluation;
+      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
+      const reasoning = match ? match[0] : undefined;
+      const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
+      this.currentStep.result = result;
+      this.currentStep.reasoning = reasoning;
+      this.currentStep.content = content;
+
+      this.addStep(this.currentStep);
+    }
+
+    this.currentStep = null;
+  }
+
+  public getCurrentStep(): Step | null {
+    return this.currentStep;
   }
 }
 
