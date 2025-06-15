@@ -1,11 +1,7 @@
+import { PlanResult } from "@src/shared/agents/services/ThoughtService";
 import { v4 as uuidv4 } from "uuid";
 import ChatMessage from "./ChatMessage";
 import Environment from "./Environment";
-import { PlanResult } from "@src/shared/agents/services/ThoughtService";
-import {
-  EvaluationScore,
-  ReflectionStatus,
-} from "@src/shared/agents/services/ReflectionService";
 
 type InteractionStatus =
   | "Start"
@@ -23,7 +19,7 @@ type InteractionStatus =
  * It contains the reasoning, action, action arguments, action result, result, and error.
  */
 class Step {
-  type: "plan" | "execute" | "reflect" = "execute";
+  type: "plan" | "execute" = "execute";
   action: string = "";
   arguments: any = {};
   actionResult: string = "";
@@ -237,29 +233,10 @@ class Interaction {
   }
 
   public beginReflection(): void {
-    this.currentStep = new Step();
     this.setStatus("Reflecting", `${this.agentName} is reflecting...`);
   }
 
-  public reflectionCompleted(
-    status: ReflectionStatus,
-    result: string,
-    evaluation: EvaluationScore,
-  ): void {
-    if (status === "revised" && this.currentStep) {
-      this.currentStep.type = "reflect";
-      this.currentStep.action = "revise";
-      this.currentStep.arguments = evaluation;
-      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
-      const reasoning = match ? match[0] : undefined;
-      const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
-      this.currentStep.result = result;
-      this.currentStep.reasoning = reasoning;
-      this.currentStep.content = content;
-
-      this.addStep(this.currentStep);
-    }
-
+  public reflectionCompleted(): void {
     this.currentStep = null;
   }
 
@@ -269,5 +246,5 @@ class Interaction {
 }
 
 export default Interaction;
-export type { InteractionStatus };
 export { Step };
+export type { InteractionStatus };

@@ -473,21 +473,8 @@ ${functionReturn}
       this.getTools(),
     );
 
-    let thought = reflectionResult.thought;
-    let result = "";
-    if (thought.type === "stream") {
-      result = await this.readMessage(thought);
-      thought = this.thought(result);
-    } else if (thought.type === "message") {
-      result = await thought.getMessage();
-    }
-
-    interaction.reflectionCompleted(
-      reflectionResult.status,
-      result,
-      reflectionResult.evaluation,
-    );
-    return thought;
+    interaction.reflectionCompleted();
+    return reflectionResult.thought; // would not return stream message
   }
 
   /**
@@ -537,6 +524,15 @@ ${functionReturn}
 
     if (action === "reply") {
       return args["thought"] as Thought;
+    }
+
+    if (action === "revise") {
+      const evaluation = args as EvaluationScore;
+      return await this.reflectionService.revise(
+        this.getCurrentEnvironment(),
+        this.conversation,
+        evaluation,
+      );
     }
 
     try {

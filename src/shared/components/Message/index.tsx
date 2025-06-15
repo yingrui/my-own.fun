@@ -25,9 +25,10 @@ const getStepComponents = (
   interaction: Interaction,
 ): CollapseProps["items"] => {
   return interaction.getSteps().map((step, index) => {
+    const label = step.type === "execute" ? step.action : step.type;
     return {
       key: index,
-      label: step.type,
+      label: label,
       children: <StepComponent step={step} interaction={interaction} />,
     };
   });

@@ -73,8 +73,11 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
         }
         if (evaluation === "suggest") {
           return {
-            status: "revised",
-            thought: await this.revise(env, conversation, score),
+            status: "actions",
+            thought: new Thought({
+              type: "actions",
+              actions: [{ name: "revise", arguments: score }],
+            }),
             evaluation: score,
           };
         }
