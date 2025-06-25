@@ -13,13 +13,14 @@ type InteractionStatus =
 /**
  * A step is a single action taken by the agent.
  * - Type: plan, the agent is understanding the user intent, and output is the goal of the interaction
- * - Type: intent, the agent is choosing the actions to execute, and output is the action and the arguments
  * - Type: execute, the agent is executing the action with the arguments, and output is the action result
- * - Type: reflect, the agent is reflecting on the action result, and output is the result of the reflection
  * It contains the reasoning, action, action arguments, action result, result, and error.
  */
 class Step {
   type: "plan" | "execute" = "execute";
+  status: "started" | "completed" | "failed" = "started";
+
+  systemMessage: string = ""; // The system message of the step
   action: string = "";
   arguments: any = {};
   actionResult: string = "";
@@ -191,6 +192,7 @@ class Interaction {
       this.currentStep.reasoning = planResult.reasoning;
       this.currentStep.content = planResult.content;
       this.currentStep.result = planResult.result;
+      this.currentStep.status = "completed";
       this.currentStep = null;
     }
   }
@@ -217,6 +219,7 @@ class Interaction {
   public updateProcessActionError(error: Error): void {
     if (this.currentStep) {
       this.currentStep.error = error;
+      this.currentStep.status = "failed";
     }
   }
 
@@ -228,6 +231,7 @@ class Interaction {
       this.currentStep.result = result;
       this.currentStep.reasoning = reasoning;
       this.currentStep.content = content;
+      this.currentStep.status = "completed";
       this.currentStep = null;
     }
   }

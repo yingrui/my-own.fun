@@ -9,10 +9,12 @@ class Conversation {
   private readonly datetime: string;
   private interactions: Interaction[] = [];
   private onInteractionStartedCallback: () => void = () => {};
+  private systemPrompt: string = null; // This system prompt is used in chat completion API
 
-  constructor() {
+  constructor(defaultSystemPrompt: string = null) {
     this.uuid = uuidv4();
     this.datetime = new Date().toISOString();
+    this.systemPrompt = defaultSystemPrompt;
   }
 
   public appendMessage(message: ChatMessage): Conversation {
@@ -121,7 +123,7 @@ class Conversation {
           interaction: interaction,
         });
       }
-      if (interaction.outputMessage) {
+      if (interaction.outputMessage && !interaction.outputMessage.isEmpty()) {
         messages.push({
           message: interaction.outputMessage,
           interaction: interaction,
@@ -141,6 +143,14 @@ class Conversation {
 
   public getDatetime(): string {
     return this.datetime;
+  }
+
+  public getSystemPrompt(): string {
+    return this.systemPrompt;
+  }
+
+  public setSystemPrompt(systemPrompt: string): void {
+    this.systemPrompt = systemPrompt;
   }
 }
 

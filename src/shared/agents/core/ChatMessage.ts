@@ -35,6 +35,10 @@ class ChatMessage {
     }
     return this.content as string;
   }
+
+  public isEmpty(): boolean {
+    return !this.content;
+  }
 }
 
 export function textContent(content: string): MessageContent[] {

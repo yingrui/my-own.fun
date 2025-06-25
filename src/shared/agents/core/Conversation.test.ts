@@ -28,6 +28,24 @@ describe("Conversation", () => {
     expect(stubConversation.getInteractions().length).toBe(2);
   });
 
+  it("should return only input message if output message is empty", () => {
+    const conversation = stub([
+      new ChatMessage({ role: "user", content: "u1" }),
+      new ChatMessage({ role: "assistant", content: "a1" }),
+    ]);
+
+    // Append a new message to new interaction
+    conversation.appendMessage(
+      new ChatMessage({ role: "user", content: "u2" }),
+    );
+    expect(conversation.getMessages().length).toBe(3);
+    expect(conversation.getInteractions().length).toBe(2);
+
+    // The output message of the new interaction should be empty
+    const interaction = conversation.getCurrentInteraction();
+    expect(interaction.outputMessage.isEmpty()).toBeTruthy();
+  });
+
   describe("Context Control", () => {
     it("should be able to return the messages with the context length", () => {
       expect(stubConversation.getMessages(0)).toEqual([]);
