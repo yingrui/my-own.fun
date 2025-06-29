@@ -1,10 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { getInputs, getLinks, getText } from "./ElementUtils";
 import jQuery from "jquery";
 import _ from "lodash";
 
 describe("ElementUtils", () => {
-  const html = `<html>
+  let htmlDoc: Document;
+  let formElement: HTMLElement;
+
+  const testHtml = `<html>
   <head><title>Test</title></head>
   <body>
     <div>
@@ -25,62 +28,97 @@ describe("ElementUtils", () => {
     </form>
   </body>
 </html>`;
-  const htmlDoc = new DOMParser().parseFromString(html, "text/html");
 
-  it("should get links", async () => {
-    const element = jQuery("ul", htmlDoc)[0];
-    const links = getLinks(element);
-    expect(links.length).toBe(2);
-    expect(links[0].text).toBe("a1");
-    expect(links[0].href).toBe("/a1");
-    expect(links[1].text).toBe("a2");
-    expect(links[1].href).toBe("/a2");
+  beforeEach(() => {
+    htmlDoc = new DOMParser().parseFromString(testHtml, "text/html");
+    formElement = jQuery("form", htmlDoc)[0] as HTMLElement;
   });
 
-  it("should get text", async () => {
-    const element = jQuery("ul", htmlDoc)[0];
-    const text = getText(element);
-    expect(text).toContain("a1");
-    expect(text).toContain("a2");
-  });
+  const findInputByTag = (tag: string) =>
+    _.find(getInputs(formElement), (input) => input.tag === tag);
 
-  it("should get button", async () => {
-    const inputs = getInputs(jQuery("form", htmlDoc)[0]);
-    const button = _.find(inputs, (input) => {
-      return input.tag === "button";
+  describe("Link Extraction", () => {
+    it("should extract links from element", () => {
+      const element = jQuery("ul", htmlDoc)[0];
+      const links = getLinks(element);
+
+      expect(links).toHaveLength(2);
+      expect(links[0]).toEqual(
+        expect.objectContaining({
+          text: "a1",
+          href: "/a1",
+        }),
+      );
+      expect(links[1]).toEqual(
+        expect.objectContaining({
+          text: "a2",
+          href: "/a2",
+        }),
+      );
     });
-    expect(button.xpath).toBe('//form[@id="f1"]/button[1]');
-    expect(button.name).toBe("Ok");
   });
 
-  it("should get select", async () => {
-    const inputs = getInputs(jQuery("form", htmlDoc)[0]);
-    const input = _.find(inputs, (i) => {
-      return i.tag === "select";
+  describe("Text Extraction", () => {
+    it("should extract text from element", () => {
+      const element = jQuery("ul", htmlDoc)[0];
+      const text = getText(element);
+
+      expect(text).toContain("a1");
+      expect(text).toContain("a2");
     });
-    expect(input.xpath).toBe('//form[@id="f1"]/select[1]');
-    expect(input.name).toBe("role");
-    const selected = input.options.filter((o) => o.selected)[0];
-    expect(selected.value).toBe("2");
-    expect(selected.text).toBe("admin");
   });
 
-  it("should get inputs", async () => {
-    const inputs = getInputs(jQuery("form", htmlDoc)[0]);
-    const input = _.find(inputs, (i) => {
-      return i.tag === "input";
-    });
-    expect(input.xpath).toBe('//form[@id="f1"]/input[1]');
-    expect(input.name).toBe("username");
-    expect(input.type).toBe("text");
-    expect(input.value).toBe("input1");
-  });
+  describe("Form Input Extraction", () => {
+    it("should extract button input", () => {
+      const button = findInputByTag("button");
 
-  it("should ignore hidden inputs", async () => {
-    const inputs = getInputs(jQuery("form", htmlDoc)[0]);
-    const input = _.find(inputs, (i) => {
-      return i.tag === "input" && i.type === "hidden";
+      expect(button).toEqual(
+        expect.objectContaining({
+          xpath: '//form[@id="f1"]/button[1]',
+          name: "Ok",
+        }),
+      );
     });
-    expect(input).toBeUndefined();
+
+    it("should extract select input", () => {
+      const select = findInputByTag("select");
+
+      expect(select).toEqual(
+        expect.objectContaining({
+          xpath: '//form[@id="f1"]/select[1]',
+          name: "role",
+        }),
+      );
+
+      const selected = select.options.filter((o) => o.selected)[0];
+      expect(selected).toEqual(
+        expect.objectContaining({
+          value: "2",
+          text: "admin",
+        }),
+      );
+    });
+
+    it("should extract text input", () => {
+      const input = findInputByTag("input");
+
+      expect(input).toEqual(
+        expect.objectContaining({
+          xpath: '//form[@id="f1"]/input[1]',
+          name: "username",
+          type: "text",
+          value: "input1",
+        }),
+      );
+    });
+
+    it("should ignore hidden inputs", () => {
+      const hiddenInput = _.find(
+        getInputs(formElement),
+        (i) => i.tag === "input" && i.type === "hidden",
+      );
+
+      expect(hiddenInput).toBeUndefined();
+    });
   });
 });

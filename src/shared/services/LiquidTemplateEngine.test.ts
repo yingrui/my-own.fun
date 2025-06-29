@@ -1,119 +1,113 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
 import LiquidTemplateEngine from "@src/shared/services/LiquidTemplateEngine";
 import PromptTemplate from "@src/shared/agents/services/PromptTemplate";
 import TemplateRepository from "@src/shared/repositories/TemplateRepository";
 import _ from "lodash";
 
 describe("LiquidTemplateEngine", () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
+  let engine: LiquidTemplateEngine;
 
-  const stubTemplate = (
+  const createTemplate = (
     name: string,
     template: string = "Hello, {{name}}!",
+    modifiedTemplate?: string,
+    allowEmptyTemplate: boolean = false,
   ) => {
     return new PromptTemplate({
       name: name,
       template: template,
+      modifiedTemplate: modifiedTemplate,
+      allowEmptyTemplate: allowEmptyTemplate,
       parameters: [{ name: "name", type: "string", defaultValue: "world" }],
     });
   };
 
-  const mockStorage = (stubTemplate: PromptTemplate) => {
-    return {
-      set: (any: any): Promise<void> =>
-        new Promise((resolve) => {
-          resolve();
-        }),
-      get: (any: any): Promise<{ [key: string]: PromptTemplate }> =>
-        new Promise((resolve) => {
-          resolve({ [stubTemplate.id]: _.clone(stubTemplate) });
-        }),
-    };
-  };
-
-  it("should render template with parameter", async () => {
-    const template = stubTemplate("test-template");
-    expect(template.id).toBe("__template_test-template");
-    const engine = new LiquidTemplateEngine({});
-    const actualResult = await engine
-      .add(template)
-      .render(template.id, { name: "world" });
-    expect(actualResult).toBe("Hello, world!");
+  const createMockStorage = (savedTemplate: PromptTemplate) => ({
+    set: (): Promise<void> => Promise.resolve(),
+    get: (): Promise<{ [key: string]: PromptTemplate }> =>
+      Promise.resolve({ [savedTemplate.id]: _.clone(savedTemplate) }),
   });
 
-  it("should use saved template to render", async () => {
+  beforeEach(() => {
+    engine = new LiquidTemplateEngine({});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("should render template with parameter", async () => {
+    const template = createTemplate("test-template");
+    expect(template.id).toBe("__template_test-template");
+
+    const result = await engine
+      .add(template)
+      .render(template.id, { name: "world" });
+    expect(result).toBe("Hello, world!");
+  });
+
+  it("should use saved template when available", async () => {
     const templateName = "test-template";
-
-    // Default template is not as same as the saved template.
-    const defaultTemplate = stubTemplate(templateName);
-    const saved = new PromptTemplate({
-      name: templateName,
-      template: defaultTemplate.template,
-      modifiedTemplate: "Bonjour, {{name}}!",
-      parameters: [{ name: "name", type: "string", defaultValue: "world" }],
-    });
-
-    const repo = new TemplateRepository(
-      mockStorage(saved) as chrome.storage.StorageArea, // mock storage should return the saved template.
+    const defaultTemplate = createTemplate(templateName);
+    const savedTemplate = createTemplate(
+      templateName,
+      defaultTemplate.template,
+      "Bonjour, {{name}}!",
     );
-    const engine = new LiquidTemplateEngine({}, repo);
-    const actualResult = await engine
+
+    const mockStorage = createMockStorage(savedTemplate);
+    const repo = new TemplateRepository(
+      mockStorage as unknown as chrome.storage.StorageArea,
+    );
+    engine = new LiquidTemplateEngine({}, repo);
+
+    const result = await engine
       .add(defaultTemplate)
       .render(defaultTemplate.id, { name: "world" });
-
-    // Template engine should use saved template to render.
-    expect(actualResult).toBe("Bonjour, world!");
+    expect(result).toBe("Bonjour, world!");
   });
 
   it("should render empty template when allowEmptyTemplate is true", async () => {
     const templateName = "test-template";
-
-    // Default template is not as same as the saved template.
-    const defaultTemplate = stubTemplate(templateName);
-    const saved = new PromptTemplate({
-      name: templateName,
-      template: defaultTemplate.template,
-      modifiedTemplate: "", // updated to empty template
-      allowEmptyTemplate: true,
-      parameters: [{ name: "name", type: "string", defaultValue: "world" }],
-    });
-
-    const repo = new TemplateRepository(
-      mockStorage(saved) as chrome.storage.StorageArea, // mock storage should return the saved template.
+    const defaultTemplate = createTemplate(templateName);
+    const savedTemplate = createTemplate(
+      templateName,
+      defaultTemplate.template,
+      "",
+      true,
     );
-    const engine = new LiquidTemplateEngine({}, repo);
-    const actualResult = await engine
+
+    const mockStorage = createMockStorage(savedTemplate);
+    const repo = new TemplateRepository(
+      mockStorage as unknown as chrome.storage.StorageArea,
+    );
+    engine = new LiquidTemplateEngine({}, repo);
+
+    const result = await engine
       .add(defaultTemplate)
       .render(defaultTemplate.id, { name: "world" });
-
-    // Template engine should use saved template to render.
-    expect(actualResult).toBe("");
+    expect(result).toBe("");
   });
 
-  it("should render original template when modified template is empty and allowEmptyTemplate is false", async () => {
+  it("should fallback to original template when modified template is empty and allowEmptyTemplate is false", async () => {
     const templateName = "test-template";
-
-    // Default template is not as same as the saved template.
-    const defaultTemplate = stubTemplate(templateName);
-    const saved = new PromptTemplate({
-      name: templateName,
-      template: defaultTemplate.template,
-      modifiedTemplate: "", // updated to empty template
-      allowEmptyTemplate: false,
-      parameters: [{ name: "name", type: "string", defaultValue: "world" }],
-    });
-
-    const repo = new TemplateRepository(
-      mockStorage(saved) as chrome.storage.StorageArea, // mock storage should return the saved template.
+    const defaultTemplate = createTemplate(templateName);
+    const savedTemplate = createTemplate(
+      templateName,
+      defaultTemplate.template,
+      "",
+      false,
     );
-    const engine = new LiquidTemplateEngine({}, repo);
-    const actualResult = await engine
+
+    const mockStorage = createMockStorage(savedTemplate);
+    const repo = new TemplateRepository(
+      mockStorage as unknown as chrome.storage.StorageArea,
+    );
+    engine = new LiquidTemplateEngine({}, repo);
+
+    const result = await engine
       .add(defaultTemplate)
       .render(defaultTemplate.id, { name: "world" });
-
-    // Template engine should use saved template to render.
-    expect(actualResult).toBe("Hello, world!");
+    expect(result).toBe("Hello, world!");
   });
 });
