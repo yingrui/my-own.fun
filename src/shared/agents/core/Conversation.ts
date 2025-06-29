@@ -123,7 +123,7 @@ class Conversation {
           interaction: interaction,
         });
       }
-      if (interaction.outputMessage && !interaction.outputMessage.isEmpty()) {
+      if (interaction.outputMessage) {
         messages.push({
           message: interaction.outputMessage,
           interaction: interaction,

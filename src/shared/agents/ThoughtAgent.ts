@@ -29,10 +29,12 @@ import ReflectionService, {
   ReflectionStatus,
 } from "./services/ReflectionService";
 import LogService, { LogLevel } from "./services/LogService";
+import ContextTransformer from "./services/ContextTransformer";
 
 interface ThoughtAgentProps {
   language: string;
   conversation: Conversation;
+  contextTransformer: ContextTransformer;
   enableMultimodal: boolean;
   enableReflection: boolean;
   enableChainOfThoughts: boolean;
@@ -56,6 +58,7 @@ class ThoughtAgent implements Agent {
   private readonly name: string;
   private readonly description: string;
   private readonly conversation: Conversation;
+  private readonly contextTransformer: ContextTransformer;
   private readonly modelService: ModelService;
   private readonly reflectionService: ReflectionService;
   private readonly thoughtService: ThoughtService;
@@ -70,6 +73,7 @@ class ThoughtAgent implements Agent {
     Object.assign(this, {
       language: props.language,
       conversation: props.conversation,
+      contextTransformer: props.contextTransformer,
       modelService: props.modelService,
       enableMultimodal: props.enableMultimodal,
       enableReflection: props.enableReflection,

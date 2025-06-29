@@ -20,6 +20,7 @@ import OpenAI from "openai";
 import intl from "react-intl-universal";
 import TemplateEngine from "../agents/services/TemplateEngine";
 import { LogLevel } from "../agents/services/LogService";
+import { DefaultContextTransformer } from "../agents/services/ContextTransformer";
 
 class BaseAgentFactory {
   private repository: ConversationRepository;
@@ -42,6 +43,7 @@ class BaseAgentFactory {
     return {
       language: language,
       conversation: new Conversation(),
+      contextTransformer: new DefaultContextTransformer(),
       enableMultimodal: config.enableMultimodal ?? false,
       enableReflection: config.enableReflection ?? false,
       enableChainOfThoughts: config.enableChainOfThoughts ?? false,

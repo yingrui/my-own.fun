@@ -1,6 +1,6 @@
 import ChatMessage from "../core/ChatMessage";
 import Conversation from "../core/Conversation";
-import Interaction from "../core/Interaction";
+import Interaction, { Step } from "../core/Interaction";
 
 interface ContextTransformer {
   toMessages(conversation: Conversation): ChatMessage[];
@@ -8,7 +8,10 @@ interface ContextTransformer {
 
 class DefaultContextTransformer implements ContextTransformer {
   toMessages(conversation: Conversation): ChatMessage[] {
-    const messages = conversation.getMessages();
+    const messages = conversation.getMessages().filter(
+      // E.g. when agent is thinking, the output message of the interaction is empty
+      (message) => !message.isEmpty(),
+    );
     const systemPrompt = conversation.getSystemPrompt();
     if (systemPrompt) {
       messages.unshift(
@@ -31,6 +34,14 @@ class DefaultContextTransformer implements ContextTransformer {
             new ChatMessage({ role: "system", content: step.systemMessage }),
           );
         }
+        if (step.action) {
+          messages.push(
+            new ChatMessage({
+              role: "system",
+              content: this.toActionMessage(step),
+            }),
+          );
+        }
         if (step.result) {
           messages.push(
             new ChatMessage({ role: "assistant", content: step.result }),
@@ -39,6 +50,17 @@ class DefaultContextTransformer implements ContextTransformer {
       }
     }
     return messages;
+  }
+
+  private toActionMessage(step: Step): string {
+    return `Execute action: ${step.action}:
+\`\`\`json
+${JSON.stringify(step.arguments)}
+\`\`\`
+Result:
+\`\`\`json
+${step.actionResult}
+\`\`\``;
   }
 }
 
