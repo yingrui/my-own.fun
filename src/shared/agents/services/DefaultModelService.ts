@@ -68,8 +68,8 @@ class DefaultModelService implements ModelService {
   }
 
   async chatCompletion(params: ChatCompletionParams): Promise<Thought> {
-    const { useMultimodal, useReasoningModel, stream, responseType } = params;
-    const messages = this.getChatCompletionMessages(params);
+    const { useMultimodal, messages, useReasoningModel, stream, responseType } =
+      params;
 
     let model = useMultimodal ? this.multimodalModel : this.modelName;
     model =
@@ -121,36 +121,6 @@ class DefaultModelService implements ModelService {
         error: error,
       });
     }
-  }
-
-  private getChatCompletionMessages(params: ChatCompletionParams) {
-    const { systemPrompt, userInput } = params;
-    let { messages } = params;
-
-    if (systemPrompt && messages.length > 0) {
-      const systemMessage = new ChatMessage({
-        role: "system",
-        content: systemPrompt,
-      });
-      if (messages[0].role === "system") {
-        messages = [systemMessage, ...messages.slice(1)];
-      } else {
-        messages = [systemMessage, ...messages];
-      }
-    }
-
-    if (
-      userInput &&
-      messages.length > 1 &&
-      messages[messages.length - 1].role === "user"
-    ) {
-      const userMessage = new ChatMessage({
-        role: "user",
-        content: userInput,
-      });
-      messages = [...messages.slice(0, messages.length - 1), userMessage];
-    }
-    return messages;
   }
 
   /**
