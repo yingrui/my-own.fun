@@ -177,23 +177,17 @@ class Interaction {
     this.addStep(this.currentStep);
   }
 
-  public planCompleted(planResult: PlanResult): void {
-    this.setGoal(planResult.goal);
-
+  public planCompleted(): void {
     if (this.currentStep) {
-      this.currentStep.actionResult = JSON.stringify(
-        {
-          goal: planResult.goal,
-          steps: planResult.steps,
-        },
-        null,
-        2,
-      );
-      this.currentStep.reasoning = planResult.reasoning;
-      this.currentStep.content = planResult.content;
-      this.currentStep.result = planResult.result;
+      const result = this.currentStep.result;
+      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
+      const reasoning = match ? match[0] : undefined;
+      const content = result.replace(/<think>[\s\S]*?<\/think>/g, "");
+      this.currentStep.reasoning = reasoning;
+      this.currentStep.content = content;
       this.currentStep.status = "completed";
       this.currentStep = null;
+      this.setGoal(content);
     }
   }
 

@@ -312,11 +312,7 @@ class ThoughtAgent implements Agent {
    */
   async plan(): Promise<Thought> {
     const interaction = this.getCurrentInteraction();
-    interaction.beginPlan();
-    const planResult = await this.guessGoal(interaction);
-    if (planResult) {
-      interaction.planCompleted(planResult);
-    }
+    await this.guessGoal(interaction);
 
     const toolCalls = this.getToolCalls();
     if (toolCalls.length === 0) {
@@ -427,13 +423,16 @@ ${functionReturn}
     return messages;
   }
 
-  private async guessGoal(
-    interaction: Interaction,
-  ): Promise<PlanResult | null> {
+  private async guessGoal(interaction: Interaction): Promise<string | null> {
     if (this.enableChainOfThoughts && this.thoughtService) {
+      interaction.beginPlan();
+      const contextMessages = this.contextTransformer.toMessages(
+        this.getConversation(),
+      );
       const thought = await this.thoughtService.goal(
         this.getCurrentEnvironment(),
         this.getConversation(),
+        contextMessages,
         this.getTools(),
       );
 
@@ -444,17 +443,8 @@ ${functionReturn}
           currentStep.setMessage(msg);
         }
       });
-      const match = result.match(/<think>([\s\S]*?)<\/think>/g);
-      const reasoning = match ? match[0] : undefined;
-      const goal = result.replace(/<think>[\s\S]*?<\/think>/g, "");
-      // TODO: Need to parse the goal and steps in future
-      return {
-        goal,
-        steps: [],
-        reasoning: reasoning,
-        content: goal,
-        result: result,
-      };
+      interaction.planCompleted();
+      return result;
     }
     return null;
   }

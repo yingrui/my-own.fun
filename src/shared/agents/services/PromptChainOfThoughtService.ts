@@ -36,12 +36,14 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   async goal(
     env: Environment,
     conversation: Conversation,
+    contextMessages: ChatMessage[],
     tools: ToolDefinition[],
   ): Promise<Thought> {
     return await this.modelService.chatCompletion({
       messages: [
+        ...contextMessages,
         new ChatMessage({
-          role: "user",
+          role: "system",
           content: await this.getGoalPrompt(env, conversation, tools),
         }),
       ],
@@ -348,38 +350,25 @@ ${conversationContent}
     tools: ToolDefinition[],
   ): Promise<string> {
     const parameters = {
-      conversationContent: new ConversationJsonSerializer(
-        this.contextLength,
-        (i: Interaction) => !!i.inputMessage && !!i.outputMessage,
-      ).toString(conversation),
       userInput: conversation
         .getCurrentInteraction()
         .inputMessage.getContentText(),
-      currenStatus: env.content
-        ? `## Status
-The user is browsing webpage:
-- Title: ${env.content?.title}
-- URL: ${env.content?.url}`
-        : "",
       tools: tools.map((t) => t.toJSONString()).join("\n"),
     };
 
     const template = new PromptTemplate({
       name: "Think",
-      template: `## Role
-You're an agent to be able to plan and use tools to help user to achieve their goal.
-
-## Task
-Analysis user's goal based on input and the context in this conversation.
+      template: `## Task
+Analysis user's goal based on previous messages in this conversation.
 And then, give the thoughts of how to achieve the goal step by step.
 Consider the previous goals, if the goal is not change, could use previous goals.
-
-{{currenStatus}}
 
 ## Tools
 {{tools}}
 
-## Output Example
+## Example
+
+### Output
 **Goal**: 学习并整理和数据科学有关的技术方向
 
 **Steps**:
@@ -387,18 +376,14 @@ Consider the previous goals, if the goal is not change, could use previous goals
  - [ ] 打开搜索结果，保存到临时剪切板
  - [ ] 整理并回答用户问题
 
-## Output Format
+### Output Format
 Keep the output goal short and precise, just one sentence, less than 50 words. 
 Note: user language is {{language}}
 
-## Conversation Messages
-Analysis below json messages, each interaction contains user goal, user message and assistant message.
-\`\`\`json
-{{conversationContent}}
-\`\`\`
-
-### Current User Input
+## Current User Input
 {{userInput}}
+
+### Output
 `,
       class: getClassName(this),
       allowEmptyTemplate: false,

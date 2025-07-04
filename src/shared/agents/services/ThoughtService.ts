@@ -1,3 +1,4 @@
+import ChatMessage from "../core/ChatMessage";
 import Conversation from "../core/Conversation";
 import Environment from "../core/Environment";
 import Thought from "../core/Thought";
@@ -21,6 +22,7 @@ interface ThoughtService {
   goal(
     env: Environment,
     conversation: Conversation,
+    contextMessages: ChatMessage[],
     tools: ToolDefinition[],
   ): Promise<Thought>;
 }
