@@ -380,20 +380,17 @@ class ThoughtAgent implements Agent {
     const functionReturn = await result.getMessage();
     const interaction = this.getCurrentInteraction();
     interaction.updateProcessActionResult(functionReturn);
-    const goal = interaction.getGoal();
-    const prompt = `## Context
-Considering the previous conversation, please answer the question based on the context.
-
-## User Intent & Goal
-${goal}
-
-## Tools Executed and Function Return
-${functionReturn}
+    const prompt = `## Task
+Please answer the question based on the context.
 
 ## Output
 `;
+    const messages = this.contextTransformer.toMessages(this.getConversation());
     return await this.chatCompletion({
-      messages: [new ChatMessage({ role: "user", content: prompt })],
+      messages: [
+        ...messages,
+        new ChatMessage({ role: "system", content: prompt }),
+      ],
     });
   }
 
@@ -408,19 +405,29 @@ ${functionReturn}
   }
 
   private async messagesWithNewSystemPrompt() {
-    const env = this.getCurrentEnvironment();
-    const systemPrompt = await env.systemPrompt();
-    const systemMessage = new ChatMessage({
+    const messages = this.contextTransformer.toMessages(this.getConversation());
+
+    const promptTemplate = this.promptTemplate(
+      "Choose Tool",
+      `Choose the tool to execute or answer the question based on the user's goal and the tools available.`,
+      {},
+    );
+    const prompt = await this.renderPrompt(promptTemplate.id, {});
+    const chooseToolMessage = new ChatMessage({
       role: "system",
-      content: systemPrompt,
+      content: prompt,
     });
-    const messages = this.conversation.getMessages(this.contextLength);
-    if (messages[0].role === "system") {
-      return _.isEmpty(systemPrompt)
-        ? messages.slice(1)
-        : [systemMessage, ...messages.slice(1)];
+
+    const env = this.getCurrentEnvironment();
+    const envPrompt = await env.systemPrompt();
+    if (!_.isEmpty(envPrompt)) {
+      const envMessage = new ChatMessage({
+        role: "system",
+        content: envPrompt,
+      });
+      return [...messages, envMessage, chooseToolMessage];
     }
-    return messages;
+    return [...messages, chooseToolMessage];
   }
 
   private async guessGoal(interaction: Interaction): Promise<string | null> {
@@ -464,6 +471,7 @@ ${functionReturn}
     const reflectionResult = await this.reflectionService.reflection(
       this.getCurrentEnvironment(),
       this.conversation,
+      this.contextTransformer.toMessages(this.getConversation()),
       this.getTools(),
     );
 
@@ -525,6 +533,7 @@ ${functionReturn}
       return await this.reflectionService.revise(
         this.getCurrentEnvironment(),
         this.conversation,
+        this.contextTransformer.toMessages(this.getConversation()),
         evaluation,
       );
     }
@@ -549,12 +558,8 @@ ${functionReturn}
   }
 
   protected async generateChatReply(args: object) {
-    const env = await this.environment();
-    const systemPrompt = await env.systemPrompt();
     return this.chatCompletion({
-      messages: this.getConversation().getMessages(this.contextLength),
-      systemPrompt: systemPrompt,
-      userInput: args["userInput"],
+      messages: this.contextTransformer.toMessages(this.getConversation()),
     });
   }
 
@@ -593,6 +598,14 @@ ${functionReturn}
     stream,
     responseType,
   }: ChatCompletionParams): Promise<Thought> {
+    this.logger.debug({
+      message: "ThoughtAgent: chatCompletion",
+      messages: messages,
+      systemPrompt: systemPrompt,
+      userInput: userInput,
+      stream: stream,
+      responseType: responseType,
+    });
     // useMultimodal and useReasoningModel are controlled by the agent
     return await this.modelService.chatCompletion({
       messages: messages,
@@ -616,6 +629,13 @@ ${functionReturn}
     stream,
     responseType,
   }: ChatCompletionTools): Promise<Thought> {
+    this.logger.debug({
+      message: "ThoughtAgent: toolsCall",
+      messages: messages,
+      tools: tools,
+      stream: stream,
+      responseType: responseType,
+    });
     return await this.modelService.toolsCall({
       messages: messages,
       tools: tools ?? [],

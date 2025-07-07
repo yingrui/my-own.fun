@@ -57,9 +57,15 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   async reflection(
     env: Environment,
     conversation: Conversation,
+    messages: ChatMessage[],
     tools: ToolDefinition[],
   ): Promise<ReflectionResult> {
-    const result = await this.reviewConversation(tools, env, conversation);
+    const result = await this.reviewConversation(
+      messages,
+      tools,
+      env,
+      conversation,
+    );
 
     if (result.type === "message") {
       try {
@@ -106,6 +112,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   }
 
   private async reviewConversation(
+    messages: ChatMessage[],
     tools: ToolDefinition[],
     env: Environment,
     conversation: Conversation,
@@ -113,9 +120,10 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     const toolCalls = tools.map((t) => t.getFunction());
     return await this.modelService.toolsCall({
       messages: [
+        ...messages,
         new ChatMessage({
-          role: "user",
-          content: this.getReflectionPrompt(env, conversation),
+          role: "system",
+          content: this.getReflectionPrompt(),
         }),
       ],
       tools: toolCalls,
@@ -127,19 +135,17 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
   async revise(
     env: Environment,
     conversation: Conversation,
+    messages: ChatMessage[],
     evaluation: EvaluationScore,
   ): Promise<Thought> {
     const feedback = evaluation.feedback;
     if (feedback) {
       return await this.modelService.chatCompletion({
         messages: [
+          ...messages,
           new ChatMessage({
             role: "system",
-            content: this.getRevisePrompt(env, conversation, feedback),
-          }),
-          new ChatMessage({
-            role: "user",
-            content: `Please revise the last answer based on the feedback, and answer in ${this.language}`,
+            content: this.getRevisePrompt(feedback),
           }),
         ],
         stream: true,
@@ -180,19 +186,8 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     throw new Error("Invalid suggestion response");
   }
 
-  private getReflectionPrompt(
-    env: Environment,
-    conversation: Conversation,
-  ): string {
-    const conversationContent = new ConversationJsonSerializer(
-      this.contextLength,
-    ).toString(conversation);
-    const text =
-      env.content?.text?.length > 1024 * 5
-        ? env.content?.text?.slice(0, 1024 * 5)
-        : env.content?.text;
-    return `## Role: Assistant
-## Task
+  private getReflectionPrompt(): string {
+    return `## Task
 Think whether the current result meet the goals, return the actions or suggestions if not.
 - Consider the current goal of user?
 - Check if the answer is correct or satisfied?
@@ -201,13 +196,6 @@ It tools call request, the result have 3 types:
 1. If the answer is good enough, then return "finished".
 2. If the answer need improve, then return "suggest".
 3. If need to take actions, then return the function name and arguments.
-
-## Status
-The user is browsing webpage:
-- Title: ${env.content?.title}
-- URL: ${env.content?.url}
-- Content: 
-${text}
 
 ## Output JSON Format
 If the initial answer is meets the user's needs, simply return "finished" without any feedback, like:
@@ -252,52 +240,18 @@ assistant: 1.11 is greater than 1.2
 {"evaluation": "suggest", "feedback": "the 1.11 is not greater than 1.2, please correct it."}
 
 #### Conversation Messages
-\`\`\`json
-${conversationContent}
-\`\`\`
+Read the previous messages.
 
 #### Output
 `;
   }
 
-  private getRevisePrompt(
-    env: Environment,
-    conversation: Conversation,
-    feedback: string,
-  ): string {
-    const conversationContent = new ConversationJsonSerializer(
-      this.contextLength,
-    ).toString(conversation);
-    const text =
-      env.content?.text?.length > 1024 * 5
-        ? env.content?.text?.slice(0, 1024 * 5)
-        : env.content?.text;
-
-    const currenStatus = env.content
-      ? `## Status
-The user is browsing webpage:
-- Title: ${env.content?.title}
-- URL: ${env.content?.url}
-- Content: 
-${text}
-`
-      : "";
-
-    return `## Role: Assistant
-## Task
-The given answer could be improved based on below feedback: 
+  private getRevisePrompt(feedback: string): string {
+    return `## Task
+Please revise the last answer based on the feedback, and answer in ${this.language}.
 ${feedback}
 
-### Watch out
-- You don't need to apologize, just correct the answer.
-- The feedback is not provided by the user, it's self-review of AI.
-
-${currenStatus}
-
-## Conversation Messages
-\`\`\`json
-${conversationContent}
-\`\`\`
+## Output
 `;
   }
 

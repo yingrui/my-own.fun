@@ -38,44 +38,8 @@ class GoogleAgent extends ThoughtAgent {
     required: ["userInput"],
     properties: { userInput: { type: "string" } },
   })
-  async search(userInput: string): Promise<Thought> {
-    const goal = this.getCurrentInteraction().getGoal();
-    const results = await ddg_search(userInput);
-    const prompt = `## Role
-You're Chrome extension, you can answer user questions based on the search results from duckduckgo.
-
-## Instructions
-* If user question is closed question, directly answer it based on search results.
-* If user question is open question:
-  * Summarize and answer the question (add reference link in answer).
-  * Recommend links or new search query to user.
-* If user is asking what is or looking for details of something
-  * Provide abstract information.
-* If user is asking how to
-  * Provide a framework or steps.
-  * If possible, show result in mermaid chat.
-* If user is asking what happened or what is the history of
-  * Provide a timeline with related events with links.
-* If user is asking for comparison
-  * Provide a comparison table.
-
-Note: List the related links.
-
-## Search Results
-${JSON.stringify(results)}
-
-## User Intent
-${goal}
-
-## User Language
-${this.language}
-
-## User Input
-${userInput}
-`;
-    return await this.chatCompletion({
-      messages: [new ChatMessage({ role: "user", content: prompt })],
-    });
+  async search(userInput: string): Promise<any> {
+    return await ddg_search(userInput);
   }
 
   async handleCannotGetGoogleResultError(userInput): Promise<Thought> {

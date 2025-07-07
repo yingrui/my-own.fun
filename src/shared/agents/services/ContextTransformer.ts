@@ -7,8 +7,14 @@ interface ContextTransformer {
 }
 
 class DefaultContextTransformer implements ContextTransformer {
+  private readonly contextLength: number;
+
+  constructor(contextLength: number = 5) {
+    this.contextLength = contextLength;
+  }
+
   toMessages(conversation: Conversation): ChatMessage[] {
-    const messages = conversation.getMessages().filter(
+    const messages = conversation.getMessages(this.contextLength).filter(
       // E.g. when agent is thinking, the output message of the interaction is empty
       (message) => !message.isEmpty(),
     );
@@ -28,20 +34,20 @@ class DefaultContextTransformer implements ContextTransformer {
     const messages: ChatMessage[] = [];
     const steps = interaction.getSteps();
     for (const step of steps) {
+      if (step.systemMessage) {
+        messages.push(
+          new ChatMessage({ role: "system", content: step.systemMessage }),
+        );
+      }
+      if (step.action) {
+        messages.push(
+          new ChatMessage({
+            role: "system",
+            content: this.toActionMessage(step),
+          }),
+        );
+      }
       if (step.status === "completed") {
-        if (step.systemMessage) {
-          messages.push(
-            new ChatMessage({ role: "system", content: step.systemMessage }),
-          );
-        }
-        if (step.action) {
-          messages.push(
-            new ChatMessage({
-              role: "system",
-              content: this.toActionMessage(step),
-            }),
-          );
-        }
         if (step.result) {
           messages.push(
             new ChatMessage({ role: "assistant", content: step.result }),

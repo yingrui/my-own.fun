@@ -26,7 +26,7 @@ class MyFunAssistant extends CompositeAgent {
    */
   async environment(): Promise<Environment> {
     return {
-      systemPrompt: async () => await this.systemPrompt(),
+      systemPrompt: async () => Promise.resolve(""),
     };
   }
 

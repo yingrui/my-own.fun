@@ -186,6 +186,8 @@ class Interaction {
       this.currentStep.reasoning = reasoning;
       this.currentStep.content = content;
       this.currentStep.status = "completed";
+      this.currentStep.systemMessage =
+        "Analysis user's goal based on previous messages in this conversation.";
       this.currentStep = null;
       this.setGoal(content);
     }

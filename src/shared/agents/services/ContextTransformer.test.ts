@@ -25,17 +25,18 @@ describe("ContextTransformer", () => {
     }),
   ];
 
-  const createCompletedStep = (
+  const createStep = (
     type: "plan" | "execute",
     systemMessage: string,
     result: string,
     action?: string,
     arguments_?: any,
     actionResult?: string,
+    status: "started" | "completed" = "completed",
   ) => {
     const step = new Step();
     step.type = type;
-    step.status = "completed";
+    step.status = status;
     step.systemMessage = systemMessage;
     step.result = result;
     if (action) step.action = action;
@@ -89,7 +90,7 @@ describe("ContextTransformer", () => {
 
   it("should transform completed planning step to messages", () => {
     conversation.reset(createMessages());
-    const planStep = createCompletedStep(
+    const planStep = createStep(
       "plan",
       "Analyze the user's intent and output the goal from previous messages.",
       "Goal: Find the capital of France.",
@@ -113,20 +114,69 @@ describe("ContextTransformer", () => {
     );
   });
 
-  it("should transform completed execution step to messages", () => {
+  it("should transform started execution step to messages", () => {
     conversation.reset(createMessages());
-    const planStep = createCompletedStep(
+    const planStep = createStep(
       "plan",
       "Analyze the user's intent and output the goal from previous messages.",
       "Goal: Find the capital of France.",
     );
-    const executionStep = createCompletedStep(
+    const expectedAction = "search";
+    const expectedActionResult = '{"result": "..."}';
+    const executionStep = createStep(
+      "execute",
+      "Choose tool or answer question",
+      "", // result is empty for started step
+      expectedAction,
+      { userInput: "What is the capital of France?" },
+      expectedActionResult, // executed but not completed
+      "started",
+    );
+
+    conversation.getCurrentInteraction().addStep(planStep);
+    conversation.getCurrentInteraction().addStep(executionStep);
+
+    const messages = transformer.toMessages(conversation);
+    // should not have replied message from assistant
+    expect(messages).toHaveLength(8);
+    // should have system message
+    expect(messages[6]).toEqual(
+      expect.objectContaining({
+        role: "system",
+        content: "Choose tool or answer question",
+      }),
+    );
+    // The last message should have executed action name if it is not empty
+    expect(messages[7]).toEqual(
+      expect.objectContaining({
+        role: "system",
+        content: expect.stringContaining(expectedAction),
+      }),
+    );
+    // The last message should have executed action result if it is not empty
+    expect(messages[7]).toEqual(
+      expect.objectContaining({
+        role: "system",
+        content: expect.stringContaining(expectedActionResult),
+      }),
+    );
+  });
+
+  it("should transform completed execution step to messages", () => {
+    conversation.reset(createMessages());
+    const planStep = createStep(
+      "plan",
+      "Analyze the user's intent and output the goal from previous messages.",
+      "Goal: Find the capital of France.",
+    );
+    const executionStep = createStep(
       "execute",
       "Choose tool or answer question",
       "The capital of France is Paris.",
       "search",
       { userInput: "What is the capital of France?" },
       '{"result": "..."}',
+      "completed",
     );
 
     conversation.getCurrentInteraction().addStep(planStep);
