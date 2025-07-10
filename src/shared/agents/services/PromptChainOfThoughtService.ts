@@ -118,6 +118,22 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
     conversation: Conversation,
   ) {
     const toolCalls = tools.map((t) => t.getFunction());
+    toolCalls.push({
+      type: "function",
+      function: {
+        name: "revise",
+        description: "Revise the last answer based on the feedback",
+        parameters: {
+          type: "object",
+          properties: {
+            feedback: {
+              type: "string",
+              description: "The feedback to revise the last answer",
+            },
+          },
+        },
+      },
+    });
     return await this.modelService.toolsCall({
       messages: [
         ...messages,
@@ -188,14 +204,12 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
 
   private getReflectionPrompt(): string {
     return `## Task
-Think whether the current result meet the goals, return the actions or suggestions if not.
+Think whether the current result meet the goals, return the action if not.
 - Consider the current goal of user?
-- Check if the answer is correct or satisfied?
 
-It tools call request, the result have 3 types:
+The result have 2 types:
 1. If the answer is good enough, then return "finished".
-2. If the answer need improve, then return "suggest".
-3. If need to take actions, then return the function name and arguments.
+2. If need to take actions, then return the function name and arguments.
 
 ## Output JSON Format
 If the initial answer is meets the user's needs, simply return "finished" without any feedback, like:
@@ -204,45 +218,6 @@ If the initial answer is meets the user's needs, simply return "finished" withou
   "evaluation": "finished"
 }
 \`\`\`
-if not satisfied, but the answer is still useful, then return:
-\`\`\`json
-{
-  "evaluation": "suggest",
-  "feedback": "feedback & suggestion",
-}
-\`\`\`
-
-## Examples
-### Example 1
-#### Conversation Messages
-\`\`\`json
-{"user goal": Find the information about the Hinton.
-user: When the Hinton won the nobel prize?
-assistant: I don't know, I have the knowledge before 2023.}
-\`\`\`
-#### Output
-Should choose search action to find the answer.
-
-### Example 2
-#### Conversation Messages
-user goal: Browsing the webpage more quickly.
-user: /summary
-assistant: the summary is ...
-#### Output
-{"evaluation": "finished"}
-
-### Example 3
-#### Conversation Messages
-user goal: chitchat with some math problem.
-user: which number is bigger, the 1.11 or 1.2?
-assistant: 1.11 is greater than 1.2
-#### Output
-{"evaluation": "suggest", "feedback": "the 1.11 is not greater than 1.2, please correct it."}
-
-#### Conversation Messages
-Read the previous messages.
-
-#### Output
 `;
   }
 

@@ -21,7 +21,15 @@ function getSearchResults(search_result: string) {
     /DDG\.pageLayout\.load\('d',(\[[^]*?\])\);DDG\.duckbar\.load/,
   );
   if (group && group.length > 1) {
-    return JSON.parse(group[1]);
+    const list = JSON.parse(group[1]);
+    return list
+      .map((item: any) => ({
+        title: item.t,
+        url: item.u,
+        abstract: item.a,
+        source: item.sn,
+      }))
+      .filter((item: any) => !!item.title);
   }
   return [];
 }
