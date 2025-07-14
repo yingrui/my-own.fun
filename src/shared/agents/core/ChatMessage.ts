@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 interface MessageContent {
   type: "text" | "image_url" | "video_url";
   text?: string;
@@ -28,7 +30,7 @@ class ChatMessage {
   }
 
   public getContentText(): string {
-    if (!this.content) return "";
+    if (this.isEmpty()) return "";
 
     if (this.content instanceof Array) {
       return this.content.find((c) => c.type === "text")?.text;
@@ -37,7 +39,7 @@ class ChatMessage {
   }
 
   public isEmpty(): boolean {
-    return !this.content;
+    return _.isEmpty(this.content);
   }
 }
 

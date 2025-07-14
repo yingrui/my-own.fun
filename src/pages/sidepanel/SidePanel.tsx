@@ -63,12 +63,7 @@ function SidePanel(props: Record<string, unknown>) {
 
   return (
     <>
-      <ChatConversation
-        ref={chatRef}
-        config={configStorage}
-        agent={agent}
-        enableClearCommand={true}
-      />
+      <ChatConversation ref={chatRef} agent={agent} enableClearCommand={true} />
     </>
   );
 }

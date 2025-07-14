@@ -28,6 +28,9 @@ class MyFunCopilot extends CompositeAgent {
   }
 
   private async handleCannotGetContentError(): Promise<Thought> {
+    this.logger.error({
+      message: "MyFunCopilot: handleCannotGetContentError",
+    });
     const prompt = `You're an assistant or chrome copilot.
 The user is viewing the page, but you cannot get any information, it's possible because the you're detached from the webpage.
 Reply sorry and ask user to refresh webpage, so you can get information from webpage.`;
@@ -82,17 +85,11 @@ The links are: {{links}}`,
       links: JSON.stringify(content.links),
     });
 
-    userInput = _.isEmpty(userInput)
-      ? `please summary the content in ${this.language}`
-      : userInput;
-    const screenshot = this.getCurrentEnvironment().screenshot;
-    const replaceUserInput = this.enableMultimodal
-      ? imageContent(userInput, screenshot)
-      : textContent(userInput);
     return await this.chatCompletion({
-      messages: this.getConversation().getMessages(),
-      systemPrompt: prompt,
-      userInput: replaceUserInput,
+      messages: [
+        ...this.getConversation().getMessages(),
+        new ChatMessage({ role: "system", content: prompt }),
+      ],
       stream: true,
     });
   }

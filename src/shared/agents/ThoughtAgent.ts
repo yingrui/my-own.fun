@@ -66,7 +66,7 @@ class ThoughtAgent implements Agent {
   private repo: ConversationRepository;
   private templateEngine: TemplateEngine;
   private disabledTools: string[] = [];
-  private logger: LogService;
+  protected logger: LogService;
 
   constructor(props: ThoughtAgentProps) {
     // Initialize required properties
@@ -166,10 +166,6 @@ class ThoughtAgent implements Agent {
       const currentStep = this.getCurrentInteraction().getCurrentStep();
       if (currentStep) {
         currentStep.setMessage(msg);
-        this.getCurrentInteraction().updateOutputMessage(
-          this.getName(),
-          currentStep.content,
-        );
       }
     });
     const currentStep = this.getCurrentInteraction().getCurrentStep();
@@ -337,7 +333,7 @@ class ThoughtAgent implements Agent {
         .then((r) => this.postprocess(r));
     } else if (["message", "stream"].includes(thought.type)) {
       const action = this.replyAction(thought);
-      interaction.confirmProcessAction(action);
+      interaction.confirmProcessAction({ name: action.name, arguments: {} });
       return this.execute([action]);
     } else if (thought.type === "error") {
       interaction.updateProcessActionError(thought.error);

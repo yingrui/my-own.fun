@@ -86,6 +86,7 @@ class Interaction {
 
   public setOutputMessage(message: ChatMessage) {
     this.outputMessage = message;
+    this.notify();
   }
 
   public updateOutputMessage(name: string, content: string) {

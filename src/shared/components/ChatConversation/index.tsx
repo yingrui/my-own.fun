@@ -20,7 +20,6 @@ import style from "./ChatConversation.module.scss";
 import Interaction from "../../agents/core/Interaction";
 
 interface ChatConversationProps {
-  config: GluonConfigure;
   agent: DelegateAgent;
   question?: string;
   enableClearCommand?: boolean;
@@ -37,7 +36,7 @@ interface ChatConversationRef {
 type PrefixType = "@" | "/";
 
 const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
-  ({ config, agent, question, enableClearCommand }, ref) => {
+  ({ agent, question, enableClearCommand }, ref) => {
     const mentionRef = useRef<MentionsRef>();
     const [text, setText] = useState<string>();
     const [prefix, setPrefix] = useState<PrefixType>("@");
@@ -45,9 +44,6 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
     const commandRef = useRef<boolean>();
     const inputMethodRef = useRef<boolean>(false);
-    const [messages, setList] = useState<ChatMessage[]>([
-      ...agent.getConversation().getMessages(),
-    ]);
     const [messagesWithInteraction, setMessagesWithInteraction] = useState<
       {
         message: ChatMessage;
@@ -63,7 +59,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       });
       if (question) {
         generateReply(question, () =>
-          agent.chat(messages[messages.length - 1]),
+          agent.chat(new ChatMessage({ role: "user", content: question })),
         ).then((msg) => {
           // do something with the message
         });
@@ -86,13 +82,11 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       ) {
         const initMessages = [];
         agent.getConversation().reset(initMessages);
-        messages.length = 0;
-        setList(initMessages);
         setText("");
         return;
       }
       const message = await generateReply(text, () =>
-        agent.chat(messages[messages.length - 1]),
+        agent.chat(new ChatMessage({ role: "user", content: text })),
       );
     }
 
@@ -113,9 +107,6 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       let message = "";
       try {
         setText("");
-        if (userInput) {
-          appendMessage("user", userInput);
-        }
 
         try {
           const thought = await generate_func();
@@ -123,8 +114,6 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         } catch (e) {
           message = handleError(e);
         }
-
-        appendMessage("assistant", message);
       } finally {
         setGenerating(false);
       }
@@ -133,19 +122,6 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         scrollToBottom();
       }, 100);
       return message;
-    }
-
-    function appendMessage(role: ChatMessage["role"], content: string) {
-      let name = "";
-      if (role === "user") {
-        name = "You";
-      } else if (role === "assistant") {
-        name = agent.getName();
-      }
-
-      const message = new ChatMessage({ role, content, name });
-      messages.push(message);
-      setList([...messages]);
     }
 
     const handleSearchChange = async () => {

@@ -59,14 +59,20 @@ class DefaultContextTransformer implements ContextTransformer {
   }
 
   private toActionMessage(step: Step): string {
-    return `Execute action: ${step.action}:
+    const action = `Execute action: ${step.action}:
+arguments:
 \`\`\`json
 ${JSON.stringify(step.arguments)}
 \`\`\`
-Result:
+`;
+    if (step.actionResult) {
+      const result = `Result:
 \`\`\`json
 ${step.actionResult}
 \`\`\``;
+      return action + result;
+    }
+    return action;
   }
 }
 

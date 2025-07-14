@@ -79,7 +79,6 @@ const WriterAssistant: React.FC<WriterAssistantProps> = ({
         >
           <ChatConversation
             ref={chatRef}
-            config={context.getConfig()}
             agent={agent}
             enableClearCommand={true}
           />

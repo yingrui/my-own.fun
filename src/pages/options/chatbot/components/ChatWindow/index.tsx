@@ -28,7 +28,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent }) => {
       )}
       {!isNewConversation() && (
         <ChatConversation
-          config={config}
           agent={agent as DelegateAgent}
           question={question}
           enableClearCommand={false}
