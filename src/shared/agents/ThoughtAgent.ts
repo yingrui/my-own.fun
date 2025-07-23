@@ -171,10 +171,6 @@ class ThoughtAgent implements Agent {
     const currentStep = this.getCurrentInteraction().getCurrentStep();
     if (currentStep) {
       currentStep.setMessage(message);
-      this.getCurrentInteraction().updateOutputMessage(
-        this.getName(),
-        currentStep.content,
-      );
     }
     return message;
   }

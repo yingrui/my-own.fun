@@ -94,7 +94,7 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
           status: "error",
           thought: new Thought({
             type: "error",
-            error: new Error("Invalid JSON format"),
+            error: e,
           }),
         };
       }
@@ -107,8 +107,8 @@ class PromptChainOfThoughtService implements ReflectionService, ThoughtService {
 
   private previousMessage(conversation: Conversation) {
     const currentInteraction = conversation.getCurrentInteraction();
-    const previousMessage = currentInteraction.outputMessage.getContentText();
-    return new Thought({ type: "message", message: previousMessage });
+    const previousMessage = currentInteraction.getSteps().at(-1)?.content;
+    return new Thought({ type: "message", message: previousMessage ?? "" });
   }
 
   private async reviewConversation(

@@ -85,19 +85,14 @@ class Interaction {
   }
 
   public setOutputMessage(message: ChatMessage) {
-    this.outputMessage = message;
-    this.notify();
-  }
-
-  public updateOutputMessage(name: string, content: string) {
     if (this.outputMessage) {
-      this.outputMessage.name = name;
-      this.outputMessage.content = content;
+      this.outputMessage.name = message.name;
+      this.outputMessage.content = message.getContentText();
     } else {
       this.outputMessage = new ChatMessage({
         role: "assistant",
-        content: content,
-        name: name,
+        content: message.getContentText(),
+        name: message.name,
       });
     }
     this.notify();
@@ -238,7 +233,7 @@ class Interaction {
   }
 
   public reflectionCompleted(): void {
-    this.currentStep = null;
+    // TODO: Implement reflection completed
   }
 
   public getCurrentStep(): Step | null {
