@@ -12,6 +12,7 @@ class OllamaModelService extends DefaultModelService {
     "llama3.1",
     "qwq",
     "qwen2.5",
+    "qwen3",
     "glm4",
   ];
 
@@ -40,6 +41,7 @@ class OllamaModelService extends DefaultModelService {
     });
     const [first, second] = result.tee();
     const actions = [];
+    let index = 0;
     for await (const chunk of first) {
       if (chunk.choices) {
         if (chunk.choices.length == 0) {
@@ -51,7 +53,9 @@ class OllamaModelService extends DefaultModelService {
           actions.push(...tools.map((t) => this.toAction(t as ToolCall)));
         }
         if (choice.finish_reason !== "tool_calls") {
-          if (!tools) {
+          if (actions.length == 0 && index >= 4) {
+            // The Ollama model return empty <think></think> tags,
+            // so we need to check if model return chose tools when index is greater than 4
             return new Thought({
               model: this.toolsCallModel,
               modelType: "tools",
@@ -61,6 +65,7 @@ class OllamaModelService extends DefaultModelService {
           }
         }
       }
+      index += 1;
     }
 
     // even if the actions is empty, the trackingDialogueState will handle it.
