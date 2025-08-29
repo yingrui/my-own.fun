@@ -16,6 +16,8 @@ class OllamaModelService extends DefaultModelService {
     "glm4",
   ];
 
+  private readonly THINK_TAG_THRESHOLD = 4;
+
   constructor(props: ModelServiceProps) {
     super(props);
   }
@@ -53,7 +55,7 @@ class OllamaModelService extends DefaultModelService {
           actions.push(...tools.map((t) => this.toAction(t as ToolCall)));
         }
         if (choice.finish_reason !== "tool_calls") {
-          if (actions.length == 0 && index >= 4) {
+          if (actions.length === 0 && index >= this.THINK_TAG_THRESHOLD) {
             // The Ollama model return empty <think></think> tags,
             // so we need to check if model return chose tools when index is greater than 4
             return new Thought({
