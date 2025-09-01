@@ -9,7 +9,7 @@ my-own.fun Chrome 扩展使用现代 Web 技术构建，包括 React、TypeScrip
 ## 根目录结构
 
 ```
-gluonmeson-chrome-extension/
+/
 ├── docs/                    # 文档 (docsify 管理)
 ├── public/                  # 静态资源
 ├── src/                     # 源代码

@@ -5,9 +5,10 @@ import Interaction from "@src/shared/agents/core/Interaction";
 import MarkdownPreview from "@src/shared/components/Message/MarkdownPreview";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
 import type { CollapseProps } from "antd";
-import { Collapse, message, Spin } from "antd";
+import { Collapse, message, Spin, Button } from "antd";
 import copy from "copy-to-clipboard";
 import React, { useState } from "react";
+import intl from "react-intl-universal";
 import "./index.css";
 import StepComponent from "./StepComponent";
 import UserMessage from "./UserMessage";
@@ -42,6 +43,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   const [statusMessage, setStatusMessage] = useState<string>(
     interaction ? interaction.getStatusMessage() : "",
   );
+  const [showSteps, setShowSteps] = useState<boolean>(false);
   const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
 
   function getContent(): string {
@@ -67,6 +69,8 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
     interaction.onChange(() => {
       setSteps(getStepComponents(interaction));
       setStatusMessage(interaction.getStatusMessage());
+      // Reset showSteps when interaction changes
+      setShowSteps(false);
       setTimeout(() => {
         scrollToBottom();
       });
@@ -75,6 +79,10 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
 
   function shouldSpin(): boolean {
     return interaction && interaction.getStatus() !== "Completed";
+  }
+
+  function handleShowSteps() {
+    setShowSteps(!showSteps);
   }
 
   if (role === "user") {
@@ -111,7 +119,24 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
             ghost={true}
           />
         )}
-        {!shouldSpin() && <Collapse accordion items={steps} ghost={true} />}
+        {!shouldSpin() && steps && steps.length > 0 && (
+          <div className="steps-container">
+            <Button
+              type="link"
+              size="small"
+              onClick={handleShowSteps}
+              className="steps-toggle-button"
+            >
+              {showSteps
+                ? intl.get("hide_steps").d("Hide Steps")
+                : intl
+                    .get("show_steps_count")
+                    .d("Show Steps ({count})")
+                    .replace("{count}", steps.length.toString())}
+            </Button>
+            {showSteps && <Collapse accordion items={steps} ghost={true} />}
+          </div>
+        )}
         <MarkdownPreview loading={loading} content={getContent()} />
         {!loading && index > 0 && (
           <div>

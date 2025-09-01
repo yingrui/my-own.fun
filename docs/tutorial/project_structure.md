@@ -9,7 +9,7 @@ The my-own.fun Chrome extension is built with modern web technologies including 
 ## Root Directory Structure
 
 ```
-gluonmeson-chrome-extension/
+/
 ├── docs/                    # Documentation (docsify managed)
 ├── public/                  # Static assets
 ├── src/                     # Source code

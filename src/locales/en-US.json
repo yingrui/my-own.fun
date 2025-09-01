@@ -128,6 +128,8 @@
   "reasoningModel": "Reasoning Model",
   "save": "Save",
   "sensitive_topic": "Sensitive topic detected.",
+  "hide_steps": "Hide Steps",
+  "show_steps_count": "Show Steps ({count})",
   "system": "System",
   "tect_architecture_btn_cancel": "Cancel",
   "tect_architecture_btn_edit": "Edit",

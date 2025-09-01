@@ -162,3 +162,20 @@ div.ant-collapse-content-box {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+.steps-container {
+  margin: 8px 0;
+}
+
+.steps-toggle-button {
+  color: #1890ff;
+  font-size: 12px;
+  padding: 0;
+  height: auto;
+  line-height: 1.4;
+}
+
+.steps-toggle-button:hover {
+  color: #40a9ff;
+  text-decoration: underline;
+}

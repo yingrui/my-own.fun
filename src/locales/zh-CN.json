@@ -128,6 +128,8 @@
   "reasoningModel": "推理模型",
   "save": "保存",
   "sensitive_topic": "检测到敏感话题！",
+  "hide_steps": "隐藏步骤",
+  "show_steps_count": "显示步骤 ({count})",
   "system": "系统设置",
   "tect_architecture_context_placeholder": "请输入系统架构上下文信息",
   "tect_architecture_gen_button": "生成架构",
