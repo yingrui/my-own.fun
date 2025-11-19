@@ -166,6 +166,7 @@ class ThoughtAgent implements Agent {
       const currentStep = this.getCurrentInteraction().getCurrentStep();
       if (currentStep) {
         currentStep.setMessage(msg);
+        this.getCurrentInteraction().notify();
       }
     });
     const currentStep = this.getCurrentInteraction().getCurrentStep();
@@ -373,7 +374,9 @@ class ThoughtAgent implements Agent {
     const interaction = this.getCurrentInteraction();
     interaction.updateProcessActionResult(functionReturn);
     const prompt = `## Task
-Please answer the question based on the context.
+Please answer the question based on the context. 
+
+If the context is not enough, it's ok to say "I don't know". Other agent would try to get more context.
 
 ## Output
 `;

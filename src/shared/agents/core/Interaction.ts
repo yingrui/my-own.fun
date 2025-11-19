@@ -145,7 +145,7 @@ class Interaction {
     this.notify();
   }
 
-  private notify() {
+  public notify() {
     this.listener && this.listener();
   }
 
