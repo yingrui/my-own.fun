@@ -290,9 +290,23 @@ class ThoughtAgent implements Agent {
   async chat(message: ChatMessage): Promise<Thought> {
     await this.startInteraction(message);
     let result = await this.plan();
+
+    // Add safeguard to prevent infinite loops
+    const MAX_REFLECTION_ITERATIONS = 10;
+    let reflectionCount = 0;
+
     do {
       result = await this.process(result);
       result = await this.observe(result); // directly return the result if reflection is disabled
+
+      reflectionCount++;
+      if (reflectionCount >= MAX_REFLECTION_ITERATIONS) {
+        this.logger.warn({
+          message: `ThoughtAgent: Maximum reflection iterations (${MAX_REFLECTION_ITERATIONS}) reached. Stopping reflection loop.`,
+          interaction: this.getCurrentInteraction(),
+        });
+        break;
+      }
     } while (this.enableReflection && result?.isAction());
 
     const output = await this.completeInteraction(result);
@@ -324,20 +338,30 @@ class ThoughtAgent implements Agent {
     const interaction = this.getCurrentInteraction();
     interaction.beginProcess();
 
-    if (thought.type === "actions") {
-      return this.check(thought.actions)
-        .then((actions) => this.execute(actions))
-        .then((r) => this.postprocess(r));
-    } else if (["message", "stream"].includes(thought.type)) {
-      const action = this.replyAction(thought);
-      interaction.confirmProcessAction({ name: action.name, arguments: {} });
-      return this.execute([action]);
-    } else if (thought.type === "error") {
-      interaction.updateProcessActionError(thought.error);
-      return Promise.resolve(thought);
-    } else {
-      const error = new Error("Unknown plan type");
-      interaction.updateProcessActionError(error);
+    try {
+      if (thought.type === "actions") {
+        return this.check(thought.actions)
+          .then((actions) => this.execute(actions))
+          .then((r) => this.postprocess(r));
+      } else if (["message", "stream"].includes(thought.type)) {
+        const action = this.replyAction(thought);
+        interaction.confirmProcessAction({ name: action.name, arguments: {} });
+        return this.execute([action]);
+      } else if (thought.type === "error") {
+        interaction.updateProcessActionError(thought.error);
+        return Promise.resolve(thought);
+      } else {
+        const error = new Error(`Unknown thought type: ${thought.type}`);
+        interaction.updateProcessActionError(error);
+        throw error;
+      }
+    } catch (error) {
+      this.logger.error({
+        message: "ThoughtAgent: Error in process",
+        error: error instanceof Error ? error.message : String(error),
+        thoughtType: thought.type,
+        interaction: interaction,
+      });
       throw error;
     }
   }
@@ -486,23 +510,44 @@ If the context is not enough, it's ok to say "I don't know". Other agent would t
   private async check(actions: Action[]): Promise<Action[]> {
     const messages = this.conversation.getMessages();
     const interaction = this.getCurrentInteraction();
-    // TODO: Implement tracking dialogue state
+
     if (actions.length === 0) {
-      const action = this.chatAction(messages[messages.length - 1].content);
+      // No actions provided, default to chat action
+      const lastMessage = messages[messages.length - 1];
+      if (!lastMessage) {
+        throw new Error("No messages available for chat action");
+      }
+      const action = this.chatAction(lastMessage.content);
       interaction.confirmProcessAction(action);
       return [action];
     }
-    // Record the action to the step
+
+    // Validate actions
+    for (const action of actions) {
+      if (!action.name) {
+        throw new Error("Action name is required");
+      }
+      if (!action.arguments) {
+        action.arguments = {};
+      }
+    }
+
+    // Record the first action to the step
     interaction.confirmProcessAction(actions[0]);
     return actions;
   }
 
   /**
-   * Execute
-   * @param {Action[]} actions - Actions
+   * Execute actions
+   * Currently supports single action execution, with plans for multiple actions in the future
+   * @param {Action[]} actions - Actions to execute
    * @returns {Promise<Thought>} ChatCompletion
    */
   async execute(actions: Action[]): Promise<Thought> {
+    if (!actions || actions.length === 0) {
+      throw new Error("No actions provided to execute");
+    }
+
     const interaction = this.getCurrentInteraction();
     const actionNameList = actions.map((a) => a.name);
     interaction.setStatus(
@@ -511,45 +556,65 @@ If the context is not enough, it's ok to say "I don't know". Other agent would t
     );
     interaction.setAgentName(this.getName());
 
+    // Currently support single action execution
     // TODO: support multiple actions in future
-    const action = actions[0].name;
-    const args = actions[0].arguments;
-
-    if (action === "chat") {
-      return await this.generateChatReply(args);
-    }
-
-    if (action === "reply") {
-      return args["thought"] as Thought;
-    }
-
-    if (action === "revise") {
-      const evaluation = args as EvaluationScore;
-      return await this.reflectionService.revise(
-        this.getCurrentEnvironment(),
-        this.conversation,
-        this.contextTransformer.toMessages(this.getConversation()),
-        evaluation,
-      );
-    }
+    const action = actions[0];
+    const actionName = action.name;
+    const args = action.arguments || {};
 
     try {
-      const result = await invokeTool(this, action, args);
-      if (result instanceof Thought) {
-        return result;
-      } else {
-        return new Thought({ type: "functionReturn", returnValue: result });
+      // Handle built-in actions
+      if (actionName === "chat") {
+        return await this.generateChatReply(args);
       }
-    } catch (error) {
-      // ignore ToolNotFoundError
-      if (!(error instanceof ToolNotFoundError)) {
+
+      if (actionName === "reply") {
+        const thought = args["thought"] as Thought;
+        if (!thought) {
+          throw new Error("Reply action requires a 'thought' argument");
+        }
+        return thought;
+      }
+
+      if (actionName === "revise") {
+        if (!this.reflectionService) {
+          throw new Error("Reflection service is not available");
+        }
+        const evaluation = args as EvaluationScore;
+        return await this.reflectionService.revise(
+          this.getCurrentEnvironment(),
+          this.conversation,
+          this.contextTransformer.toMessages(this.getConversation()),
+          evaluation,
+        );
+      }
+
+      // Try to invoke tool via decorator
+      try {
+        const result = await invokeTool(this, actionName, args);
+        if (result instanceof Thought) {
+          return result;
+        } else {
+          return new Thought({ type: "functionReturn", returnValue: result });
+        }
+      } catch (error) {
+        // If ToolNotFoundError, try executeAction method
+        if (error instanceof ToolNotFoundError) {
+          return this.executeAction(actionName, args, this.conversation);
+        }
+        // Re-throw other errors
         throw error;
       }
+    } catch (error) {
+      this.logger.error({
+        message: `ThoughtAgent: Error executing action '${actionName}'`,
+        error: error instanceof Error ? error.message : String(error),
+        action: actionName,
+        arguments: args,
+        interaction: interaction,
+      });
+      throw error;
     }
-
-    // If there is no action found by function name,
-    // then agent should implement executeAction method.
-    return this.executeAction(action, args, this.conversation);
   }
 
   protected async generateChatReply(args: object) {
