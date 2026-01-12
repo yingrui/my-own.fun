@@ -1,23 +1,23 @@
 # dependencies
-/node_modules
-package-lock.json
+**/node_modules
+**/package-lock.json
 
 # testing
-/coverage
+**/coverage
 
 # build
-/dist
+**/dist
 
 # etc
-.DS_Store
-.env.local
-.idea
+**/.DS_Store
+**/env.local
+**/idea
 
 # compiled
-utils/reload/*.js
-utils/reload/injections/*.js
-public/manifest.json
+extension/utils/reload/*.js
+extension/utils/reload/injections/*.js
+extension/public/manifest.json
 
 # temp
-/tmp
-/temp
+**/tmp
+**/temp

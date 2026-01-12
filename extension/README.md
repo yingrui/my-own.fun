@@ -1,4 +1,4 @@
-# <img src="docs/images/icons/logo.svg" width="45" align="left"> my-own.fun (myFun for short)
+# <img src="public/icons/logo.svg" width="45" align="left"> my-own.fun (myFun for short)
 
 **TL;DR** The myFun is a prototype of On-Device AI Agent, run in browser as an extension.
 
@@ -24,19 +24,18 @@ protection, and compliance requirements.
 
 ### Build from Source Code
 
-1. Navigate to the `extension` folder: `cd extension`
-2. Run npm install: `npm install` or `pnpm install`
-3. Run build command:
+1. Run npm install
+2. Run build command:
     - Dev: `pnpm dev` or `npm run dev`
     - Prod: `pnpm build` or `npm run build`
-4. Follow steps 2 to 5 in [Install from Package](#install-from-package).
+3. Follow steps 2 to 5 in [Install from Package](#install-from-package).
 
 ### Install from Package
 1. Download & unzip the latest release zip file from [releases page](https://github.com/yingrui/my-own.fun/releases).
 2. Open in browser - `chrome://extensions`
 3. Check - `Developer mode`
 4. Find and Click - `Load unpacked extension`
-5. Select - unzipped file folder or `extension/dist` folder if you build from source code
+5. Select - unzipped file folder or `dist` folder if you build from source code
 
 <img src="docs/images/setup_chrome_extension.png"/>
 
