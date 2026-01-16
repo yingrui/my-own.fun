@@ -3,6 +3,7 @@ import {
   createStorage,
   StorageType,
 } from "@src/shared/storages/base";
+import { createBackendStorage } from "@src/shared/storages/backendStorage";
 
 export type GluonConfigure = {
   apiKey: string;
@@ -60,14 +61,24 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   enableHistoryRecording: false,
 };
 
-const storage = createStorage<GluonConfigure>(
-  "gm_configure_data",
-  DEFAULT_GM_CONFIG_VALUE,
-  {
-    storageType: StorageType.Local,
-    liveUpdate: true,
-  },
-);
+// Use backend storage with local storage fallback
+// Set USE_BACKEND_STORAGE=false in environment to use local storage only
+// Can be configured via: process.env.USE_BACKEND_STORAGE or import.meta.env.VITE_USE_BACKEND_STORAGE
+const USE_BACKEND_STORAGE = 
+  (typeof process !== "undefined" && process.env?.USE_BACKEND_STORAGE !== "false") ||
+  import.meta.env?.VITE_USE_BACKEND_STORAGE !== "false" ||
+  true; // Default to true (use backend)
+
+const storage = USE_BACKEND_STORAGE
+  ? createBackendStorage<GluonConfigure>("gm_configure_data", DEFAULT_GM_CONFIG_VALUE)
+  : createStorage<GluonConfigure>(
+      "gm_configure_data",
+      DEFAULT_GM_CONFIG_VALUE,
+      {
+        storageType: StorageType.Local,
+        liveUpdate: true,
+      },
+    );
 
 const configureStorage: ConfigureStorage = {
   ...storage,

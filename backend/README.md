@@ -281,19 +281,28 @@ FastAPI automatically generates interactive API documentation:
 
 To start developing the FastAPI backend:
 
-1. **Install dependencies** (once implemented):
+1. **Start the backend server**:
    ```bash
-   pip install fastapi uvicorn neo4j python-dotenv
+   ./dev.sh start
    ```
+   This will automatically:
+   - Create virtual environment if needed
+   - Install dependencies
+   - Start Neo4j if not running
+   - Start the FastAPI server with auto-reload
 
-2. **Run the development server**:
-   ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-3. **Access the API**:
+2. **Access the API**:
    - API: http://localhost:8000
    - Documentation: http://localhost:8000/docs
+   - Health Check: http://localhost:8000/health
+
+3. **Manual setup** (if needed):
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   ```
 
 ### Project Structure (Planned)
 

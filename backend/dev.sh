@@ -160,8 +160,51 @@ remove_db() {
     fi
 }
 
+# Function to start FastAPI backend
+start() {
+    echo -e "${YELLOW}Starting FastAPI backend server...${NC}"
+    
+    # Check if virtual environment exists
+    if [ ! -d "venv" ]; then
+        echo -e "${YELLOW}Creating virtual environment...${NC}"
+        python3 -m venv venv
+    fi
+    
+    # Activate virtual environment
+    source venv/bin/activate
+    
+    # Install dependencies if needed
+    if [ ! -f "venv/.installed" ]; then
+        echo -e "${YELLOW}Installing dependencies...${NC}"
+        pip install --upgrade pip > /dev/null 2>&1
+        pip install -r requirements.txt
+        touch venv/.installed
+        echo -e "${GREEN}✓ Dependencies installed${NC}"
+    fi
+    
+    # Load environment variables if .env exists
+    if [ -f ".env" ]; then
+        export $(cat .env | grep -v '^#' | xargs)
+    fi
+    
+    # Check if Neo4j is running
+    if ! is_container_running; then
+        echo -e "${YELLOW}⚠ Neo4j container is not running. Starting it...${NC}"
+        start_db
+    fi
+    
+    # Run the server
+    echo -e "${GREEN}✓ Starting FastAPI server on http://${API_HOST:-0.0.0.0}:${API_PORT:-8000}${NC}"
+    echo -e "${GREEN}✓ API Documentation: http://localhost:${API_PORT:-8000}/docs${NC}"
+    echo ""
+    uvicorn app.main:app --host ${API_HOST:-0.0.0.0} --port ${API_PORT:-8000} --reload
+}
+
 # Main command handler
 case "$1" in
+    start)
+        start
+        ;;
     start-db)
         start_db
         ;;
@@ -178,9 +221,10 @@ case "$1" in
         remove_db
         ;;
     *)
-        echo "Usage: $0 {start-db|stop-db|status-db|logs-db|remove-db}"
+        echo "Usage: $0 {start|start-db|stop-db|status-db|logs-db|remove-db}"
         echo ""
         echo "Commands:"
+        echo "  start       - Start FastAPI backend server (with auto-setup)"
         echo "  start-db    - Check and start Neo4j container"
         echo "  stop-db     - Stop Neo4j container"
         echo "  status-db   - Show Neo4j container status"
