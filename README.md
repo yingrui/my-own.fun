@@ -20,6 +20,25 @@ protection, and compliance requirements.
 
 [More Details](docs/README.md)
 
+## Project Structure
+
+This repository contains:
+
+- **`extension/`** - Chrome extension source code and build files
+- **`backend/`** - Backend service (includes Neo4j database setup)
+- **`docs/`** - Documentation (configured for GitHub Pages with Docsify)
+
+### Backend Service
+
+The backend service uses Neo4j as the graph database. To start the database:
+
+```bash
+cd backend
+./dev.sh start-db
+```
+
+For more information, see [backend/README.md](backend/README.md).
+
 ## Build or Install
 
 ### Build from Source Code
