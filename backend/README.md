@@ -292,16 +292,16 @@ To start developing the FastAPI backend:
    - Start the FastAPI server with auto-reload
 
 2. **Access the API**:
-   - API: http://localhost:8000
-   - Documentation: http://localhost:8000/docs
-   - Health Check: http://localhost:8000/health
+   - API: http://localhost:8100
+   - Documentation: http://localhost:8100/docs
+   - Health Check: http://localhost:8100/health
 
 3. **Manual setup** (if needed):
    ```bash
    python3 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+   uvicorn app.main:app --reload --host 0.0.0.0 --port 8100
    ```
 
 ### Project Structure (Planned)

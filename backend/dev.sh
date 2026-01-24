@@ -194,10 +194,10 @@ start() {
     fi
     
     # Run the server
-    echo -e "${GREEN}✓ Starting FastAPI server on http://${API_HOST:-0.0.0.0}:${API_PORT:-8000}${NC}"
-    echo -e "${GREEN}✓ API Documentation: http://localhost:${API_PORT:-8000}/docs${NC}"
+    echo -e "${GREEN}✓ Starting FastAPI server on http://${API_HOST:-0.0.0.0}:${API_PORT:-8100}${NC}"
+    echo -e "${GREEN}✓ API Documentation: http://localhost:${API_PORT:-8100}/docs${NC}"
     echo ""
-    uvicorn app.main:app --host ${API_HOST:-0.0.0.0} --port ${API_PORT:-8000} --reload
+    uvicorn app.main:app --host ${API_HOST:-0.0.0.0} --port ${API_PORT:-8100} --reload
 }
 
 # Main command handler

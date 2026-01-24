@@ -7,7 +7,7 @@
 const BACKEND_API_URL = 
   (typeof process !== "undefined" && process.env?.BACKEND_API_URL) ||
   import.meta.env?.VITE_BACKEND_API_URL ||
-  "http://localhost:8000/api/v1";
+  "http://localhost:8100/api/v1";
 
 export interface BackendApiError {
   detail: string;

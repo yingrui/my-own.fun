@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     
     # FastAPI Configuration
     api_host: str = "0.0.0.0"
-    api_port: int = 8000
+    api_port: int = 8100
     api_reload: bool = True
     
     class Config:

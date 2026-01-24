@@ -48,17 +48,17 @@ pip install -r requirements.txt
 
 # Or manually
 source venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8100 --reload
 ```
 
 The API will be available at:
-- API: http://localhost:8000
-- Documentation: http://localhost:8000/docs
-- Health Check: http://localhost:8000/health
+- API: http://localhost:8100
+- Documentation: http://localhost:8100/docs
+- Health Check: http://localhost:8100/health
 
 ### 5. Configure Extension
 
-The extension is configured to use the backend API by default. The backend URL can be configured via environment variable `BACKEND_API_URL` (defaults to `http://localhost:8000/api/v1`).
+The extension is configured to use the backend API by default. The backend URL can be configured via environment variable `BACKEND_API_URL` (defaults to `http://localhost:8100/api/v1`).
 
 To disable backend storage and use local storage only, set `USE_BACKEND_STORAGE=false` in the extension's build environment.
 
@@ -68,18 +68,18 @@ To disable backend storage and use local storage only, set `USE_BACKEND_STORAGE=
 
 ```bash
 # Health check
-curl http://localhost:8000/health
+curl http://localhost:8100/health
 
 # Create/get profile
-curl -X POST http://localhost:8000/api/v1/profiles \
+curl -X POST http://localhost:8100/api/v1/profiles \
   -H "Content-Type: application/json" \
   -d '{"profile_id": "test_profile", "profile_name": "Test Profile"}'
 
 # Get settings
-curl http://localhost:8000/api/v1/profiles/test_profile/settings
+curl http://localhost:8100/api/v1/profiles/test_profile/settings
 
 # Update a setting
-curl -X PUT http://localhost:8000/api/v1/profiles/test_profile/settings/apiKey \
+curl -X PUT http://localhost:8100/api/v1/profiles/test_profile/settings/apiKey \
   -H "Content-Type: application/json" \
   -d '{"key": "apiKey", "value": "test-key", "category": "Basic"}'
 ```
@@ -123,7 +123,7 @@ backend/
 
 ### Backend API Issues
 
-1. Check if backend is running: `curl http://localhost:8000/health`
+1. Check if backend is running: `curl http://localhost:8100/health`
 2. Check Neo4j connection in health endpoint response
 3. Review server logs in terminal
 
