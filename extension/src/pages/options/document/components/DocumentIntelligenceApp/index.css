@@ -1,62 +1,43 @@
-/* Full viewport minus header (~64px) */
+/* Document Intelligence - Layout follows WriterApp (Sider + Content) */
+
 .document-intelligence-app {
   display: flex;
-  flex-direction: column;
   height: calc(100vh - 64px);
-  padding: 24px;
-  width: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
+  background: #fff;
 }
 
-.document-intelligence-card {
+/* Left Sider - matches WriterSider */
+#document-intel-left-sider {
+  background-color: #fff;
+  border-right: 1px solid #ccc;
+}
+
+#document-intel-left-sider .ant-layout-sider-children {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  position: relative;
 }
 
-.document-intelligence-card .ant-card-body {
-  flex: 1;
-  overflow: hidden;
+.document-intel-sider-header {
+  height: 64px;
   display: flex;
-  flex-direction: column;
-}
-
-.document-intelligence-card .ant-card-head-title {
-  font-size: 16px;
-}
-
-.document-intelligence-desc {
-  color: rgba(0, 0, 0, 0.65);
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 8px;
+  padding-left: 0;
   flex-shrink: 0;
 }
 
-/* Two-column layout */
-.document-intelligence-layout {
-  display: flex;
-  gap: 24px;
+.document-intel-sider-body {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-}
-
-/* Left sidebar: document list */
-.document-intelligence-sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  border-right: 1px solid #f0f0f0;
-  padding-right: 16px;
-}
-
-.document-intelligence-sidebar .ant-btn {
-  margin-bottom: 12px;
+  overflow-y: auto;
+  padding: 0 8px 8px;
 }
 
 .document-list-item {
   cursor: pointer;
-  padding: 8px 0 !important;
+  padding: 8px 4px !important;
   border-radius: 4px;
   margin-bottom: 2px;
 }
@@ -100,8 +81,93 @@
   margin: 0;
 }
 
-/* Right: review panel */
-.document-intelligence-main {
+/* Main content - matches WriterEditor layout */
+.document-intel-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding-right: 0;
+}
+
+.document-intel-header {
+  padding: 0 24px;
+  background: #fff;
+  line-height: 64px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.document-intel-header .doc-title {
+  font-size: 18px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-intel-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px;
+  background: #fff;
+}
+
+.document-review-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: #999;
+}
+
+.document-review-empty p {
+  margin: 0;
+}
+
+/* Split: images left | markdown right */
+.document-review-split {
+  display: flex;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.document-review-images {
+  width: 45%;
+  min-width: 280px;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid #f0f0f0;
+}
+
+.document-review-images-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.document-review-images-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 8px;
+}
+
+.document-review-markdown {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -109,101 +175,22 @@
   overflow: hidden;
 }
 
-.document-review-header {
+.document-review-markdown-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  gap: 8px;
+  padding-bottom: 12px;
   flex-shrink: 0;
-}
-
-.document-review-header .doc-title {
   font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.document-review-empty {
-  padding: 48px 24px;
-  text-align: center;
-  color: #999;
-  flex: 1;
-}
-
-/* Tabs container - fill remaining space */
-.document-intelligence-main .ant-tabs {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.document-intelligence-main .ant-tabs-content-holder {
-  flex: 1;
-  overflow: hidden;
-}
-
-.document-intelligence-main .ant-tabs-content {
-  height: 100%;
-}
-
-.document-intelligence-main .ant-tabs-tabpane {
-  height: 100%;
-  overflow: auto;
-}
-
-/* Blocks tab */
-.document-blocks-tab {
+.document-review-markdown .document-markdown-tab {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
 
-.document-blocks-tab .block-item {
-  padding: 10px 0 !important;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.document-blocks-tab .block-item:last-child {
-  border-bottom: none;
-}
-
-.block-content {
-  width: 100%;
-}
-
-.block-content .block-text {
-  display: block;
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.block-content .block-empty {
-  color: #999;
-  font-size: 12px;
-}
-
-.block-image-wrap {
-  margin-top: 6px;
-}
-
-.block-thumb {
-  max-width: 200px;
-  max-height: 120px;
-  border-radius: 4px;
-  border: 1px solid #e8e8e8;
-}
-
-/* Markdown tab */
-.document-markdown-tab {
-  height: 100%;
-  overflow-y: auto;
-}
-
+/* Markdown preview */
 .document-markdown-preview {
   padding: 12px;
   background: #fafafa;
@@ -248,7 +235,6 @@
 }
 
 .document-intelligence-markdown {
-  height: 100%;
   min-height: 200px;
   overflow-y: auto;
   white-space: pre-wrap;
@@ -261,16 +247,7 @@
   border-radius: 4px;
 }
 
-/* Images tab */
-.document-images-tab {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  padding: 16px 0;
-  overflow-y: auto;
-  align-content: start;
-}
-
+/* Image cards */
 .document-image-card {
   min-width: 0;
 }
@@ -286,8 +263,10 @@
 
 .document-image-card img {
   max-width: 100%;
+  max-height: 360px;
   width: 100%;
   height: auto;
+  object-fit: contain;
   display: block;
   border-radius: 4px;
   border: 1px solid #e8e8e8;

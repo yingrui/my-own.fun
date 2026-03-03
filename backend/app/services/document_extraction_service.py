@@ -125,6 +125,57 @@ def _get_document_sha256(file_path: str) -> str:
     return h.hexdigest()
 
 
+def _extract_markdown_from_pages(pages_res: list, sha256_hash: str) -> str:
+    """
+    Extract markdown using PaddleOCR save_to_markdown (pretty=True, show_formula_number=False).
+    Falls back to manual build from parsing_res_list if save_to_markdown fails.
+    """
+    cache_dir = _get_cache_dir(sha256_hash)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    md_dir = cache_dir / "markdown_out"
+    md_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        for res in pages_res:
+            if hasattr(res, "save_to_markdown"):
+                res.save_to_markdown(
+                    save_path=str(md_dir),
+                    pretty=True,
+                    show_formula_number=False,
+                )
+        # Collect and concatenate saved .md files (sorted by name for page order)
+        md_files = sorted(md_dir.glob("*.md"))
+        if md_files:
+            parts = []
+            for f in md_files:
+                parts.append(f.read_text(encoding="utf-8"))
+            return "\n\n".join(parts).strip()
+    except Exception as e:
+        logger.info("save_to_markdown failed, using fallback markdown builder: %s", e)
+
+    # Fallback: build from parsing_res_list
+    fallback_parts = []
+    first = pages_res[0]
+    res = first.get("res", first) if hasattr(first, "get") else getattr(first, "res", first)
+    parsing_list = res.get("parsing_res_list", []) if isinstance(res, dict) else getattr(res, "parsing_res_list", [])
+    def _get(obj, dk, ak, default=""):
+        if isinstance(obj, dict):
+            return obj.get(dk, default)
+        return getattr(obj, ak, default) or default
+
+    for item in parsing_list:
+        label = _get(item, "block_label", "label", "") or ""
+        content = (_get(item, "block_content", "content", "") or "").strip()
+        if content:
+            if label == "doc_title":
+                fallback_parts.append(f"# {content}\n")
+            elif label == "paragraph_title":
+                fallback_parts.append(f"## {content}\n")
+            else:
+                fallback_parts.append(f"{content}\n")
+    return "\n".join(fallback_parts).strip()
+
+
 def _load_cached_result(sha256_hash: str) -> Optional[dict]:
     """Load cached parsing result if it exists. Tries .cache/{sha256}/result.json then legacy .cache/{sha256}.json."""
     cache_dir = _get_cache_dir(sha256_hash)
@@ -194,10 +245,12 @@ def extract_document(file_path: str) -> dict:
     parsing_list = res.get("parsing_res_list", [])
     layout_det = res.get("layout_det_res", {})
 
-    # Build simplified blocks and markdown
+    # Get markdown via save_to_markdown (pretty=True, show_formula_number=False) or fallback to manual build
+    markdown = _extract_markdown_from_pages(pages_res, sha256_hash)
+
+    # Build simplified blocks
     # parsing_list contains PaddleOCRVLBlock objects (label, content, bbox) or dicts
     blocks = []
-    markdown_parts = []
 
     def _get_block_field(item, dict_key: str, attr_name: str, default=None):
         if hasattr(item, attr_name):
@@ -235,16 +288,6 @@ def extract_document(file_path: str) -> dict:
         if block_img_path:
             block_data["image_path"] = block_img_path
         blocks.append(block_data)
-
-        if content:
-            if label == "doc_title":
-                markdown_parts.append(f"# {content}\n")
-            elif label == "paragraph_title":
-                markdown_parts.append(f"## {content}\n")
-            else:
-                markdown_parts.append(f"{content}\n")
-
-    markdown = "\n".join(markdown_parts).strip()
 
     def _save_img_val(val: Any, key: str) -> Any:
         """Save image (numpy/PIL) to cache; return path or serialized fallback."""
