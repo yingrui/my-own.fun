@@ -296,6 +296,16 @@ To start developing the FastAPI backend:
    - Documentation: http://localhost:8100/docs
    - Health Check: http://localhost:8100/health
 
+### Document Intelligence (PaddleOCR)
+
+The backend provides document extraction via PaddleOCR doc_parser:
+
+- **Endpoint**: `POST /api/v1/documents/extract`
+- **Input**: multipart/form-data with `file` (image: png, jpg, jpeg, bmp, gif, webp; or PDF)
+- **Output**: Parsed layout, text blocks, and markdown representation
+
+The model is loaded on first use. Requires `paddleocr` and `paddlex` in the environment (see `requirements.txt`).
+
 3. **Manual setup** (if needed):
    ```bash
    python3 -m venv venv
@@ -327,3 +337,5 @@ backend/
 └── README.md                # This file
 ```
 
+### VLM
+paddleocr will downloaded model in path: `~/.paddlex/official_models/PaddleOCR-VL-1.5`

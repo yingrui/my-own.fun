@@ -12,6 +12,9 @@ ENV/
 # Environment variables
 .env
 
+# Document parsing cache
+.cache/
+
 # IDE
 .vscode/
 .idea/
@@ -22,6 +25,10 @@ ENV/
 .pytest_cache/
 .coverage
 htmlcov/
+test.py
+
+# Temporary files
+output/
 
 # Distribution
 dist/

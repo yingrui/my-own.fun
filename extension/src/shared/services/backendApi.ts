@@ -4,10 +4,12 @@
 
 // Backend API URL - can be configured via environment variable or defaults to localhost
 // For production, set this via build-time environment variable
-const BACKEND_API_URL = 
+export const BACKEND_API_URL =
   (typeof process !== "undefined" && process.env?.BACKEND_API_URL) ||
   import.meta.env?.VITE_BACKEND_API_URL ||
   "http://localhost:8100/api/v1";
+
+export const BACKEND_BASE_URL = BACKEND_API_URL.replace("/api/v1", "");
 
 export interface BackendApiError {
   detail: string;
@@ -181,10 +183,62 @@ export async function bulkUpdateSettings(
  */
 export async function checkBackendHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${BACKEND_API_URL.replace("/api/v1", "")}/health`);
+    const response = await fetch(`${BACKEND_BASE_URL}/health`);
     return response.ok;
   } catch (error) {
     return false;
   }
+}
+
+/**
+ * Document extraction result from PaddleOCR
+ */
+export interface DocumentExtractionResult {
+  success: boolean;
+  data: {
+    parsing_res_list: Array<{
+      label: string;
+      content: string;
+      bbox: number[];
+    }>;
+    layout_det_res: Record<string, unknown>;
+    markdown: string;
+    width?: number;
+    height?: number;
+    page_count?: number;
+  };
+  filename?: string;
+}
+
+const DOCUMENTS_BASE = `${BACKEND_API_URL.replace("/api/v1", "")}/api/v1/documents`;
+
+/**
+ * Build URL for a cached document image.
+ * @param imagePath - Format "{file_hash}/{filename}" e.g. "abc123.../block_0.png"
+ */
+export function getDocumentImageUrl(imagePath: string): string {
+  const [fileHash, filename] = imagePath.split("/");
+  if (!fileHash || !filename) return "";
+  return `${DOCUMENTS_BASE}/imgs/${fileHash}/${filename}`;
+}
+
+/**
+ * Extract document content (image/PDF) using PaddleOCR
+ */
+export async function extractDocument(file: File): Promise<DocumentExtractionResult> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${BACKEND_API_URL}/documents/extract`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(error.detail || `Extraction failed: ${response.statusText}`);
+  }
+
+  return response.json();
 }
 

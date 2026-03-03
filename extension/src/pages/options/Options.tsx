@@ -15,12 +15,14 @@ import HistoryApp from "@pages/options/history/components/HistoryApp";
 import intl from "react-intl-universal";
 import ArchitectApp from "@pages/options/architect/components/ArchitectApp";
 import {
+  FileTextOutlined,
   HistoryOutlined,
   MoreOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 import PreferenceApp from "@pages/options/preference/components/PreferenceApp";
 import ChatbotApp from "@pages/options/chatbot/components/ChatbotApp";
+import DocumentIntelligenceApp from "@pages/options/document/components/DocumentIntelligenceApp";
 
 const { Header } = Layout;
 const MENU_KEYS = {
@@ -29,6 +31,7 @@ const MENU_KEYS = {
   WRITER: "writer",
   HISTORY: "history",
   ARCHITECT: "architect",
+  DOCUMENT_INTELLIGENCE: "document_intelligence",
   MORE: "more",
   PREFERENCE: "preference",
 };
@@ -62,6 +65,11 @@ const getHeaderItems = (config: GluonConfigure): MenuProps["items"] => {
     key: "dropdown_more",
     label: intl.get("options_app_dropdown_more").d("More"),
     children: [
+      {
+        key: MENU_KEYS.DOCUMENT_INTELLIGENCE,
+        label: intl.get("options_app_document_intelligence").d("Document Intelligence"),
+        icon: <FileTextOutlined />,
+      },
       {
         key: MENU_KEYS.PREFERENCE,
         label: intl.get("options_app_preference").d("Preference"),
@@ -140,6 +148,7 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
       {selectedItem === MENU_KEYS.ARCHITECT && <ArchitectApp config={config} />}
       {selectedItem === MENU_KEYS.WRITER && <WriterApp config={config} />}
       {selectedItem === MENU_KEYS.HISTORY && <HistoryApp config={config} />}
+      {selectedItem === MENU_KEYS.DOCUMENT_INTELLIGENCE && <DocumentIntelligenceApp />}
       {selectedItem === MENU_KEYS.PREFERENCE && <PreferenceApp />}
       {selectedItem === MENU_KEYS.MORE && <MoreComing />}
     </Layout>

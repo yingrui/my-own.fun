@@ -1,0 +1,26 @@
+.document-intelligence-app {
+  padding: 24px;
+  max-width: 800px;
+}
+
+.document-intelligence-card .ant-card-head-title {
+  font-size: 16px;
+}
+
+.document-intelligence-desc {
+  color: rgba(0, 0, 0, 0.65);
+  margin-bottom: 20px;
+}
+
+.document-intelligence-markdown {
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0;
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 4px;
+}
