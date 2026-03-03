@@ -92,13 +92,13 @@ async def extract_document_content(file: UploadFile = File(...)):
 
 
 # Define /imgs/... before /{file_hash} so it matches first
-@router.get("/imgs/{file_hash}/{filename}")
+@router.get("/imgs/{file_hash}/{filename:path}")
 async def get_cached_image(file_hash: str, filename: str):
     """
     Serve cached images from document extraction.
     E.g. /api/v1/documents/imgs/{sha256}/block_0.png
     """
-    if ".." in file_hash or ".." in filename or "/" in filename:
+    if ".." in file_hash or ".." in filename:
         raise HTTPException(status_code=403, detail="Invalid path")
     if len(file_hash) != 64 or not all(c in "0123456789abcdef" for c in file_hash.lower()):
         raise HTTPException(status_code=400, detail="Invalid file_hash")

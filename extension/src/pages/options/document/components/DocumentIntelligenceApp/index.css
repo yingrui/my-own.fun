@@ -199,6 +199,16 @@
   line-height: 1.6;
 }
 
+/* KaTeX math: block display and inline */
+.document-markdown-preview .katex-display {
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.document-markdown-preview .katex {
+  font-size: 1.1em;
+}
+
 .document-markdown-preview h1 { font-size: 1.5em; margin: 16px 0 8px; font-weight: 600; }
 .document-markdown-preview h2 { font-size: 1.3em; margin: 14px 0 6px; font-weight: 600; }
 .document-markdown-preview h3 { font-size: 1.1em; margin: 12px 0 6px; font-weight: 600; }

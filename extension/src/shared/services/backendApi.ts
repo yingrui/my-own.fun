@@ -242,6 +242,20 @@ export function getDocumentImageUrl(imagePath: string): string {
 }
 
 /**
+ * Build URL for images embedded in markdown (from save_to_markdown).
+ * Relative paths like "imgs/xxx.jpg" are resolved from markdown_out/.
+ */
+export function getDocumentMarkdownImageUrl(fileHash: string, relativeSrc: string): string {
+  if (!fileHash || !relativeSrc) return "";
+  const trimmed = relativeSrc.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+  const filename = trimmed.startsWith("markdown_out/") ? trimmed : `markdown_out/${trimmed}`;
+  return `${DOCUMENTS_BASE}/imgs/${fileHash}/${filename}`;
+}
+
+/**
  * Extract document content (image/PDF) using PaddleOCR
  */
 export async function extractDocument(file: File): Promise<DocumentExtractionResult> {

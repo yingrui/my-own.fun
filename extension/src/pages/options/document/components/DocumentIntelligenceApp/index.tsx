@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Layout, List, Segmented, Tooltip } from "antd";
 import ReactMarkdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import {
   DeleteOutlined,
   FileAddOutlined,
@@ -14,6 +17,7 @@ import {
   extractDocument,
   getCachedDocument,
   getDocumentImageUrl,
+  getDocumentMarkdownImageUrl,
   loadDocumentLibrary,
   addDocumentToLibrary,
   removeDocumentFromLibrary,
@@ -23,6 +27,7 @@ import {
   type DocumentRecord,
 } from "@src/shared/services/backendApi";
 import intl from "react-intl-universal";
+import "katex/dist/katex.min.css";
 import "./index.css";
 
 const { Sider, Header, Content } = Layout;
@@ -359,7 +364,21 @@ const DocumentIntelligenceApp: React.FC = () => {
                     {markdownView === "preview" ? (
                       <div className="document-markdown-preview">
                         {data.markdown ? (
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{data.markdown}</ReactMarkdown>
+                          <ReactMarkdown
+                            remarkPlugins={[remarkMath, remarkGfm]}
+                            rehypePlugins={[rehypeRaw, rehypeKatex]}
+                            components={{
+                              img: ({ src, alt, ...props }) => {
+                                const fileHash = data?.file_hash ?? "";
+                                const resolvedSrc = fileHash && src
+                                  ? getDocumentMarkdownImageUrl(fileHash, src)
+                                  : src;
+                                return <img src={resolvedSrc} alt={alt ?? ""} {...props} />;
+                              },
+                            }}
+                          >
+                            {data.markdown}
+                          </ReactMarkdown>
                         ) : (
                           <p className="document-list-empty">
                             {intl.get("document_intel_no_text").d("(No text extracted)")}
