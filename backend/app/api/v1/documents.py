@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse
 from app.services.document_extraction_service import (
     close_extraction_service,
     extract_document,
+    get_cached_document,
 )
 
 # Cache directory for document extraction (images, parsed results)
@@ -90,6 +91,7 @@ async def extract_document_content(file: UploadFile = File(...)):
             pass
 
 
+# Define /imgs/... before /{file_hash} so it matches first
 @router.get("/imgs/{file_hash}/{filename}")
 async def get_cached_image(file_hash: str, filename: str):
     """
@@ -108,3 +110,17 @@ async def get_cached_image(file_hash: str, filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     media_type = "image/png" if filename.lower().endswith(".png") else "image/jpeg"
     return FileResponse(path, media_type=media_type)
+
+
+@router.get("/{file_hash}")
+async def get_cached_document_content(file_hash: str):
+    """
+    Return cached extraction result by file hash.
+    Use when opening a document from the library without re-uploading.
+    """
+    if len(file_hash) != 64 or not all(c in "0123456789abcdef" for c in file_hash.lower()):
+        raise HTTPException(status_code=400, detail="Invalid file_hash")
+    result = get_cached_document(file_hash)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Cache not found or expired")
+    return {"success": True, "data": result}

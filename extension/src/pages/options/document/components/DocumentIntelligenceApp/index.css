@@ -1,6 +1,26 @@
+/* Full viewport minus header (~64px) */
 .document-intelligence-app {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
   padding: 24px;
-  max-width: 800px;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.document-intelligence-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.document-intelligence-card .ant-card-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .document-intelligence-card .ant-card-head-title {
@@ -9,11 +29,227 @@
 
 .document-intelligence-desc {
   color: rgba(0, 0, 0, 0.65);
-  margin-bottom: 20px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+/* Two-column layout */
+.document-intelligence-layout {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left sidebar: document list */
+.document-intelligence-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid #f0f0f0;
+  padding-right: 16px;
+}
+
+.document-intelligence-sidebar .ant-btn {
+  margin-bottom: 12px;
+}
+
+.document-list-item {
+  cursor: pointer;
+  padding: 8px 0 !important;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+
+.document-list-item:hover {
+  background: #f5f5f5;
+}
+
+.document-list-item.selected {
+  background: #e6f7ff;
+}
+
+.document-list-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.document-list-item-content .doc-icon {
+  margin-right: 6px;
+  color: #1890ff;
+}
+
+.document-list-item-content .doc-filename {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.document-list-item-content .doc-meta {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.document-list-empty {
+  color: #999;
+  font-size: 12px;
+  padding: 16px 0;
+  margin: 0;
+}
+
+/* Right: review panel */
+.document-intelligence-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.document-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.document-review-header .doc-title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.document-review-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: #999;
+  flex: 1;
+}
+
+/* Tabs container - fill remaining space */
+.document-intelligence-main .ant-tabs {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.document-intelligence-main .ant-tabs-content-holder {
+  flex: 1;
+  overflow: hidden;
+}
+
+.document-intelligence-main .ant-tabs-content {
+  height: 100%;
+}
+
+.document-intelligence-main .ant-tabs-tabpane {
+  height: 100%;
+  overflow: auto;
+}
+
+/* Blocks tab */
+.document-blocks-tab {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.document-blocks-tab .block-item {
+  padding: 10px 0 !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.document-blocks-tab .block-item:last-child {
+  border-bottom: none;
+}
+
+.block-content {
+  width: 100%;
+}
+
+.block-content .block-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.block-content .block-empty {
+  color: #999;
+  font-size: 12px;
+}
+
+.block-image-wrap {
+  margin-top: 6px;
+}
+
+.block-thumb {
+  max-width: 200px;
+  max-height: 120px;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+}
+
+/* Markdown tab */
+.document-markdown-tab {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.document-markdown-preview {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.document-markdown-preview h1 { font-size: 1.5em; margin: 16px 0 8px; font-weight: 600; }
+.document-markdown-preview h2 { font-size: 1.3em; margin: 14px 0 6px; font-weight: 600; }
+.document-markdown-preview h3 { font-size: 1.1em; margin: 12px 0 6px; font-weight: 600; }
+.document-markdown-preview p { margin: 0 0 8px; }
+.document-markdown-preview ul, .document-markdown-preview ol { margin: 0 0 8px; padding-left: 24px; }
+.document-markdown-preview table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  width: 100%;
+}
+.document-markdown-preview th, .document-markdown-preview td {
+  border: 1px solid #e8e8e8;
+  padding: 6px 10px;
+  text-align: left;
+}
+.document-markdown-preview th { background: #f5f5f5; font-weight: 500; }
+.document-markdown-preview code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  padding: 2px 6px;
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+.document-markdown-preview pre {
+  margin: 8px 0;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+.document-markdown-preview pre code {
+  padding: 0;
+  background: none;
 }
 
 .document-intelligence-markdown {
-  max-height: 400px;
+  height: 100%;
+  min-height: 200px;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -23,4 +259,36 @@
   padding: 12px;
   background: #fafafa;
   border-radius: 4px;
+}
+
+/* Images tab */
+.document-images-tab {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  padding: 16px 0;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.document-image-card {
+  min-width: 0;
+}
+
+.document-image-card .ant-card-head {
+  padding: 8px 12px;
+  min-height: auto;
+}
+
+.document-image-card .ant-card-body {
+  padding: 8px;
+}
+
+.document-image-card img {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
 }

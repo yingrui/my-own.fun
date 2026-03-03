@@ -48,3 +48,10 @@ class HistoryEntry(BaseModel):
 class HistoryResponse(BaseModel):
     history: list[HistoryEntry]
 
+
+class DocumentLibraryAdd(BaseModel):
+    file_hash: str
+    filename: str = ""
+    extracted_at: int = 0
+    block_count: int = 0
+

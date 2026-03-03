@@ -170,6 +170,18 @@ CREATE (p)-[:HAS_SETTING]->(s)
 RETURN s
 ```
 
+#### Document library (Document Intelligence)
+
+```cypher
+// List all documents in the library (any profile)
+MATCH (p:ChromeProfile)-[:HAS_DOCUMENT]->(d:Document)
+RETURN p.profileId as profile, d.fileHash, d.filename, d.extractedAt
+
+// List documents for a specific profile
+MATCH (p:ChromeProfile {profileId: 'profile_YOUR_EXTENSION_ID'})-[:HAS_DOCUMENT]->(d:Document)
+RETURN d.fileHash, d.filename, d.extractedAt, d.blockCount
+```
+
 ## Neo4j Database
 
 A Neo4j database is configured for data storage using Docker. The database is managed through the `dev.sh` script.

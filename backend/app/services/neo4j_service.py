@@ -142,6 +142,75 @@ class Neo4jService:
             "value": str(value)
         })
 
+    def add_document_to_library(
+        self,
+        profile_id: str,
+        file_hash: str,
+        filename: str,
+        extracted_at: int,
+        block_count: int = 0,
+    ) -> Dict[str, Any]:
+        """
+        Add a document to the profile's library.
+        Duplicate = same (filename, fileHash) for this profile. Same sha256 with different
+        filename is allowed (e.g. copy of file); only exact match on both prevents re-add.
+        """
+        self.get_or_create_profile(profile_id)
+        query = """
+        MATCH (p:ChromeProfile {profileId: $profileId})
+        MERGE (p)-[:HAS_DOCUMENT]->(d:Document {fileHash: $fileHash, filename: $filename})
+        ON CREATE SET d.extractedAt = $extractedAt, d.blockCount = $blockCount
+        ON MATCH SET d.extractedAt = $extractedAt, d.blockCount = $blockCount
+        RETURN d.fileHash as fileHash, d.filename as filename, d.extractedAt as extractedAt, d.blockCount as blockCount
+        """
+        result = self.execute_write(query, {
+            "profileId": profile_id,
+            "fileHash": file_hash,
+            "filename": filename,
+            "extractedAt": extracted_at,
+            "blockCount": block_count,
+        })
+        if result:
+            r = result[0]
+            return {
+                "fileHash": r["fileHash"],
+                "filename": r["filename"],
+                "extractedAt": r["extractedAt"],
+                "blockCount": r.get("blockCount", 0),
+            }
+        return {}
+
+    def get_document_library(self, profile_id: str) -> List[Dict[str, Any]]:
+        """Get all documents in the profile's library."""
+        query = """
+        MATCH (p:ChromeProfile {profileId: $profileId})-[:HAS_DOCUMENT]->(d:Document)
+        RETURN d.fileHash as fileHash, d.filename as filename, d.extractedAt as extractedAt, d.blockCount as blockCount
+        ORDER BY d.extractedAt DESC
+        """
+        rows = self.execute_query(query, {"profileId": profile_id})
+        return [dict(row) for row in rows]
+
+    def remove_document_from_library(
+        self, profile_id: str, file_hash: str, filename: Optional[str] = None
+    ) -> bool:
+        """Remove a document from the profile's library by fileHash and optionally filename."""
+        params: Dict[str, Any] = {"profileId": profile_id, "fileHash": file_hash}
+        if filename is not None:
+            params["filename"] = filename
+            query = """
+            MATCH (p:ChromeProfile {profileId: $profileId})-[r:HAS_DOCUMENT]->(d:Document {fileHash: $fileHash, filename: $filename})
+            DELETE r, d
+            RETURN count(d) as deleted
+            """
+        else:
+            query = """
+            MATCH (p:ChromeProfile {profileId: $profileId})-[r:HAS_DOCUMENT]->(d:Document {fileHash: $fileHash})
+            DELETE r, d
+            RETURN count(d) as deleted
+            """
+        result = self.execute_write(query, params)
+        return result and result[0].get("deleted", 0) > 0
+
 
 # Global instance
 neo4j_service = Neo4jService()

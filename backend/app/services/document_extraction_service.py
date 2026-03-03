@@ -168,6 +168,8 @@ def extract_document(file_path: str) -> dict:
     sha256_hash = _get_document_sha256(file_path)
     cached = _load_cached_result(sha256_hash)
     if cached is not None:
+        if "file_hash" not in cached:
+            cached["file_hash"] = sha256_hash
         logger.info("Returning cached result for %s", sha256_hash[:16])
         return cached
 
@@ -315,6 +317,7 @@ def extract_document(file_path: str) -> dict:
         logger.debug("Could not extract result.img: %s", e)
 
     result = {
+        "file_hash": sha256_hash,
         "parsing_res_list": blocks,
         "layout_det_res": layout_det_out,
         "markdown": markdown,
@@ -326,6 +329,19 @@ def extract_document(file_path: str) -> dict:
         result["images"] = result_images
 
     _save_cached_result(sha256_hash, result)
+    return result
+
+
+def get_cached_document(file_hash: str) -> Optional[dict]:
+    """
+    Load cached extraction result by file hash.
+    Returns None if cache does not exist.
+    """
+    if len(file_hash) != 64 or not all(c in "0123456789abcdef" for c in file_hash.lower()):
+        return None
+    result = _load_cached_result(file_hash)
+    if result is not None and "file_hash" not in result:
+        result["file_hash"] = file_hash
     return result
 
 

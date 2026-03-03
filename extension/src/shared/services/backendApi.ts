@@ -191,23 +191,42 @@ export async function checkBackendHealth(): Promise<boolean> {
 }
 
 /**
+ * Single block from document extraction
+ */
+export interface ParsingBlock {
+  label: string;
+  content: string;
+  bbox: number[];
+  image_path?: string;
+}
+
+/**
  * Document extraction result from PaddleOCR
  */
 export interface DocumentExtractionResult {
   success: boolean;
   data: {
-    parsing_res_list: Array<{
-      label: string;
-      content: string;
-      bbox: number[];
-    }>;
+    file_hash?: string;
+    parsing_res_list: ParsingBlock[];
     layout_det_res: Record<string, unknown>;
     markdown: string;
     width?: number;
     height?: number;
     page_count?: number;
+    images?: Record<string, string>;
   };
   filename?: string;
+}
+
+/**
+ * Document record stored in extension (for library list)
+ */
+export interface DocumentRecord {
+  id: string;
+  filename: string;
+  fileHash: string;
+  extractedAt: number;
+  blockCount: number;
 }
 
 const DOCUMENTS_BASE = `${BACKEND_API_URL.replace("/api/v1", "")}/api/v1/documents`;
@@ -240,5 +259,86 @@ export async function extractDocument(file: File): Promise<DocumentExtractionRes
   }
 
   return response.json();
+}
+
+/**
+ * Load cached extraction result by file hash (no re-upload).
+ * Use when opening a document from the library.
+ */
+export async function getCachedDocument(fileHash: string): Promise<DocumentExtractionResult> {
+  const response = await fetch(`${BACKEND_API_URL}/documents/${fileHash}`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("Cache not found or expired. Re-extract the document.");
+    }
+    const err = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(err.detail || `Failed to load: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/** Load document library from backend (Neo4j) */
+export async function loadDocumentLibrary(): Promise<DocumentRecord[]> {
+  try {
+    const profileId = await getProfileId();
+    const response = await fetch(`${BACKEND_API_URL}/profiles/${profileId}/documents`);
+    if (!response.ok) {
+      if (response.status === 404) return [];
+      throw new Error(`Failed to load library: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return (data.documents ?? []).map((d: Record<string, unknown>) => ({
+      id: (d.id ?? d.fileHash) as string,
+      filename: (d.filename ?? "") as string,
+      fileHash: (d.fileHash ?? d.id) as string,
+      extractedAt: (d.extractedAt ?? 0) as number,
+      blockCount: (d.blockCount ?? 0) as number,
+    }));
+  } catch (error) {
+    console.error("Failed to load document library:", error);
+    return [];
+  }
+}
+
+/** Add a document to the library (Neo4j) */
+export async function addDocumentToLibrary(record: {
+  fileHash: string;
+  filename: string;
+  extractedAt: number;
+  blockCount?: number;
+}): Promise<void> {
+  await ensureProfile();
+  const profileId = await getProfileId();
+  const response = await fetch(`${BACKEND_API_URL}/profiles/${profileId}/documents`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      file_hash: record.fileHash,
+      filename: record.filename,
+      extracted_at: record.extractedAt,
+      block_count: record.blockCount ?? 0,
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to add document: ${response.statusText}`);
+  }
+}
+
+/** Remove a document from the library (Neo4j) */
+export async function removeDocumentFromLibrary(
+  fileHash: string,
+  filename?: string
+): Promise<void> {
+  const profileId = await getProfileId();
+  const url = filename
+    ? `${BACKEND_API_URL}/profiles/${profileId}/documents/${fileHash}?filename=${encodeURIComponent(filename)}`
+    : `${BACKEND_API_URL}/profiles/${profileId}/documents/${fileHash}`;
+  const response = await fetch(url, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    if (response.status === 404) return; // already removed
+    throw new Error(`Failed to remove document: ${response.statusText}`);
+  }
 }
 
