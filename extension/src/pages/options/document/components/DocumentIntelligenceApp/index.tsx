@@ -183,41 +183,20 @@ const DocumentIntelligenceApp: React.FC = () => {
   };
 
   const data = result?.data;
-  const blocks = data?.parsing_res_list ?? [];
 
-  // Collect all images: input, layout result, block images
+  // Images: only from data.images, in order (layout_det_res_0, layout_det_res_1, ...)
   const imageEntries: Array<{ label: string; path: string }> = [];
-  if (data) {
-    const addFromLayout = (layout: Record<string, unknown>, prefix = "") => {
-      if (layout?.input_img && typeof layout.input_img === "string") {
-        imageEntries.push({ label: prefix ? `${prefix} - Input image` : "Input image", path: layout.input_img });
-      }
-      const layoutImages = layout?._images as Record<string, string> | undefined;
-      if (layoutImages) {
-        Object.entries(layoutImages).forEach(([k, path]) => {
-          if (path) imageEntries.push({ label: prefix ? `${prefix} - Layout (${k})` : `Layout detection (${k})`, path });
-        });
-      }
-    };
-    const layout = data.layout_det_res;
-    if (Array.isArray(layout)) {
-      layout.forEach((item, i) => addFromLayout(item as Record<string, unknown>, `Page ${i + 1}`));
-    } else if (layout && typeof layout === "object") {
-      addFromLayout(layout);
-    }
-    const topImages = data.images as Record<string, string> | undefined;
-    if (topImages) {
-      Object.entries(topImages).forEach(([k, path]) => {
-        if (path) imageEntries.push({ label: `Result (${k})`, path });
+  const imagesObj = data?.images as Record<string, string> | undefined;
+  if (imagesObj) {
+    const entries = Object.entries(imagesObj)
+      .filter(([, path]) => !!path)
+      .sort(([a], [b]) => {
+        const numA = parseInt(a.replace(/\D+/g, ""), 10) ?? 0;
+        const numB = parseInt(b.replace(/\D+/g, ""), 10) ?? 0;
+        return numA - numB;
       });
-    }
-    blocks.forEach((block, idx) => {
-      if (block.image_path) {
-        imageEntries.push({
-          label: `Block ${idx + 1} (${block.label})`,
-          path: block.image_path,
-        });
-      }
+    entries.forEach(([key, path]) => {
+      imageEntries.push({ label: key, path });
     });
   }
 
