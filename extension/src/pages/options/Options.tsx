@@ -13,9 +13,7 @@ import NavSearch from "@pages/options/components/NavSearch";
 import MoreComing from "@pages/options/components/MoreComing";
 import HistoryApp from "@pages/options/history/components/HistoryApp";
 import intl from "react-intl-universal";
-import ArchitectApp from "@pages/options/architect/components/ArchitectApp";
 import {
-  FileTextOutlined,
   HistoryOutlined,
   MoreOutlined,
   SettingOutlined,
@@ -30,7 +28,6 @@ const MENU_KEYS = {
   SEARCH: "search",
   WRITER: "writer",
   HISTORY: "history",
-  ARCHITECT: "architect",
   DOCUMENT_INTELLIGENCE: "document_intelligence",
   MORE: "more",
   PREFERENCE: "preference",
@@ -50,26 +47,20 @@ const getHeaderItems = (config: GluonConfigure): MenuProps["items"] => {
       label: intl.get("options_app_chatbot").d("Fun Chat"),
     });
   }
-  if (config.enableOptionsAppArchitect)
-    items.push({
-      key: MENU_KEYS.ARCHITECT,
-      label: intl.get("options_app_architect").d("Architect"),
-    });
   if (config.enableWriting) {
     items.push({
       key: MENU_KEYS.WRITER,
       label: intl.get("options_app_writer").d("Writing"),
     });
   }
+  items.push({
+    key: MENU_KEYS.DOCUMENT_INTELLIGENCE,
+    label: intl.get("options_app_document_intelligence").d("Document Intelligence"),
+  });
   const more = {
     key: "dropdown_more",
     label: intl.get("options_app_dropdown_more").d("More"),
     children: [
-      {
-        key: MENU_KEYS.DOCUMENT_INTELLIGENCE,
-        label: intl.get("options_app_document_intelligence").d("Document Intelligence"),
-        icon: <FileTextOutlined />,
-      },
       {
         key: MENU_KEYS.PREFERENCE,
         label: intl.get("options_app_preference").d("Preference"),
@@ -145,10 +136,9 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
       {selectedItem === MENU_KEYS.SEARCH && (
         <SearchApp config={config} query={query} onQueryChange={setQuery} />
       )}
-      {selectedItem === MENU_KEYS.ARCHITECT && <ArchitectApp config={config} />}
       {selectedItem === MENU_KEYS.WRITER && <WriterApp config={config} />}
-      {selectedItem === MENU_KEYS.HISTORY && <HistoryApp config={config} />}
       {selectedItem === MENU_KEYS.DOCUMENT_INTELLIGENCE && <DocumentIntelligenceApp />}
+      {selectedItem === MENU_KEYS.HISTORY && <HistoryApp config={config} />}
       {selectedItem === MENU_KEYS.PREFERENCE && <PreferenceApp />}
       {selectedItem === MENU_KEYS.MORE && <MoreComing />}
     </Layout>

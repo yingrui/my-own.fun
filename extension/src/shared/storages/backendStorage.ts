@@ -30,7 +30,6 @@ const SETTINGS_CATEGORY_MAP: Record<string, string> = {
   enableSearch: "Features",
   enableOptionsAppSearch: "Features",
   enableOptionsAppChatbot: "Features",
-  enableOptionsAppArchitect: "Features",
   enableWriting: "Features",
   enableHistoryRecording: "Features",
   // BA Copilot

@@ -86,13 +86,6 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
               <Switch />
             </Form.Item>
             <Form.Item
-              label={intl.get("enableOptionsAppArchitect").d("Architect Tools")}
-              name="enableOptionsAppArchitect"
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-            <Form.Item
               label={intl.get("enableWriting").d("Writing Tools")}
               name="enableWriting"
               valuePropName="checked"

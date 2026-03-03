@@ -96,7 +96,7 @@ const PreferenceApp: React.FC = () => {
   return (
     <Layout>
       <Sider
-        id="architect-left-sider"
+        id="preference-left-sider"
         width={300}
         collapsedWidth={64}
         style={{ height: "auto" }}

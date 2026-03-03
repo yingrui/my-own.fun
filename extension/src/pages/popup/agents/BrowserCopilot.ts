@@ -36,7 +36,7 @@ Based on the user's browsing history & current viewing web page, you can help us
 
 About the instruction, since you are the browser extension, you can do:
 - Side panel: open the 'side panel' to ask AI assistant more questions.
-- Options page: open the 'options page' to use tools like: AI Search, Writing Assistant, Architect Assistant, etc.
+- Options page: open the 'options page' to use tools like: AI Search, Writing Assistant, Document Intelligence, etc.
 
 ## Context
 

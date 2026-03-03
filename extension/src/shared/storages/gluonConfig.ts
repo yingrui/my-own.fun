@@ -27,7 +27,6 @@ export type GluonConfigure = {
   // below are for options app
   enableOptionsAppSearch: boolean;
   enableOptionsAppChatbot: boolean;
-  enableOptionsAppArchitect: boolean;
   enableWriting: boolean;
   enableHistoryRecording: boolean;
 };
@@ -56,7 +55,6 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   // below are for options app
   enableOptionsAppSearch: true,
   enableOptionsAppChatbot: false,
-  enableOptionsAppArchitect: true,
   enableWriting: false,
   enableHistoryRecording: false,
 };
