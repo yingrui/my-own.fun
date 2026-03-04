@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import type { BoxOnPage } from "../../utils";
 
 export interface ImageWithBoxesProps {
@@ -20,16 +20,39 @@ const ImageWithBoxes: React.FC<ImageWithBoxesProps> = ({
   selectedBlockIndex,
   onBlockClick,
 }) => {
-  if (imgWidth <= 0 || imgHeight <= 0) return <img src={src} alt={alt} />;
+  const [naturalSize, setNaturalSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
+  useEffect(() => {
+    setNaturalSize(null);
+  }, [src]);
+
+  const handleLoad = useCallback(
+    (e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+      setNaturalSize({
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+    },
+    []
+  );
+
+  const w = naturalSize?.width ?? imgWidth;
+  const h = naturalSize?.height ?? imgHeight;
+
+  if (w <= 0 || h <= 0) return <img src={src} alt={alt} />;
   return (
     <div className="document-image-with-boxes">
-      <img src={src} alt={alt} />
+      <img src={src} alt={alt} onLoad={handleLoad} />
       {boxesOnPage.map(({ blockIndex, bbox, label }) => {
         const [x1, y1, x2, y2] = bbox;
-        const left = (x1 / imgWidth) * 100;
-        const top = (y1 / imgHeight) * 100;
-        const width = ((x2 - x1) / imgWidth) * 100;
-        const height = ((y2 - y1) / imgHeight) * 100;
+        const left = (x1 / w) * 100;
+        const top = (y1 / h) * 100;
+        const width = ((x2 - x1) / w) * 100;
+        const height = ((y2 - y1) / h) * 100;
         const isSelected = selectedBlockIndex === blockIndex;
         return (
           <div
