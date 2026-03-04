@@ -281,3 +281,63 @@
   border-radius: 4px;
   border: 1px solid #e8e8e8;
 }
+
+/* Selected block image (when clicking an image-type box) */
+.document-selected-block-image {
+  margin-bottom: 12px;
+}
+
+.document-block-image-preview {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+  display: block;
+}
+
+.document-block-image-caption {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.document-raw-image .document-block-image-preview {
+  margin-bottom: 12px;
+}
+
+/* Image with overlay boxes */
+.document-image-with-boxes {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+.document-image-with-boxes > img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+  border: 1px solid #e8e8e8;
+}
+
+.document-image-box {
+  position: absolute;
+  cursor: pointer;
+  border: 2px solid transparent;
+  background: transparent;
+  border-radius: 2px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.document-image-box:hover {
+  border-color: rgba(24, 144, 255, 0.9);
+  background: rgba(24, 144, 255, 0.25);
+}
+
+.document-image-box.selected {
+  border-color: #1890ff;
+  background: rgba(24, 144, 255, 0.3);
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}

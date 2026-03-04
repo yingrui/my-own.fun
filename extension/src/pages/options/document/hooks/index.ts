@@ -1,0 +1,1 @@
+export { useDocumentIntelligence } from "./useDocumentIntelligence";

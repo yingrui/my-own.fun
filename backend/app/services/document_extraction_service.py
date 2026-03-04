@@ -15,6 +15,8 @@ from typing import Any, Optional
 
 import numpy as np
 
+from app.services.document_extraction_utils import annotate_layout_boxes_with_block_index
+
 logger = logging.getLogger(__name__)
 
 # Lazy-loaded PaddleOCR VL instance
@@ -222,6 +224,7 @@ def extract_document(file_path: str) -> dict:
         if "file_hash" not in cached:
             cached["file_hash"] = sha256_hash
         logger.info("Returning cached result for %s", sha256_hash[:16])
+        _ensure_layout_boxes_annotated(cached)
         return cached
 
     ocr = _get_paddle_ocr()
@@ -346,6 +349,9 @@ def extract_document(file_path: str) -> dict:
     else:
         layout_det_out = _process_layout_det(layout_det, "layout_det")
 
+    # Annotate layout boxes with block_index (box→block bbox IoU matching)
+    layout_det_out = annotate_layout_boxes_with_block_index(layout_det_out, blocks)
+
     # Save result visualization images (PaddleOCRVLResult.img)
     result_images: dict[str, str] = {}
     try:
@@ -375,16 +381,28 @@ def extract_document(file_path: str) -> dict:
     return result
 
 
+def _ensure_layout_boxes_annotated(result: dict) -> dict:
+    """Run block_index annotation on layout boxes before returning."""
+    layout_det = result.get("layout_det_res")
+    blocks = result.get("parsing_res_list")
+    if layout_det is not None and blocks:
+        annotate_layout_boxes_with_block_index(layout_det, blocks)
+    return result
+
+
 def get_cached_document(file_hash: str) -> Optional[dict]:
     """
     Load cached extraction result by file hash.
     Returns None if cache does not exist.
+    Re-annotates layout boxes with block_index on load.
     """
     if len(file_hash) != 64 or not all(c in "0123456789abcdef" for c in file_hash.lower()):
         return None
     result = _load_cached_result(file_hash)
-    if result is not None and "file_hash" not in result:
-        result["file_hash"] = file_hash
+    if result is not None:
+        if "file_hash" not in result:
+            result["file_hash"] = file_hash
+        _ensure_layout_boxes_annotated(result)
     return result
 
 
