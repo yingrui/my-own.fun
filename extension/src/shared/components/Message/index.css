@@ -167,43 +167,46 @@ div.ant-collapse-content-box {
   margin: 8px 0;
 }
 
-.message-reasoning {
-  color: #6b7280;
+.step-item {
   font-size: 13px;
-  font-style: italic;
   line-height: 1.5;
-  white-space: pre-wrap;
   word-break: break-word;
-  max-height: 300px;
-  overflow-y: auto;
+  margin: 4px 0;
 }
 
-.reasoning-step {
-  margin: 0 0 10px;
-}
-
-.reasoning-step-content {
+.step-item-reasoning {
   color: #6b7280;
-  font-size: 13px;
   font-style: italic;
-  line-height: 1.5;
   white-space: pre-wrap;
-  word-break: break-word;
-  margin-bottom: 4px;
 }
 
-.reasoning-step-title {
-  color: #8b5cf6;
+.step-item-live {
+  opacity: 0.7;
+}
+
+.step-item-tool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
-  font-style: normal;
-  font-weight: 600;
-  margin-bottom: 3px;
+  color: #6b7280;
+  line-height: 1.4;
 }
 
-.reasoning-label {
+.step-item-content {
+  color: var(--gm-color-text);
+  white-space: pre-wrap;
+}
+
+.thoughts-label {
   color: #8b5cf6;
   font-size: 12px;
   font-weight: 500;
+}
+
+.thoughts-content {
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .steps-toggle-button {
@@ -217,22 +220,6 @@ div.ant-collapse-content-box {
 .steps-toggle-button:hover {
   color: #40a9ff;
   text-decoration: underline;
-}
-
-.tool-events {
-  margin: 8px 0 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.tool-event-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.4;
 }
 
 .tool-event-badge {

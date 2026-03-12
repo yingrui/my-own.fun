@@ -1,237 +1,151 @@
 import { CopyOutlined } from "@ant-design/icons";
 import type { MessageContent } from "@src/shared/agents/core/ChatMessage";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
-import Interaction from "@src/shared/agents/core/Interaction";
-import type { SessionReasoningStep, SessionToolEvent } from "@src/shared/langgraph/runtime/types";
+import type { SessionStepItem } from "@src/shared/langgraph/runtime/types";
 import MarkdownPreview from "@src/shared/components/Message/MarkdownPreview";
-import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
-import type { CollapseProps } from "antd";
-import { Collapse, message, Spin, Button } from "antd";
+import { Collapse, message, Spin } from "antd";
 import copy from "copy-to-clipboard";
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import intl from "react-intl-universal";
 import "./index.css";
-import StepComponent from "./StepComponent";
-import UserMessage from "./UserMessage";
 
 interface MessageProps {
   index?: number;
-  role: ChatMessage["role"];
+  role: "assistant" | "user" | "system";
   content: string | MessageContent[];
   name?: string;
   loading?: boolean;
-  interaction?: Interaction;
-  /** Status text shown while loading (e.g. "Thinking...", "Searching...") so user knows the AI is working. */
   statusMessage?: string;
-  /** Model reasoning/thinking stream; shown in a distinct format (e.g. collapsible or muted). */
   reasoning?: string;
-  /** Append-only reasoning snapshots from each major step/tool round. */
-  reasoningSteps?: SessionReasoningStep[];
-  /** Tool events captured from LangGraph tool-calling flow. */
-  toolEvents?: SessionToolEvent[];
+  stepItems?: SessionStepItem[];
 }
 
-const getStepComponents = (
-  interaction?: Interaction,
-): CollapseProps["items"] => {
-  if (!interaction) return [];
-  return interaction.getSteps().map((step, index) => {
-    const label = step.type === "execute" ? step.action : step.type;
-    return {
-      key: index,
-      label: label,
-      children: <StepComponent step={step} interaction={interaction} />,
-    };
-  });
+function textContent(content: string | MessageContent[]): string {
+  if (typeof content === "string") return content;
+  return content.find((c) => c.type === "text")?.text ?? "";
+}
+
+const StepItemRow: React.FC<{ item: SessionStepItem }> = ({ item }) => {
+  switch (item.type) {
+    case "reasoning":
+      return <div className="step-item step-item-reasoning">{item.content}</div>;
+    case "tool_selected":
+      return (
+        <div className="step-item step-item-tool">
+          <span className="tool-event-badge tool-event-selected">Selected</span>
+          <span className="tool-event-name">{item.toolName}</span>
+          {item.content && <span className="tool-event-details">{item.content}</span>}
+        </div>
+      );
+    case "tool_executed":
+      return (
+        <div className="step-item step-item-tool">
+          <span className="tool-event-badge tool-event-executed">Executed</span>
+          <span className="tool-event-name">{item.toolName}</span>
+          {item.content && <span className="tool-event-details">{item.content}</span>}
+        </div>
+      );
+    case "content":
+      return <div className="step-item step-item-content">{item.content}</div>;
+    default:
+      return null;
+  }
 };
 
-const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
-  const {
-    index,
-    role,
-    content,
-    loading,
-    name,
-    interaction,
-    statusMessage: statusMessageProp,
-    reasoning,
-    reasoningSteps,
-    toolEvents,
-  } = props;
-  const [steps, setSteps] = useState<CollapseProps["items"]>(
-    getStepComponents(interaction),
-  );
-  const [statusMessage, setStatusMessage] = useState<string>(
-    interaction ? interaction.getStatusMessage() : "",
-  );
-  const [showSteps, setShowSteps] = useState<boolean>(false);
-  const [reasoningExpanded, setReasoningExpanded] = useState<boolean>(!!loading);
-  const reasoningRef = useRef<HTMLDivElement>(null);
-  const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
+type StepBlock =
+  | { kind: "thoughts"; items: SessionStepItem[] }
+  | { kind: "item"; item: SessionStepItem };
 
-  useEffect(() => {
-    if (loading && reasoning) {
-      setReasoningExpanded(true);
+function groupStepItems(items: SessionStepItem[]): StepBlock[] {
+  const blocks: StepBlock[] = [];
+  let pending: SessionStepItem[] = [];
+
+  const flush = () => {
+    if (pending.length > 0) {
+      blocks.push({ kind: "thoughts", items: pending });
+      pending = [];
     }
-  }, [loading, reasoning]);
+  };
 
-  useEffect(() => {
-    if (!loading || !reasoningRef.current) return;
-    reasoningRef.current.scrollTop = reasoningRef.current.scrollHeight;
-  }, [loading, reasoning, reasoningSteps]);
-
-  function getContent(): string {
-    if (content instanceof Array) {
-      return content.find((c) => c.type === "text")?.text;
+  for (const item of items) {
+    if (item.type === "reasoning") {
+      pending.push(item);
+    } else {
+      flush();
+      blocks.push({ kind: "item", item });
     }
-    return content as string;
   }
+  flush();
+  return blocks;
+}
 
-  function getUserInputMessage(): string {
-    if (role === "user" && interaction?.inputMessage) {
-      return interaction.inputMessage.getContentText();
-    }
-    return getContent();
-  }
+const ThoughtsCollapse: React.FC<{ items: SessionStepItem[] }> = ({ items }) => (
+  <Collapse
+    ghost
+    items={[
+      {
+        key: "thoughts",
+        label: <span className="thoughts-label">{intl.get("message_reasoning_label").d("Thoughts")}</span>,
+        children: (
+          <div className="thoughts-content">
+            {items.map((item) => (
+              <div key={item.id} className="step-item step-item-reasoning">{item.content}</div>
+            ))}
+          </div>
+        ),
+      },
+    ]}
+  />
+);
 
-  function handleCopy() {
-    copy(getContent(), {});
-    message.success("copy success");
-  }
-
-  if (interaction) {
-    interaction.onChange(() => {
-      setSteps(getStepComponents(interaction));
-      setStatusMessage(interaction.getStatusMessage());
-      // Reset showSteps when interaction changes
-      setShowSteps(false);
-      setTimeout(() => {
-        scrollToBottom();
-      });
-    });
-  }
-
-  function shouldSpin(): boolean {
-    if (typeof loading === "boolean") {
-      return loading;
-    }
-    return !!interaction && interaction.getStatus() !== "Completed";
-  }
-
-  function handleShowSteps() {
-    setShowSteps(!showSteps);
-  }
+const Message: React.FC<MessageProps> = React.memo((props) => {
+  const { index, role, content, loading, name, statusMessage, reasoning, stepItems } = props;
+  const text = textContent(content);
 
   if (role === "user") {
     return (
-      <UserMessage
-        role={role}
-        content={getUserInputMessage()}
-        interaction={interaction}
-      />
+      <div className="message-item">
+        <div className="message-content user-message-content">
+          <MarkdownPreview loading={false} content={text} />
+        </div>
+        <img className="user-avatar" src="/icons/user-icon.png" />
+      </div>
     );
   }
 
-  const hasContent = !!getContent();
-  const spinning = shouldSpin() && !hasContent;
-  const currentReasoningText = reasoning && reasoning.trim()
-    ? reasoning
-    : loading
-      ? "..."
-      : "";
+  const showSpinner = loading && !text && !stepItems?.length;
+  const liveReasoning = reasoning?.trim() || "";
 
   return (
-    <div ref={messagesRef} className={"message-item message-assistant"}>
+    <div className="message-item message-assistant">
       <div className="avatar">
         <img className="bot-avatar" src="/icons/logo.png" />
         <span>{name}</span>
       </div>
-      <div className={"message-content bot-message-content"}>
-        {spinning && (
-          <div className={"message-spin"}>
+      <div className="message-content bot-message-content">
+        {showSpinner && (
+          <div className="message-spin">
             <Spin />
-            {(statusMessageProp ?? (interaction && statusMessage)) && (
-              <span className={"interaction-status"}>{statusMessageProp ?? statusMessage}</span>
-            )}
+            {statusMessage && <span className="interaction-status">{statusMessage}</span>}
           </div>
         )}
-        {shouldSpin() && steps && steps.length > 0 && (
-          <Collapse
-            accordion
-            items={steps}
-            activeKey={steps.length - 1}
-            ghost={true}
-          />
+        {loading && stepItems?.map((item) => (
+          <StepItemRow key={item.id} item={item} />
+        ))}
+        {loading && liveReasoning && (
+          <div className="step-item step-item-reasoning step-item-live">{liveReasoning}</div>
         )}
-        {!shouldSpin() && steps && steps.length > 0 && (
-          <div className="steps-container">
-            <Button
-              type="link"
-              size="small"
-              onClick={handleShowSteps}
-              className="steps-toggle-button"
-            >
-              {showSteps
-                ? intl.get("hide_steps").d("Hide Steps")
-                : intl
-                    .get("show_steps_count")
-                    .d("Show Steps ({count})")
-                    .replace("{count}", steps.length.toString())}
-            </Button>
-            {showSteps && <Collapse accordion items={steps} ghost={true} />}
-          </div>
+        {!loading && stepItems?.length > 0 && groupStepItems(stepItems).map((block, i) =>
+          block.kind === "thoughts"
+            ? <ThoughtsCollapse key={`thoughts-${i}`} items={block.items} />
+            : <StepItemRow key={block.item.id} item={block.item} />,
         )}
-        {(reasoning || (reasoningSteps && reasoningSteps.length > 0)) && (
-          <Collapse
-            ghost
-            activeKey={reasoningExpanded ? ["reasoning"] : []}
-            onChange={(keys) => setReasoningExpanded(Array.isArray(keys) ? keys.length > 0 : !!keys)}
-            items={[
-              {
-                key: "reasoning",
-                label: (
-                  <span className="reasoning-label">
-                    {loading ? `${intl.get("message_reasoning_label").d("Thinking")}...` : intl.get("message_reasoning_label").d("Thinking")}
-                  </span>
-                ),
-                children: (
-                  <div className="message-reasoning" ref={reasoningRef}>
-                    {!!reasoningSteps?.length && reasoningSteps.map((step) => (
-                      <div key={step.id} className="reasoning-step">
-                        {step.content ? <div className="reasoning-step-content">{step.content}</div> : null}
-                        <div className="reasoning-step-title">{step.title}</div>
-                      </div>
-                    ))}
-                    {(loading || !!reasoning) && (
-                      <div className="reasoning-step">
-                        {currentReasoningText ? (
-                          <div className="reasoning-step-content">{currentReasoningText}</div>
-                        ) : null}
-                      </div>
-                    )}
-                  </div>
-                ),
-              },
-            ]}
-          />
-        )}
-        {!!toolEvents?.length && (
-          <div className="tool-events">
-            {toolEvents.map((event, idx) => (
-              <div key={`${event.name}-${event.status}-${idx}`} className="tool-event-row">
-                <span className={`tool-event-badge tool-event-${event.status}`}>
-                  {event.status === "selected" ? "Selected" : "Executed"}
-                </span>
-                <span className="tool-event-name">{event.name}</span>
-                {event.details && <span className="tool-event-details">{event.details}</span>}
-              </div>
-            ))}
-          </div>
-        )}
-        <MarkdownPreview loading={loading} content={getContent()} />
+        <MarkdownPreview loading={loading} content={text} />
         {!loading && index > 0 && (
           <div>
-            <CopyOutlined className="copy-icon" onClick={handleCopy} />
+            <CopyOutlined
+              className="copy-icon"
+              onClick={() => { copy(text, {}); message.success("copy success"); }}
+            />
           </div>
         )}
       </div>

@@ -1,15 +1,12 @@
 export type SessionRole = "assistant" | "user" | "system";
 
-export interface SessionToolEvent {
-  name: string;
-  status: "selected" | "executed";
-  details?: string;
-}
+export type StepItemType = "reasoning" | "tool_selected" | "tool_executed" | "content";
 
-export interface SessionReasoningStep {
+export interface SessionStepItem {
   id: string;
-  title: string;
+  type: StepItemType;
   content: string;
+  toolName?: string;
 }
 
 export interface SessionMessage {
@@ -20,12 +17,10 @@ export interface SessionMessage {
   loading?: boolean;
   /** Shown while loading so the user knows the AI is working (e.g. "Thinking...", "Searching..."). */
   statusMessage?: string;
-  /** Model reasoning/thinking stream (e.g. from delta.reasoning); shown in a distinct format. */
+  /** Live streaming reasoning buffer for the current in-progress step. */
   reasoning?: string;
-  /** Append-only reasoning snapshots for each step in the run. */
-  reasoningSteps?: SessionReasoningStep[];
-  /** Tool activity shown in the assistant bubble (selected/executed). */
-  toolEvents?: SessionToolEvent[];
+  /** Ordered timeline of completed step items (reasoning, tool calls, intermediate content). */
+  stepItems?: SessionStepItem[];
 }
 
 export interface SessionState {
