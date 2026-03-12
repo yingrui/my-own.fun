@@ -198,16 +198,15 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
                   <div className="message-reasoning" ref={reasoningRef}>
                     {!!reasoningSteps?.length && reasoningSteps.map((step) => (
                       <div key={step.id} className="reasoning-step">
+                        {step.content ? <div className="reasoning-step-content">{step.content}</div> : null}
                         <div className="reasoning-step-title">{step.title}</div>
-                        <div>{step.content}</div>
                       </div>
                     ))}
                     {(loading || !!reasoning) && (
                       <div className="reasoning-step">
-                        <div className="reasoning-step-title">
-                          {intl.get("message_reasoning_current").d("Current step")}
-                        </div>
-                        <div>{currentReasoningText}</div>
+                        {currentReasoningText ? (
+                          <div className="reasoning-step-content">{currentReasoningText}</div>
+                        ) : null}
                       </div>
                     )}
                   </div>

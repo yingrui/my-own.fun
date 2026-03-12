@@ -92,26 +92,28 @@ function collectToolEvents(messages: BaseMessage[]): SessionToolEvent[] {
     if (type === "ai") {
       const ai = message as { tool_calls?: Array<{ name?: string; args?: unknown }>; additional_kwargs?: { tool_calls?: Array<{ function?: { name?: string; arguments?: string } }> } };
       const directCalls = Array.isArray(ai.tool_calls) ? ai.tool_calls : [];
-      for (const call of directCalls) {
-        const toolName = normalizeToolName(call.name);
-        if (!toolName) continue;
-        events.push({
-          name: toolName,
-          status: "selected",
-          details: toShortDetails(call.args),
-        });
-      }
-      const rawCalls = Array.isArray(ai.additional_kwargs?.tool_calls)
-        ? ai.additional_kwargs?.tool_calls
-        : [];
-      for (const call of rawCalls) {
-        const toolName = normalizeToolName(call?.function?.name);
-        if (!toolName) continue;
-        events.push({
-          name: toolName,
-          status: "selected",
-          details: toShortDetails(call?.function?.arguments),
-        });
+      const rawCalls = Array.isArray(ai.additional_kwargs?.tool_calls) ? ai.additional_kwargs?.tool_calls : [];
+      // Use only one source to avoid duplicate "Selected" for the same call (both are often populated).
+      if (directCalls.length > 0) {
+        for (const call of directCalls) {
+          const toolName = normalizeToolName(call.name);
+          if (!toolName) continue;
+          events.push({
+            name: toolName,
+            status: "selected",
+            details: toShortDetails(call.args),
+          });
+        }
+      } else {
+        for (const call of rawCalls) {
+          const toolName = normalizeToolName(call?.function?.name);
+          if (!toolName) continue;
+          events.push({
+            name: toolName,
+            status: "selected",
+            details: toShortDetails(call?.function?.arguments),
+          });
+        }
       }
     }
     if (type === "tool") {
@@ -585,12 +587,19 @@ export class LangGraphAgent implements ChatSession {
     const idx = [...messages].reverse().findIndex((m) => m.role === "assistant");
     if (idx >= 0) {
       const realIdx = messages.length - 1 - idx;
+      // When we have reasoning steps, don't keep streaming reasoning so "Current step" doesn't duplicate the last step.
+      const resolvedReasoning =
+        reasoning !== undefined
+          ? reasoning
+          : reasoningSteps?.length
+            ? undefined
+            : messages[realIdx].reasoning;
       messages[realIdx] = {
         ...messages[realIdx],
         content,
         loading: false,
         statusMessage: undefined,
-        reasoning: reasoning !== undefined ? reasoning : messages[realIdx].reasoning,
+        reasoning: resolvedReasoning,
         toolEvents: toolEvents !== undefined ? toolEvents : messages[realIdx].toolEvents,
         reasoningSteps:
           reasoningSteps !== undefined ? reasoningSteps : messages[realIdx].reasoningSteps,
