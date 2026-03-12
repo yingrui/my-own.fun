@@ -157,6 +157,7 @@
   "prompts": "Prompts",
   "reasoningModel": "Reasoning Model",
   "save": "Save",
+  "unsaved_changes": "Unsaved changes",
   "sensitive_topic": "Sensitive topic detected.",
   "hide_steps": "Hide Steps",
   "show_steps_count": "Show Steps ({count})",

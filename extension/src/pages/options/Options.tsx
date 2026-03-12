@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
 
@@ -13,12 +13,18 @@ import NavSearch from "@pages/options/components/NavSearch";
 import MoreComing from "@pages/options/components/MoreComing";
 import intl from "react-intl-universal";
 import {
-  MoreOutlined,
+  FileSearchOutlined,
+  CommentOutlined,
+  EditOutlined,
+  FileTextOutlined,
   SettingOutlined,
+  AppstoreOutlined,
 } from "@ant-design/icons";
 import PreferenceApp from "@pages/options/preference/components/PreferenceApp";
 import ChatbotApp from "@pages/options/chatbot/components/ChatbotApp";
 import DocumentIntelligenceApp from "@pages/options/document/components/DocumentIntelligenceApp";
+import useStorage from "@src/shared/hooks/useStorage";
+import configureStorage from "@src/shared/storages/gluonConfig";
 
 const { Header } = Layout;
 const MENU_KEYS = {
@@ -26,7 +32,7 @@ const MENU_KEYS = {
   SEARCH: "search",
   WRITER: "writer",
   DOCUMENT_INTELLIGENCE: "document_intelligence",
-  MORE: "more",
+  COMING_SOON: "coming_soon",
   PREFERENCE: "preference",
 };
 
@@ -36,41 +42,38 @@ const getHeaderItems = (config: GluonConfigure): MenuProps["items"] => {
     items.push({
       key: MENU_KEYS.SEARCH,
       label: intl.get("options_app_search").d("Search"),
+      icon: <FileSearchOutlined />,
     });
   }
   if (config.enableOptionsAppChatbot) {
     items.push({
       key: MENU_KEYS.CHATBOT,
       label: intl.get("options_app_chatbot").d("Fun Chat"),
+      icon: <CommentOutlined />,
     });
   }
   if (config.enableWriting) {
     items.push({
       key: MENU_KEYS.WRITER,
       label: intl.get("options_app_writer").d("Writing"),
+      icon: <EditOutlined />,
     });
   }
   items.push({
     key: MENU_KEYS.DOCUMENT_INTELLIGENCE,
     label: intl.get("options_app_document_intelligence").d("Document Intelligence"),
+    icon: <FileTextOutlined />,
   });
-  const more = {
-    key: "dropdown_more",
-    label: intl.get("options_app_dropdown_more").d("More"),
-    children: [
-      {
-        key: MENU_KEYS.PREFERENCE,
-        label: intl.get("options_app_preference").d("Preference"),
-        icon: <SettingOutlined />,
-      },
-      {
-        key: MENU_KEYS.MORE,
-        label: intl.get("options_app_more").d("Coming Soon"),
-        icon: <MoreOutlined />,
-      },
-    ],
-  };
-  items.push(more);
+  items.push({
+    key: MENU_KEYS.PREFERENCE,
+    label: intl.get("options_app_preference").d("Preference"),
+    icon: <SettingOutlined />,
+  });
+  items.push({
+    key: MENU_KEYS.COMING_SOON,
+    label: intl.get("options_app_more").d("Coming Soon"),
+    icon: <AppstoreOutlined />,
+  });
   return items;
 };
 
@@ -93,10 +96,19 @@ const Logo: React.FC<{
 );
 
 const Options: React.FC<OptionsProps> = ({ config }) => {
+  const configStorage = useStorage(configureStorage);
+  const effectiveConfig = configStorage || config;
   const [query, setQuery] = useState<string>("");
-  const headerItems = getHeaderItems(config);
-  const defaultSelectedItem = headerItems[0]?.key as string;
+  const headerItems = useMemo(() => getHeaderItems(effectiveConfig), [effectiveConfig]);
+  const defaultSelectedItem = (headerItems[0]?.key as string) || MENU_KEYS.DOCUMENT_INTELLIGENCE;
   const [selectedItem, setSelectedItem] = useState<string>(defaultSelectedItem);
+
+  useEffect(() => {
+    const keys = new Set((headerItems || []).map((item: any) => item?.key));
+    if (!keys.has(selectedItem)) {
+      setSelectedItem(defaultSelectedItem);
+    }
+  }, [headerItems, selectedItem, defaultSelectedItem]);
 
   const clickLogoOrMenuItem = (item: string) => {
     setSelectedItem(item);
@@ -123,14 +135,14 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
           />
         </div>
       </Header>
-      {selectedItem === MENU_KEYS.CHATBOT && <ChatbotApp config={config} />}
+      {selectedItem === MENU_KEYS.CHATBOT && <ChatbotApp config={effectiveConfig} />}
       {selectedItem === MENU_KEYS.SEARCH && (
-        <SearchApp config={config} query={query} onQueryChange={setQuery} />
+        <SearchApp config={effectiveConfig} query={query} onQueryChange={setQuery} />
       )}
-      {selectedItem === MENU_KEYS.WRITER && <WriterApp config={config} />}
+      {selectedItem === MENU_KEYS.WRITER && <WriterApp config={effectiveConfig} />}
       {selectedItem === MENU_KEYS.DOCUMENT_INTELLIGENCE && <DocumentIntelligenceApp />}
       {selectedItem === MENU_KEYS.PREFERENCE && <PreferenceApp />}
-      {selectedItem === MENU_KEYS.MORE && <MoreComing />}
+      {selectedItem === MENU_KEYS.COMING_SOON && <MoreComing />}
     </Layout>
   );
 };

@@ -405,6 +405,12 @@
   margin-left: 8px;
 }
 
+.models-panel-unsaved {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #d97706;
+}
+
 .provider-edit-modal .provider-detail-fields {
   padding-top: 8px;
 }

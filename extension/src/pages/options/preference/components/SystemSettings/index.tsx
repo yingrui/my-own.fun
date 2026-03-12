@@ -24,6 +24,7 @@ const SystemSettings: React.FC<SystemSettingsProps> = ({
     <Layout className={"system-settings-app"}>
       <div className={"system-settings"}>
         <div className="form-container">
+          <h3 className="system-settings-title">{intl.get("system").d("System")}</h3>
           <Form
             name="system"
             layout="vertical"
@@ -62,7 +63,7 @@ const SystemSettings: React.FC<SystemSettingsProps> = ({
                 ]}
               />
             </Form.Item>
-            <Form.Item label={null}>
+            <Form.Item label={null} className="system-settings-actions">
               <Button key="create" type="primary" htmlType="submit">
                 {intl.get("save").d("Save")}
               </Button>

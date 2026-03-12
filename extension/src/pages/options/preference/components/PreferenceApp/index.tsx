@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { Button, Layout, Menu, message } from "antd";
+import { Layout, Menu, message } from "antd";
 import type { MenuProps } from "antd";
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   ProfileOutlined,
   RobotOutlined,
   ToolOutlined,
@@ -16,8 +14,7 @@ import useStorage from "@src/shared/hooks/useStorage";
 import ModelSettings from "@pages/options/preference/components/ModelSettings";
 import FeatureToggles from "@pages/options/preference/components/FeatureToggles";
 import SystemSettings from "@pages/options/preference/components/SystemSettings";
-
-const { Sider } = Layout;
+import AppShell from "@src/shared/components/AppShell";
 
 const PREFERENCE_MENU_KEYS = {
   MODEL_SETTINGS: "model_settings",
@@ -81,28 +78,11 @@ const PreferenceApp: React.FC = () => {
   };
 
   return (
-    <Layout>
-      <Sider
-        id="preference-left-sider"
-        width={300}
-        collapsedWidth={64}
-        style={{ height: "auto" }}
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-      >
-        <div className="left-sider-title">
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: "16px",
-              width: 64,
-              height: 64,
-            }}
-          />
-        </div>
+    <AppShell
+      siderId="preference-left-sider"
+      collapsed={collapsed}
+      onToggleCollapsed={() => setCollapsed(!collapsed)}
+      sider={
         <Menu
           theme="light"
           mode="inline"
@@ -112,8 +92,9 @@ const PreferenceApp: React.FC = () => {
           style={{ borderRight: 0 }}
           onClick={handleMenuClick}
         />
-      </Sider>
-      <Layout className="preference-content-layout">
+      }
+      content={
+        <Layout className="preference-content-layout">
         {selectedKey === PREFERENCE_MENU_KEYS.MODEL_SETTINGS && (
           <ModelSettings
             config={initData}
@@ -132,8 +113,9 @@ const PreferenceApp: React.FC = () => {
             onSaveSettings={onSaveSettings}
           ></SystemSettings>
         )}
-      </Layout>
-    </Layout>
+        </Layout>
+      }
+    />
   );
 };
 

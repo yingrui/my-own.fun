@@ -7,7 +7,7 @@ import ChatConversation, {
 import withErrorBoundary from "@src/shared/hoc/withErrorBoundary";
 import withSuspense from "@src/shared/hoc/withSuspense";
 import { installContentScriptCommandListener } from "@src/shared/utils";
-import { Typography } from "antd";
+import { Button, Typography } from "antd";
 import { useEffect, useRef } from "react";
 import intl from "react-intl-universal";
 import styles from "./SidePanel.module.scss";
@@ -46,6 +46,7 @@ function SidePanel(props: Record<string, unknown>) {
   }, []);
 
   if (!configStorage.apiKey || !configStorage.baseURL) {
+    const openOptions = () => chrome.runtime.openOptionsPage();
     return (
       <div className={styles.warning}>
         <Text>
@@ -53,6 +54,9 @@ function SidePanel(props: Record<string, unknown>) {
             .get("miss_required_settings")
             .d("Please complete the API configuration first.")}
         </Text>
+        <Button type="primary" size="small" onClick={openOptions}>
+          {intl.get("options_app_preference").d("Preference")}
+        </Button>
       </div>
     );
   }

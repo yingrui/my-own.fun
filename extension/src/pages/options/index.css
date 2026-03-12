@@ -1,7 +1,8 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: var(--gm-font-family);
   margin: 0;
   height: 100vh;
+  background: var(--gm-color-bg);
 }
 
 #app-container {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Button, Checkbox, Input, Modal, Radio, Typography } from "antd";
 import { PlusOutlined, RobotOutlined, DeleteOutlined, SearchOutlined, EditOutlined, ApiOutlined } from "@ant-design/icons";
 import "./index.css";
@@ -63,6 +63,7 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ config, onSaveSettings })
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(config.providers?.[0]?.id ?? null);
   const [providerSearch, setProviderSearch] = useState("");
   const [editingProviderDraft, setEditingProviderDraft] = useState<ProviderEntry | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const selectedProviderIndex = providers.findIndex((p) => p.id === selectedProviderId);
   const selectedProvider = selectedProviderIndex >= 0 ? providers[selectedProviderIndex] : null;
@@ -142,14 +143,14 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ config, onSaveSettings })
     setModels((prev) => prev.filter((m) => !(m.id === modelId && m.providerId === selectedProviderId)));
   };
 
-  const onSave = () => {
+  const buildSavePayload = () => {
     const modelsNorm = models.map((m, i) => ({
       ...m,
       providerId: m.providerId || providers[0]?.id,
       isDefault: m.id === defaultModelId || (defaultModelId == null && i === 0),
     }));
     const firstProvider = providers[0];
-    onSaveSettings({
+    return {
       ...config,
       providers,
       models: modelsNorm,
@@ -157,7 +158,20 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ config, onSaveSettings })
       apiKey: firstProvider?.apiKey ?? "",
       baseURL: firstProvider?.baseURL ?? "",
       organization: firstProvider?.organization ?? "",
-    });
+    };
+  };
+
+  const initialPayloadRef = useRef(JSON.stringify(buildSavePayload()));
+
+  useEffect(() => {
+    setHasUnsavedChanges(JSON.stringify(buildSavePayload()) !== initialPayloadRef.current);
+  }, [providers, models, defaultModelId]);
+
+  const onSave = () => {
+    const payload = buildSavePayload();
+    onSaveSettings(payload);
+    initialPayloadRef.current = JSON.stringify(payload);
+    setHasUnsavedChanges(false);
   };
 
   return (
@@ -241,9 +255,10 @@ const ModelSettings: React.FC<ModelSettingsProps> = ({ config, onSaveSettings })
                 <span className="models-panel-desc">
                   {intl.get("model_settings_providers_hint").d("Configure API and manage models for this provider.")}
                 </span>
-                <Button type="primary" size="small" onClick={onSave} className="models-panel-save-btn">
+                <Button type="primary" size="small" onClick={onSave} className="models-panel-save-btn" disabled={!hasUnsavedChanges}>
                   {intl.get("save").d("Save")}
                 </Button>
+                {hasUnsavedChanges && <span className="models-panel-unsaved">{intl.get("unsaved_changes").d("Unsaved changes")}</span>}
               </div>
 
               <div className="model-section-header">

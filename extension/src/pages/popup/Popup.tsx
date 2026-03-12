@@ -50,6 +50,10 @@ const Popup: React.FC<PopupProps> = ({ config, copilot }) => {
 
   return (
     <div className="container">
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <img src="/icons/logo.png" alt="logo" style={{ width: 28, height: 28, borderRadius: 6 }} />
+        <strong>{intl.get("assistant_name").d("myFun")}</strong>
+      </div>
       <div className="popup-content">
         {isLoading && (
           <div
@@ -89,7 +93,7 @@ const Popup: React.FC<PopupProps> = ({ config, copilot }) => {
           {intl.get("open_more_tools").d("More Tools")}
         </Button>
       </div>
-      <p style={{ textAlign: "center" }}>
+      <p style={{ textAlign: "center", marginBottom: 0, color: "var(--gm-color-muted)", fontSize: 12 }}>
         <a href="https://github.com/yingrui/my-own.fun">
           {intl.get("assistant_name").d("myFun")}
         </a>{" "}

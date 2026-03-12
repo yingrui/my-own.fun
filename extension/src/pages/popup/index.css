@@ -1,24 +1,32 @@
 body {
-  font-family: Arial, sans-serif;
-  margin: 10px;
+  font-family: var(--gm-font-family);
+  margin: 0;
+  background: var(--gm-color-bg);
 }
 
 .container {
-  width: 500px;
-  padding: 0px 20px;
+  width: 480px;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--gm-color-surface);
+  border: 1px solid var(--gm-color-border);
+  border-radius: var(--gm-radius-lg);
+  margin: 10px;
+  box-shadow: var(--gm-shadow-soft);
 
   .popup-content {
-    padding-top: 5px;
-    height: 300px;
+    padding-top: 8px;
+    height: 280px;
     overflow: auto;
   }
 
   .popup-footer {
     display: flex;
     justify-content: center;
+    gap: 8px;
   }
 
   .ant-btn {
-    margin: 0 5px;
+    margin: 0;
   }
 }

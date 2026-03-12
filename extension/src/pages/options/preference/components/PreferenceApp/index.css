@@ -1,12 +1,6 @@
-.left-sider-title {
-  height: 64px;
-}
-
 #preference-left-sider {
-  background-color: #fff;
-  border-right-width: 1px;
-  border-right-style: solid;
-  border-right-color: #ccc;
+  background-color: var(--gm-color-surface);
+  border-right: 1px solid var(--gm-color-border);
 }
 
 /* Content area: fill remaining width and scroll */
@@ -17,7 +11,7 @@
   overflow: auto;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--gm-color-bg);
 }
 
 .preference-content-layout .basic-settings-app {
@@ -25,6 +19,7 @@
   min-width: 0;
 }
 
-.ant-form-item {
-  margin-bottom: 8px;
+#preference-left-sider .ant-menu-item {
+  border-radius: var(--gm-radius-sm);
+  margin-inline: 8px;
 }

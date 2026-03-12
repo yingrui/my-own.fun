@@ -1,0 +1,32 @@
+.app-shell {
+  min-height: calc(100vh - 64px);
+  background: var(--gm-color-bg);
+}
+
+.app-shell-sider {
+  background: var(--gm-color-surface);
+  border-right: 1px solid var(--gm-color-border);
+}
+
+.app-shell-sider-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.app-shell-toggle {
+  font-size: 16px;
+  width: 64px;
+  height: 64px;
+}
+
+.app-shell-toggle.ant-btn.ant-btn-icon-only {
+  width: 64px;
+  height: 64px;
+  padding-inline: 0;
+}
+
+.app-shell-main {
+  background: var(--gm-color-surface);
+  min-width: 0;
+}

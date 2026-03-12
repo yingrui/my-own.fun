@@ -40,6 +40,9 @@ const SearchHome: React.FC<SearchHomeProps> = ({ query, onQueryChange }) => {
           <img src={"/icons/logo.svg"} />
           <h6>{intl.get("options_search_ask_assistant").d("Ask myFun")}</h6>
         </div>
+        <p className="search-subtitle">
+          {intl.get("options_search_textarea_placeholder").d("Hit Enter to search.")}
+        </p>
       </div>
       <div className={"search-input-first-page"}>
         <div className={"search-input-area"}>

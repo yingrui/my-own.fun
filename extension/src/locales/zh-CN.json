@@ -157,6 +157,7 @@
   "prompts": "提示词",
   "reasoningModel": "推理模型",
   "save": "保存",
+  "unsaved_changes": "有未保存更改",
   "sensitive_topic": "检测到敏感话题！",
   "hide_steps": "隐藏步骤",
   "show_steps_count": "显示步骤 ({count})",
