@@ -16,6 +16,8 @@ import AssistantDialog from "@pages/options/writer/components/AssistantDialog";
 import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import intl from "react-intl-universal";
 import toolbarCommands from "@pages/options/writer/components/CustomToolbar";
+import configureStorage from "@src/shared/storages/gluonConfig";
+import useStorage from "@src/shared/hooks/useStorage";
 
 const { Header, Content } = Layout;
 
@@ -79,10 +81,31 @@ const WriterEditor: React.FC<WriterEditorProps> = ({ context, agent }) => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const config = useStorage(configureStorage);
+  const themeMode = config.themeMode ?? "auto";
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   const [value, setValue] = useState(context.getContent());
   const [title, setTitle] = useState(context.getTitle());
   const [editorLoaded, setEditorLoaded] = useState(false);
   const textareaId = "writer-editor-textarea";
+
+  useEffect(() => {
+    if (!window.matchMedia) return;
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (event: MediaQueryListEvent) => setIsDark(event.matches);
+
+    setIsDark(media.matches);
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 
   useEffect(() => {
     function checkTextarea() {
@@ -110,6 +133,9 @@ const WriterEditor: React.FC<WriterEditorProps> = ({ context, agent }) => {
     setTitle(newTitle);
   };
 
+  const editorColorMode =
+    themeMode === "dark" ? "dark" : themeMode === "light" ? "light" : isDark ? "dark" : "light";
+
   return (
     <Layout style={{ paddingRight: 36 }}>
       <Header style={{ padding: 0, background: colorBgContainer }}>
@@ -131,27 +157,29 @@ const WriterEditor: React.FC<WriterEditorProps> = ({ context, agent }) => {
           borderRadius: borderRadiusLG,
         }}
       >
-        <MDEditor
-          onChange={updateContent}
-          textareaProps={{
-            id: textareaId,
-            placeholder: intl
-              .get("options_app_writer_content_placeholder")
-              .d(
-                "Please enter Markdown text, type Alt+Enter to ask AI assistant",
-              ),
-            onClick: handleMouseClick,
-          }}
-          highlightEnable={false}
-          height={"100%"}
-          value={value}
-          previewOptions={{
-            components: {
-              code: Code,
-            },
-          }}
-          commands={toolbarCommands(context)}
-        />
+        <div data-color-mode={editorColorMode} style={{ height: "100%" }}>
+          <MDEditor
+            onChange={updateContent}
+            textareaProps={{
+              id: textareaId,
+              placeholder: intl
+                .get("options_app_writer_content_placeholder")
+                .d(
+                  "Please enter Markdown text, type Alt+Enter to ask AI assistant",
+                ),
+              onClick: handleMouseClick,
+            }}
+            highlightEnable={false}
+            height={"100%"}
+            value={value}
+            previewOptions={{
+              components: {
+                code: Code,
+              },
+            }}
+            commands={toolbarCommands(context)}
+          />
+        </div>
         {editorLoaded && (
           <AssistantDialog
             dialogWidth={500}

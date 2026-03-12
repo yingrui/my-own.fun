@@ -25,6 +25,7 @@ const SETTINGS_CATEGORY_MAP: Record<string, string> = {
   contextLength: "Basic",
   // System (language moved from Basic UI to System Settings)
   language: "System",
+  themeMode: "System",
   // Feature Toggles
   enableFloatingBall: "Features",
   enableReflection: "Features",

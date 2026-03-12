@@ -45,6 +45,18 @@ const SystemSettings: React.FC<SystemSettingsProps> = ({
               />
             </Form.Item>
             <Form.Item
+              name="themeMode"
+              label={intl.get("themeMode").d("Theme Mode")}
+            >
+              <Select
+                options={[
+                  { value: "auto", label: intl.get("theme_auto").d("Auto (System)") },
+                  { value: "light", label: intl.get("theme_light").d("Light") },
+                  { value: "dark", label: intl.get("theme_dark").d("Dark") },
+                ]}
+              />
+            </Form.Item>
+            <Form.Item
               name="contextLength"
               label={intl.get("contextLength").d("Context Length")}
             >

@@ -43,6 +43,7 @@ export type GluonConfigure = {
   baCopilotApi: string;
   baCopilotTechDescription: string;
   language: string;
+  themeMode: "auto" | "light" | "dark";
   enableFloatingBall: boolean;
   enableReflection: boolean;
   enableMultimodal: boolean;
@@ -100,6 +101,7 @@ export const DEFAULT_GM_CONFIG_VALUE: GluonConfigure = {
   baCopilotApi: "",
   baCopilotTechDescription: "",
   language: "English",
+  themeMode: "auto",
   enableFloatingBall: true,
   enableReflection: false,
   enableMultimodal: false,
@@ -140,6 +142,7 @@ export function normalizeConfig(config: GluonConfigure): GluonConfigure {
 
   return {
     ...config,
+    themeMode: config.themeMode === "dark" || config.themeMode === "light" ? config.themeMode : "auto",
     providers,
     models: modelsWithProvider,
     apiKey: first?.apiKey ?? config.apiKey,
