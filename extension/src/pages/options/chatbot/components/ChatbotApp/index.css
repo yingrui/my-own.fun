@@ -20,7 +20,7 @@
 .chatbot-sider-tip {
   font-size: 12px;
   color: var(--gm-color-muted);
-  background: #f8fafc;
+  background: var(--gm-color-surface-muted);
   border: 1px solid var(--gm-color-border);
   border-radius: var(--gm-radius-sm);
   padding: 10px;

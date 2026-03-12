@@ -3,10 +3,10 @@
 }
 
 #writer-left-sider {
-  background-color: #fff;
+  background-color: var(--gm-color-surface);
   border-right-width: 1px;
   border-right-style: solid;
-  border-right-color: #ccc;
+  border-right-color: var(--gm-color-border);
 }
 
 #writer-left-sider .ant-layout-sider-children {

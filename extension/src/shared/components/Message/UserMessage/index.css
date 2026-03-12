@@ -33,7 +33,7 @@
 }
 
 .message-content {
-  background: #f3f4f6;
+  background: var(--gm-color-surface-subtle);
   border-radius: 14px;
   padding: 4px 14px;
   word-break: break-word;
@@ -44,11 +44,11 @@
 }
 
 .bot-message-content {
-  background: #f3f4f6;
+  background: var(--gm-color-surface-subtle);
 }
 
 .user-message-content {
-  background: #d1e9ff80;
+  background: var(--gm-color-selected-bg);
   margin-left: 16px;
 }
 
@@ -121,9 +121,9 @@ div.ant-collapse-content-box {
 
 .markdown th {
   border: 0 solid #e3e3e3;
-  background-color: rgba(0,0,0,.15);
+  background-color: var(--gm-color-table-header-bg);
   border-bottom-width: 1px;
-  border-color: rgba(0,0,0,.15);
+  border-color: var(--gm-color-table-header-bg);
   border-left-width: 1px;
   border-top-width: 1px;
   padding: .25rem .75rem
@@ -141,7 +141,7 @@ div.ant-collapse-content-box {
 .markdown td {
   border: 0 solid #e3e3e3;
   border-bottom-width: 1px;
-  border-color: rgba(0,0,0,.15);
+  border-color: var(--gm-color-table-header-bg);
   border-left-width: 1px;
   padding: .25rem .75rem
 }

@@ -1,5 +1,5 @@
 .more-coming-soon {
-  background-color: #fff;
+  background-color: var(--gm-color-surface);
 }
 
 .more-coming-soon-icon-area {

@@ -1,3 +1,3 @@
 .search-app {
-  background: #fff;
+  background: var(--gm-color-surface);
 }

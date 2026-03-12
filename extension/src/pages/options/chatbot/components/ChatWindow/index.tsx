@@ -17,7 +17,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent }) => {
   const isNewConversation = () => _.isEmpty(question);
 
   return (
-    <Layout style={{ backgroundColor: "white" }}>
+    <Layout className="chat-window-layout">
       {isNewConversation() && (
         <Greeting
           onQuestionChange={setQuestion}
