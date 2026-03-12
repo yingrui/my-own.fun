@@ -13,7 +13,7 @@ import mermaid from "mermaid";
 import "./index.css";
 import WriterContext from "@pages/options/writer/context/WriterContext";
 import AssistantDialog from "@pages/options/writer/components/AssistantDialog";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import intl from "react-intl-universal";
 import toolbarCommands from "@pages/options/writer/components/CustomToolbar";
 
@@ -71,7 +71,7 @@ Code.propTypes = {
 
 interface WriterEditorProps {
   context: WriterContext;
-  agent: DelegateAgent;
+  agent: ChatSession;
 }
 
 const WriterEditor: React.FC<WriterEditorProps> = ({ context, agent }) => {

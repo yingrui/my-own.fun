@@ -5,7 +5,7 @@ import MDEditor from "@uiw/react-md-editor";
 import "./index.css";
 import WriterContext from "@pages/options/writer/context/WriterContext";
 import AssistantDialog from "@pages/options/writer/components/AssistantDialog";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import intl from "react-intl-universal";
 import toolbarCommands from "@pages/options/writer/components/CustomToolbar";
 
@@ -13,7 +13,7 @@ const { Header, Content } = Layout;
 
 interface WriterEditorWithoutMermaidProps {
   context: WriterContext;
-  agent: DelegateAgent;
+  agent: ChatSession;
 }
 
 const WriterEditor: React.FC<WriterEditorWithoutMermaidProps> = ({

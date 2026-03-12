@@ -3,12 +3,12 @@ import { type MentionProps, Mentions } from "antd";
 import "./index.css";
 import intl from "react-intl-universal";
 import { delay } from "@src/shared/utils";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import type { MentionsRef } from "antd/lib/mentions";
 
 interface GreetingProps {
   onQuestionChange: (query: string) => void;
-  agent: DelegateAgent;
+  agent: ChatSession;
   enableClearCommand?: boolean;
 }
 
@@ -61,11 +61,11 @@ const Greeting: React.FC<GreetingProps> = ({
 
   function getCommandOptions() {
     if (prefix === "@") {
-      return agent.getAgentOptions();
+      return agent.getAgentOptions?.() ?? [];
     }
 
     if (prefix === "/") {
-      const options = agent.getCommandOptions();
+      const options = agent.getCommandOptions?.() ?? [];
       if (enableClearCommand) {
         options.push({ value: "clear", label: "/clear" }); // add clear command
       }

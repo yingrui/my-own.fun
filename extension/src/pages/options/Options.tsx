@@ -11,10 +11,8 @@ import "@pages/options/Options.css";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import NavSearch from "@pages/options/components/NavSearch";
 import MoreComing from "@pages/options/components/MoreComing";
-import HistoryApp from "@pages/options/history/components/HistoryApp";
 import intl from "react-intl-universal";
 import {
-  HistoryOutlined,
   MoreOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
@@ -27,7 +25,6 @@ const MENU_KEYS = {
   CHATBOT: "chatbot",
   SEARCH: "search",
   WRITER: "writer",
-  HISTORY: "history",
   DOCUMENT_INTELLIGENCE: "document_intelligence",
   MORE: "more",
   PREFERENCE: "preference",
@@ -73,13 +70,6 @@ const getHeaderItems = (config: GluonConfigure): MenuProps["items"] => {
       },
     ],
   };
-  if (config.enableHistoryRecording) {
-    more.children.unshift({
-      key: MENU_KEYS.HISTORY,
-      label: intl.get("options_app_history").d("History"),
-      icon: <HistoryOutlined />,
-    });
-  }
   items.push(more);
   return items;
 };
@@ -104,7 +94,8 @@ const Logo: React.FC<{
 
 const Options: React.FC<OptionsProps> = ({ config }) => {
   const [query, setQuery] = useState<string>("");
-  const defaultSelectedItem = getHeaderItems(config)[0].key as string;
+  const headerItems = getHeaderItems(config);
+  const defaultSelectedItem = headerItems[0]?.key as string;
   const [selectedItem, setSelectedItem] = useState<string>(defaultSelectedItem);
 
   const clickLogoOrMenuItem = (item: string) => {
@@ -138,7 +129,6 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
       )}
       {selectedItem === MENU_KEYS.WRITER && <WriterApp config={config} />}
       {selectedItem === MENU_KEYS.DOCUMENT_INTELLIGENCE && <DocumentIntelligenceApp />}
-      {selectedItem === MENU_KEYS.HISTORY && <HistoryApp config={config} />}
       {selectedItem === MENU_KEYS.PREFERENCE && <PreferenceApp />}
       {selectedItem === MENU_KEYS.MORE && <MoreComing />}
     </Layout>

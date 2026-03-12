@@ -23,8 +23,9 @@ interface MessageProps {
 }
 
 const getStepComponents = (
-  interaction: Interaction,
+  interaction?: Interaction,
 ): CollapseProps["items"] => {
+  if (!interaction) return [];
   return interaction.getSteps().map((step, index) => {
     const label = step.type === "execute" ? step.action : step.type;
     return {
@@ -54,10 +55,10 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   }
 
   function getUserInputMessage(): string {
-    if (role === "user") {
+    if (role === "user" && interaction?.inputMessage) {
       return interaction.inputMessage.getContentText();
     }
-    return "";
+    return getContent();
   }
 
   function handleCopy() {
@@ -78,7 +79,10 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   }
 
   function shouldSpin(): boolean {
-    return interaction && interaction.getStatus() !== "Completed";
+    if (typeof loading === "boolean") {
+      return loading;
+    }
+    return !!interaction && interaction.getStatus() !== "Completed";
   }
 
   function handleShowSteps() {
@@ -95,6 +99,9 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
     );
   }
 
+  const hasContent = !!getContent();
+  const spinning = shouldSpin() && !hasContent;
+
   return (
     <div ref={messagesRef} className={"message-item message-assistant"}>
       <div className="avatar">
@@ -102,8 +109,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
         <span>{name}</span>
       </div>
       <div className={"message-content bot-message-content"}>
-        {shouldSpin() && (
-          // When content is empty
+        {spinning && (
           <div className={"message-spin"}>
             <Spin />
             {interaction && (
@@ -111,11 +117,11 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
             )}
           </div>
         )}
-        {shouldSpin() && (
+        {shouldSpin() && steps && steps.length > 0 && (
           <Collapse
             accordion
             items={steps}
-            activeKey={steps.length - 1} // the last step is expanded
+            activeKey={steps.length - 1}
             ghost={true}
           />
         )}

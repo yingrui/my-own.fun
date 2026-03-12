@@ -74,7 +74,6 @@ Boolean flags that enable/disable various features:
 - **AI Assistant** (`enableOptionsAppChatbot`) - Enable chatbot in options app (default: `false`)
 - **Architect Tools** (`enableOptionsAppArchitect`) - Enable architecture tools (default: `true`)
 - **Writing Tools** (`enableWriting`) - Enable writing assistant tools (default: `false`)
-- **History Records** (`enableHistoryRecording`) - Enable conversation history recording (default: `false`)
 
 #### 3. BA Copilot Settings
 Configuration for Business Analyst Copilot features:
@@ -116,10 +115,6 @@ The data model is organized around **Chrome Profile nodes** as the central entit
 - **Category nodes** - Grouping settings by category (Basic, Features, BA Copilot, System)
   - Relationship: `(Setting)-[:BELONGS_TO]->(Category)`
 
-- **History nodes** - Track changes over time with timestamps, linked to profiles
-  - Relationship: `(Profile)-[:HAS_HISTORY]->(History)`
-  - Properties: `settingKey`, `oldValue`, `newValue`, `timestamp`, `changeType`
-
 - **Template nodes** - Store prompt templates with relationships to agents/classes, scoped to profiles
   - Relationship: `(Profile)-[:HAS_TEMPLATE]->(Template)`
   - Properties: `name`, `class`, `template`, `parameters`, `signature`, `allowEmpty`
@@ -139,7 +134,6 @@ This graph structure allows for:
 - **Profile isolation** - Complete data separation between different Chrome profiles
 - **Querying by profile** - Efficiently retrieve all settings/data for a specific profile
 - **Querying by category** - Get settings by category within a profile context
-- **Tracking changes** - Monitor setting changes and history per profile
 - **Cross-device sync** - Synchronize data for the same profile across devices
 - **Multi-profile support** - Support multiple users/profiles on the same machine
 - **Data relationships** - Establish relationships between settings and other entities within a profile
@@ -158,10 +152,6 @@ RETURN s
 // Get all templates for a profile
 MATCH (p:ChromeProfile {profileId: $profileId})-[:HAS_TEMPLATE]->(t:Template)
 RETURN t
-
-// Get setting change history for a profile
-MATCH (p:ChromeProfile {profileId: $profileId})-[:HAS_HISTORY]->(h:History)
-RETURN h ORDER BY h.timestamp DESC
 
 // Create a new setting for a profile
 MATCH (p:ChromeProfile {profileId: $profileId})
@@ -278,10 +268,6 @@ The following API endpoints will be implemented:
 - `POST /api/v1/profiles/{profileId}/templates` - Create a new template
 - `PUT /api/v1/profiles/{profileId}/templates/{templateId}` - Update a template
 - `DELETE /api/v1/profiles/{profileId}/templates/{templateId}` - Delete a template
-
-#### History
-- `GET /api/v1/profiles/{profileId}/history` - Get settings change history
-- `GET /api/v1/profiles/{profileId}/history/{settingKey}` - Get history for a specific setting
 
 ### API Documentation
 

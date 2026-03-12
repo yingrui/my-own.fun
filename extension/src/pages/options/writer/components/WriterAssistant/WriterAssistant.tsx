@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { CloseOutlined } from "@ant-design/icons";
 import WriterContext from "@pages/options/writer/context/WriterContext";
 import styles from "@pages/sidepanel/SidePanel.module.scss";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import ChatConversation, {
   ChatConversationRef,
 } from "@src/shared/components/ChatConversation";
@@ -16,7 +16,7 @@ const { Text } = Typography;
 
 interface WriterAssistantProps {
   context: WriterContext;
-  agent: DelegateAgent;
+  agent: ChatSession;
 }
 
 const WriterAssistant: React.FC<WriterAssistantProps> = ({

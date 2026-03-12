@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { type MentionProps, Mentions, Modal, Spin } from "antd";
 import getCaretCoordinates from "textarea-caret";
 import { delay } from "@src/shared/utils";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
+import type { ChatSession, SessionState } from "@src/shared/langgraph/runtime/types";
 import WriterContext from "@pages/options/writer/context/WriterContext";
 import "./index.css";
 import intl from "react-intl-universal";
@@ -11,7 +10,7 @@ import intl from "react-intl-universal";
 interface DialogProps {
   textareaId: string;
   dialogWidth: number;
-  agent: DelegateAgent;
+  agent: ChatSession;
   context: WriterContext;
   setValue: (value: string) => void;
 }
@@ -37,6 +36,16 @@ const AssistantDialog: React.FC<DialogProps> = ({
   const inputMethodRef = useRef<boolean>(false);
   const commandRef = useRef<boolean>();
   // End of Mentions Component
+
+  function getLatestAssistantText(state: SessionState, onlyLoading = false): string {
+    for (let i = state.messages.length - 1; i >= 0; i -= 1) {
+      const msg = state.messages[i];
+      if (msg.role === "assistant" && (!onlyLoading || msg.loading)) {
+        return msg.content ?? "";
+      }
+    }
+    return "";
+  }
 
   useEffect(() => {
     // Install keydown event listener
@@ -91,12 +100,18 @@ const AssistantDialog: React.FC<DialogProps> = ({
     const doc = textarea.value;
     const before = doc.substring(0, selectionStart);
     const after = doc.substring(selectionEnd);
-    agent.onMessageChange((msg) => {
-      const newDoc = before + msg + after;
-      textarea.value = newDoc;
+    const unsubscribe = agent.onStateChange((state) => {
+      const msg = getLatestAssistantText(state, true);
+      if (msg) {
+        const newDoc = before + msg + after;
+        textarea.value = newDoc;
+      }
     });
-    const thought = await agent.executeCommandWithUserInput("autocomplete");
-    const content = await thought.getMessage();
+    const content = await agent.executeCommandWithUserInput?.("autocomplete");
+    unsubscribe();
+    if (!content) {
+      return;
+    }
     const newDoc = before + content + after;
     setValue(newDoc);
     setTimeout(() => {
@@ -144,14 +159,13 @@ const AssistantDialog: React.FC<DialogProps> = ({
     updateSelectionRange();
 
     setGenerating(true);
-    agent.onMessageChange((msg) => {
-      setCurrentText(msg);
+    const unsubscribe = agent.onStateChange((state) => {
+      setGenerating(state.generating);
+      setCurrentText(getLatestAssistantText(state, true));
     });
 
-    const thought = await agent.chat(
-      new ChatMessage({ role: "user", content: text }),
-    );
-    const content = await thought.getMessage();
+    const content = await agent.chat(text);
+    unsubscribe();
 
     setGenerating(false);
     setText("");
@@ -189,7 +203,7 @@ const AssistantDialog: React.FC<DialogProps> = ({
 
   function getCommandOptions() {
     if (prefix === "/") {
-      return agent.getCommandOptions();
+      return agent.getCommandOptions?.() ?? [];
     }
   }
 

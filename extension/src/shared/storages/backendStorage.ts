@@ -31,7 +31,6 @@ const SETTINGS_CATEGORY_MAP: Record<string, string> = {
   enableOptionsAppSearch: "Features",
   enableOptionsAppChatbot: "Features",
   enableWriting: "Features",
-  enableHistoryRecording: "Features",
   // BA Copilot
   baCopilotKnowledgeApi: "BA Copilot",
   baCopilotApi: "BA Copilot",
@@ -39,6 +38,30 @@ const SETTINGS_CATEGORY_MAP: Record<string, string> = {
   // System
   logLevel: "System",
 };
+
+/** Keys that should be booleans; backend may return "True"/"False" strings */
+const BOOLEAN_KEYS = new Set([
+  "enableFloatingBall", "enableReflection", "enableMultimodal", "enableChainOfThoughts",
+  "enableSearch", "enableOptionsAppSearch", "enableOptionsAppChatbot",
+  "enableWriting",
+]);
+
+function normalizeBackendSettings<D extends Record<string, any>>(raw: Record<string, any>, fallback: D): D {
+  const out = { ...fallback };
+  for (const [k, v] of Object.entries(raw)) {
+    if (!(k in fallback)) continue;
+    if (BOOLEAN_KEYS.has(k)) {
+      const s = typeof v === "string" ? v.toLowerCase() : String(v);
+      (out as Record<string, any>)[k] = s === "true" || s === "1";
+    } else if (k === "contextLength" && typeof fallback.contextLength === "number") {
+      const n = Number(v);
+      (out as Record<string, any>)[k] = Number.isFinite(n) ? n : fallback.contextLength;
+    } else {
+      (out as Record<string, any>)[k] = v;
+    }
+  }
+  return out;
+}
 
 /**
  * Create a backend-based storage with local fallback
@@ -73,9 +96,13 @@ export function createBackendStorage<D extends Record<string, any>>(
     try {
       const settings = await getSettings();
       if (settings && Object.keys(settings).length > 0) {
-        cache = { ...fallback, ...settings } as D;
+        cache = normalizeBackendSettings(settings, fallback);
       } else {
-        cache = fallback;
+        const value = await chrome.storage.local.get([key]);
+        const localData = value[key];
+        cache = (localData && typeof localData === "object" && Object.keys(localData).length > 0
+          ? normalizeBackendSettings(localData as Record<string, any>, fallback)
+          : fallback) as D;
       }
       _emitChange();
     } catch (error) {
@@ -87,7 +114,12 @@ export function createBackendStorage<D extends Record<string, any>>(
   const loadFromLocalStorage = async () => {
     try {
       const value = await chrome.storage.local.get([key]);
-      cache = (value[key] || fallback) as D;
+      const raw = value[key];
+      if (raw && typeof raw === "object" && Object.keys(raw).length > 0) {
+        cache = normalizeBackendSettings(raw as Record<string, any>, fallback);
+      } else {
+        cache = fallback;
+      }
       _emitChange();
     } catch (error) {
       console.error("Failed to load from local storage:", error);
@@ -194,9 +226,12 @@ export function createBackendStorage<D extends Record<string, any>>(
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === "local" && changes[key]) {
       const newValue = changes[key].newValue;
-      if (newValue && JSON.stringify(newValue) !== JSON.stringify(cache)) {
-        cache = newValue as D;
-        _emitChange();
+      if (newValue && typeof newValue === "object") {
+        const normalized = normalizeBackendSettings(newValue as Record<string, any>, fallback);
+        if (JSON.stringify(normalized) !== JSON.stringify(cache)) {
+          cache = normalized as D;
+          _emitChange();
+        }
       }
     }
   });

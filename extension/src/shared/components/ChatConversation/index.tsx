@@ -1,12 +1,9 @@
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import SensitiveTopicError from "@src/shared/agents/core/errors/SensitiveTopicError";
-import Thought from "@src/shared/agents/core/Thought";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
 import Message from "@src/shared/components/Message";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
-import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
+import type { ChatSession, SessionMessage } from "@src/shared/langgraph/runtime/types";
 import { delay } from "@src/shared/utils";
-import { type MentionProps, Mentions } from "antd";
+import { type MentionProps, Mentions, message as antdMessage } from "antd";
 import type { MentionsRef } from "antd/lib/mentions";
 import {
   forwardRef,
@@ -17,10 +14,9 @@ import {
 } from "react";
 import intl from "react-intl-universal";
 import style from "./ChatConversation.module.scss";
-import Interaction from "../../agents/core/Interaction";
 
 interface ChatConversationProps {
-  agent: DelegateAgent;
+  agent: ChatSession;
   question?: string;
   enableClearCommand?: boolean;
 }
@@ -29,8 +25,8 @@ interface ChatConversationRef {
   generating: boolean;
   generateReply: (
     userInput: string,
-    callback: () => Promise<any>,
-  ) => Promise<any>;
+    callback: () => Promise<string>,
+  ) => Promise<string>;
 }
 
 type PrefixType = "@" | "/";
@@ -44,26 +40,19 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
     const commandRef = useRef<boolean>();
     const inputMethodRef = useRef<boolean>(false);
-    const [messagesWithInteraction, setMessagesWithInteraction] = useState<
-      {
-        message: ChatMessage;
-        interaction: Interaction;
-      }[]
-    >(agent.getConversation().getMessagesWithInteraction());
+    const [messages, setMessages] = useState<SessionMessage[]>(
+      agent.getState().messages,
+    );
 
     useEffect(() => {
-      agent.getConversation().onInteractionStarted(() => {
-        setMessagesWithInteraction(
-          agent.getConversation().getMessagesWithInteraction(),
-        );
+      const unsubscribe = agent.onStateChange((state) => {
+        setMessages(state.messages);
+        setGenerating(state.generating);
       });
       if (question) {
-        generateReply(question, () =>
-          agent.chat(new ChatMessage({ role: "user", content: question })),
-        ).then((msg) => {
-          // do something with the message
-        });
+        generateReply(question, () => agent.chat(question));
       }
+      return () => unsubscribe();
     }, []);
 
     async function handleSubmit() {
@@ -80,14 +69,11 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         text.startsWith("/c") ||
         text.startsWith("/cl")
       ) {
-        const initMessages = [];
-        agent.getConversation().reset(initMessages);
+        agent.clear();
         setText("");
         return;
       }
-      const message = await generateReply(text, () =>
-        agent.chat(new ChatMessage({ role: "user", content: text })),
-      );
+      await generateReply(text, () => agent.chat(text));
     }
 
     function handleError(e) {
@@ -101,27 +87,26 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
 
     async function generateReply(
       userInput: string,
-      generate_func: () => Promise<Thought>,
+      generate_func: () => Promise<string>,
     ): Promise<string> {
-      setGenerating(true);
-      let message = "";
+      let result = "";
       try {
         setText("");
 
         try {
-          const thought = await generate_func();
-          message = await thought.getMessage();
+          result = await generate_func();
         } catch (e) {
-          message = handleError(e);
+          const errorMessage = handleError(e);
+          antdMessage.error(errorMessage);
         }
       } finally {
-        setGenerating(false);
+        // no-op: generating is controlled by session state
       }
 
       setTimeout(() => {
         scrollToBottom();
       }, 100);
-      return message;
+      return result;
     }
 
     const handleSearchChange = async () => {
@@ -153,11 +138,11 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
 
     function getCommandOptions() {
       if (prefix === "@") {
-        return agent.getAgentOptions();
+        return agent.getAgentOptions?.() ?? [];
       }
 
       if (prefix === "/") {
-        const options = agent.getCommandOptions();
+        const options = agent.getCommandOptions?.() ?? [];
         if (enableClearCommand) {
           options.push({ value: "clear", label: "/clear" }); // add clear command
         }
@@ -177,15 +162,14 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         <div className={style.chat}>
           <div className={style.chatList}>
             <div>
-              {messagesWithInteraction.map(({ message, interaction }, i) => (
+              {messages.map((message, i) => (
                 <Message
-                  key={i}
+                  key={message.id ?? i}
                   index={i}
                   role={message.role}
                   content={message.content}
-                  interaction={interaction}
                   name={message.name}
-                  loading={interaction.getStatus() !== "Completed"}
+                  loading={message.loading}
                 ></Message>
               ))}
               <div className="scroll-anchor" ref={messagesRef}></div>

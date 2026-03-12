@@ -75,6 +75,9 @@ const PreferenceApp: React.FC = () => {
     for (const key in values) {
       cloneConfigure[key] = values[key];
     }
+    if (cloneConfigure.enableSearch === false) {
+      cloneConfigure.enableOptionsAppSearch = false;
+    }
 
     if (!isEqual(cloneConfigure, initData)) {
       configureStorage.set(cloneConfigure).then(() => {

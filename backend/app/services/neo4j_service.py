@@ -100,9 +100,6 @@ class Neo4jService:
             "value": str(value),
             "category": category
         })
-        
-        # Create history entry
-        self._create_history_entry(profile_id, key, value)
         return len(result) > 0
     
     def bulk_update_settings(self, profile_id: str, settings: Dict[str, Any], category: str) -> bool:
@@ -124,24 +121,6 @@ class Neo4jService:
         })
         return True
     
-    def _create_history_entry(self, profile_id: str, key: str, value: Any):
-        """Create a history entry for a setting change."""
-        query = """
-        MATCH (p:ChromeProfile {profileId: $profileId})
-        CREATE (h:History {
-            settingKey: $key,
-            newValue: $value,
-            timestamp: datetime(),
-            changeType: 'UPDATE'
-        })
-        CREATE (p)-[:HAS_HISTORY]->(h)
-        """
-        self.execute_write(query, {
-            "profileId": profile_id,
-            "key": key,
-            "value": str(value)
-        })
-
     def add_document_to_library(
         self,
         profile_id: str,

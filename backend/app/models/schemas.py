@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
-from datetime import datetime
 
 
 class ProfileCreate(BaseModel):
@@ -35,18 +34,6 @@ class SettingResponse(BaseModel):
 
 class SettingsResponse(BaseModel):
     settings: Dict[str, Any]
-
-
-class HistoryEntry(BaseModel):
-    setting_key: str
-    old_value: Optional[str] = None
-    new_value: str
-    timestamp: str
-    change_type: str
-
-
-class HistoryResponse(BaseModel):
-    history: list[HistoryEntry]
 
 
 class DocumentLibraryAdd(BaseModel):

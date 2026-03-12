@@ -1,17 +1,23 @@
 import WriterContext from "@src/pages/options/writer/context/WriterContext";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import BaseAgentFactory from "@src/shared/configurers/BaseAgentFactory";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
-import WriterAgent from "./WriterAgent";
+import {
+  LangGraphAgent,
+  createWriterEnvironmentBuilder,
+} from "@src/shared/langgraph";
+import { createWriterSkill } from "@src/shared/langgraph/skills/writerSkill";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 
-class WriterAgentFactory extends BaseAgentFactory {
-  create(config: GluonConfigure, context: WriterContext): DelegateAgent {
-    const props = this.thoughtAgentProps(config);
-    props.enableMultimodal = false;
-    props.enableReflection = false;
+class WriterAgentFactory {
+  create(config: GluonConfigure, context: WriterContext): ChatSession {
+    const name = intl.get("assistant_name").d("myFun");
+    const description = intl.get("agent_description_myfun").d(
+      "myFun, your browser assistant",
+    );
+    const writerSkill = createWriterSkill(config, context);
+    const skills = [writerSkill];
 
-    const commands = [
+    const commandOptions = [
       { value: "autocomplete", label: "/autocomplete, continue writing" },
       {
         value: "outline",
@@ -27,16 +33,18 @@ class WriterAgentFactory extends BaseAgentFactory {
       },
     ];
 
-    const writerAgent = new WriterAgent(props, context);
-    const delegateAgent = new DelegateAgent(
-      writerAgent,
-      [writerAgent],
-      commands,
-      props.conversation,
-      true, //chitchat when tool not found
-    );
-    this.postCreateAgent(delegateAgent);
-    return delegateAgent;
+    return new LangGraphAgent({
+      config,
+      name,
+      description,
+      contextLength: config.contextLength ?? 5,
+      skills,
+      commandOptions,
+      getSystemPrompt: createWriterEnvironmentBuilder(config, name, () => ({
+        getTitle: () => context.getTitle(),
+        getContent: () => context.getContent(),
+      })),
+    });
   }
 }
 

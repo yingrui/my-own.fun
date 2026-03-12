@@ -1,7 +1,6 @@
 import useStorage from "@root/src/shared/hooks/useStorage";
 import configureStorage from "@root/src/shared/storages/gluonConfig";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import ChatConversation, {
   ChatConversationRef,
 } from "@src/shared/components/ChatConversation";
@@ -17,7 +16,7 @@ const { Text } = Typography;
 
 function SidePanel(props: Record<string, unknown>) {
   const configStorage = useStorage(configureStorage);
-  const agent = props.agent as DelegateAgent;
+  const agent = props.agent as ChatSession;
   const chatRef = useRef<ChatConversationRef>();
 
   useEffect(() => {
@@ -37,10 +36,7 @@ function SidePanel(props: Record<string, unknown>) {
       const result = await chatRef.current.generateReply(
         userInput,
         async () => {
-          return agent.executeCommand(
-            [{ name: action, arguments: args }],
-            new ChatMessage({ role: "user", content: userInput }),
-          );
+          return agent.executeCommand(action, args, userInput);
         },
       );
       // TODO: post process the result by action

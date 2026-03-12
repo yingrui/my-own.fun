@@ -14,12 +14,11 @@ function init() {
   if (!appContainer) {
     throw new Error("Can not find #app-container");
   }
-  configureStorage.get().then((config) => {
-    initI18n(config.language).then(() => {
-      const browserCopilot = new AgentFactory().create(config);
-      const root = createRoot(appContainer);
-      root.render(<Popup config={config} copilot={browserCopilot} />);
-    });
+  configureStorage.get().then(async (config) => {
+    await initI18n(config.language);
+    const copilot = await new AgentFactory().create(config);
+    const root = createRoot(appContainer);
+    root.render(<Popup config={config} copilot={copilot} />);
   });
 }
 

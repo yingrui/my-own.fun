@@ -4,7 +4,7 @@ import "@pages/options/index.css";
 import Options from "@pages/options/Options";
 import refreshOnUpdate from "virtual:reload-on-update-in-view";
 import configureStorage from "@root/src/shared/storages/gluonConfig";
-import { initI18n, locale } from "@src/shared/utils/i18n";
+import { initI18n } from "@src/shared/utils/i18n";
 import intl from "react-intl-universal";
 
 refreshOnUpdate("pages/options");

@@ -1,10 +1,10 @@
-import BaseAgentFactory from "@root/src/shared/configurers/BaseAgentFactory";
-import { GluonConfigure } from "@src/shared/storages/gluonConfig";
-import BrowserCopilot from "@pages/popup/agents/BrowserCopilot";
+import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
+import type { PopupAgent } from "./PopupAgent";
+import { createPopupAgent } from "./PopupAgent";
 
-class AgentFactory extends BaseAgentFactory {
-  create(config: GluonConfigure): BrowserCopilot {
-    return new BrowserCopilot(this.thoughtAgentProps(config));
+class AgentFactory {
+  async create(config: GluonConfigure): Promise<PopupAgent> {
+    return createPopupAgent(config);
   }
 }
 

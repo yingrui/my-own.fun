@@ -1,6 +1,6 @@
 import React from "react";
 
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import WriterSider from "@pages/options/writer/components/WriterSider/WriterSider";
 import WriterContext from "@pages/options/writer/context/WriterContext";
 
@@ -12,7 +12,7 @@ import WriterEditor from "@pages/options/writer/components/WriterEditor";
 
 interface WriterWorkspaceProps {
   context: WriterContext;
-  agent: DelegateAgent;
+  agent: ChatSession;
 }
 
 const WriterWorkspace: React.FC<WriterWorkspaceProps> = ({

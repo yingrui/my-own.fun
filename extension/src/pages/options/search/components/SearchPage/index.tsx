@@ -4,11 +4,11 @@ import "./index.css";
 import { ddg_search } from "@src/shared/utils/duckduckgo";
 import SearchResultItem from "@pages/options/search/components/SearchResultItem";
 import SearchSummary from "@pages/options/search/components/SearchSummary";
-import SearchAgent from "@pages/options/search/agents/SearchAgent";
+import type { SearchAgentInterface } from "@pages/options/search/agents/SearchLangGraphAgent";
 
 interface SearchPageProps {
   query: string;
-  agent: SearchAgent;
+  agent: SearchAgentInterface;
 }
 
 const { Sider } = Layout;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Form, Input, Layout, Switch } from "antd";
+import { Button, Form, Layout, Switch } from "antd";
 import "./index.css";
 import { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
@@ -88,13 +88,6 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
             <Form.Item
               label={intl.get("enableWriting").d("Writing Tools")}
               name="enableWriting"
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-            <Form.Item
-              label={intl.get("enableHistoryRecording").d("History Records")}
-              name="enableHistoryRecording"
               valuePropName="checked"
             >
               <Switch />

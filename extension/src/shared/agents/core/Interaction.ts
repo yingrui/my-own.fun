@@ -1,4 +1,3 @@
-import { PlanResult } from "@src/shared/agents/services/ThoughtService";
 import { v4 as uuidv4 } from "uuid";
 import ChatMessage from "./ChatMessage";
 import Environment from "./Environment";
@@ -95,6 +94,15 @@ class Interaction {
         name: message.name,
       });
     }
+    this.notify();
+  }
+
+  /**
+   * Update the assistant message content during streaming.
+   * Call this when receiving partial content from the agent (e.g. token-by-token).
+   */
+  public setStreamingContent(content: string): void {
+    this.outputMessage.content = content;
     this.notify();
   }
 

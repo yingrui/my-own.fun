@@ -2,15 +2,14 @@ import React, { useState } from "react";
 import { Layout } from "antd";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import "./index.css";
-import Agent from "@src/shared/agents/core/Agent";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import ChatConversation from "@src/shared/components/ChatConversation";
 import _ from "lodash";
 import Greeting from "@pages/options/chatbot/components/Greeting";
 
 interface ChatWindowProps {
   config: GluonConfigure;
-  agent: Agent;
+  agent: ChatSession;
 }
 
 const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent }) => {
@@ -22,13 +21,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent }) => {
       {isNewConversation() && (
         <Greeting
           onQuestionChange={setQuestion}
-          agent={agent as DelegateAgent}
+          agent={agent}
           enableClearCommand={false}
         />
       )}
       {!isNewConversation() && (
         <ChatConversation
-          agent={agent as DelegateAgent}
+          agent={agent}
           question={question}
           enableClearCommand={false}
         />

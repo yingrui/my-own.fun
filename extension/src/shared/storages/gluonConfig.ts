@@ -28,7 +28,6 @@ export type GluonConfigure = {
   enableOptionsAppSearch: boolean;
   enableOptionsAppChatbot: boolean;
   enableWriting: boolean;
-  enableHistoryRecording: boolean;
 };
 
 type ConfigureStorage = BaseStorage<GluonConfigure>;
@@ -56,7 +55,6 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   enableOptionsAppSearch: true,
   enableOptionsAppChatbot: false,
   enableWriting: false,
-  enableHistoryRecording: false,
 };
 
 // Use backend storage with local storage fallback

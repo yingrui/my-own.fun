@@ -1,69 +1,38 @@
-import Agent from "@src/shared/agents/core/Agent";
-import DelegateAgent from "@src/shared/agents/DelegateAgent";
-import ThoughtAgent from "@src/shared/agents/ThoughtAgent";
-import BaseAgentFactory from "@src/shared/configurers/BaseAgentFactory";
-import LocalConversationRepository from "@src/shared/repositories/LocalConversationRepository";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
-import BACopilotAgent from "./BACopilotAgent";
-import GoogleAgent from "./GoogleAgent";
-import MyFunCopilot from "./MyFunCopilot";
-import TranslateAgent from "./TranslateAgent";
-import UiTestAgent from "./UiTestAgent";
+import {
+  LangGraphAgent,
+  pageContentSkill,
+  researchSkill,
+  createSidepanelEnvironmentBuilder,
+  createResearchEnvironmentBuilder,
+} from "@src/shared/langgraph";
+import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 
-class AgentFactory extends BaseAgentFactory {
-  create(config: GluonConfigure): Agent {
-    const props = this.thoughtAgentProps(config);
-
-    const baCopilotKnowledgeApi = config.baCopilotKnowledgeApi ?? "";
-    const baCopilotTechDescription = config.baCopilotTechDescription ?? "";
-    const baCopilotApi = config.baCopilotApi ?? "";
-    const apiKey = config.apiKey ?? "";
-
-    this.setConversationRepository(new LocalConversationRepository());
-
-    const agents: ThoughtAgent[] = [
-      new TranslateAgent(props),
-      new UiTestAgent(props),
-      new BACopilotAgent(
-        props,
-        baCopilotKnowledgeApi,
-        baCopilotApi,
-        baCopilotTechDescription,
-        apiKey,
-      ),
-    ];
-
-    if (config.enableSearch) {
-      agents.push(new GoogleAgent(props));
-    }
-
-    const agent = new MyFunCopilot(
-      props,
-      intl.get("assistant_name").d("myFun"),
-      intl.get("agent_description_myfun").d("myFun, your browser assistant"),
-      agents,
+class AgentFactory {
+  create(config: GluonConfigure): ChatSession {
+    const name = intl.get("assistant_name").d("myFun");
+    const description = intl.get("agent_description_myfun").d(
+      "myFun, your browser assistant",
     );
+    const skills = [pageContentSkill, researchSkill];
 
-    const commands = [
-      { value: "summary", label: intl.get("command_summary").d("/summary") },
-      { value: "search", label: intl.get("command_search").d("/search") },
-      { value: "tasking", label: intl.get("command_tasking").d("/tasking") },
-      { value: "ui_test", label: intl.get("command_ui_test").d("/ui_test") },
-      {
-        value: "user_story",
-        label: intl.get("command_user_story").d("/user_story"),
+    return new LangGraphAgent({
+      config,
+      name,
+      description,
+      contextLength: config.contextLength ?? 5,
+      skills,
+      getSystemPrompt: createSidepanelEnvironmentBuilder(config, name),
+      commandOptions: [
+        { value: "summary", label: "/summary" },
+        { value: "search", label: "/search" },
+        { value: "research", label: "/research" },
+      ],
+      commandSystemPrompts: {
+        research: createResearchEnvironmentBuilder(config, name),
       },
-    ];
-    const delegateAgent = new DelegateAgent(
-      agent,
-      agents,
-      commands,
-      props.conversation,
-    );
-
-    this.postCreateAgent(delegateAgent);
-    return delegateAgent;
+    });
   }
 }
 

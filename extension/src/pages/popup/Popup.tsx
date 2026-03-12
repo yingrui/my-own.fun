@@ -1,19 +1,18 @@
 import { Button, Spin } from "antd";
 import { type GluonConfigure } from "@root/src/shared/storages/gluonConfig";
-import intl from "react-intl-universal";
+import type { PopupAgent } from "@pages/popup/agents/PopupAgent";
 import React, { useEffect, useState } from "react";
-import BrowserCopilot from "@pages/popup/agents/BrowserCopilot";
 import ReactMarkdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
-import ChatMessage from "@src/shared/agents/core/ChatMessage";
+import intl from "react-intl-universal";
 
 const rehypePlugins = [rehypeKatex];
 const remarkPlugins = [remarkGfm];
 
 interface PopupProps {
   config: GluonConfigure;
-  copilot: BrowserCopilot;
+  copilot: PopupAgent;
 }
 
 const Popup: React.FC<PopupProps> = ({ config, copilot }) => {
@@ -47,7 +46,7 @@ const Popup: React.FC<PopupProps> = ({ config, copilot }) => {
         setSuggestion(result);
       },
     );
-  }, []);
+  }, [copilot]);
 
   return (
     <div className="container">
