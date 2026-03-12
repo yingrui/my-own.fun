@@ -112,7 +112,6 @@ const Message: React.FC<MessageProps> = React.memo((props) => {
     );
   }
 
-  const showSpinner = loading && !text && !stepItems?.length;
   const liveReasoning = reasoning?.trim() || "";
 
   return (
@@ -122,22 +121,19 @@ const Message: React.FC<MessageProps> = React.memo((props) => {
         <span>{name}</span>
       </div>
       <div className="message-content bot-message-content">
-        {showSpinner && (
+        {loading && (
           <div className="message-spin">
             <Spin />
             {statusMessage && <span className="interaction-status">{statusMessage}</span>}
           </div>
         )}
-        {loading && stepItems?.map((item) => (
-          <StepItemRow key={item.id} item={item} />
-        ))}
-        {loading && liveReasoning && (
-          <div className="step-item step-item-reasoning step-item-live">{liveReasoning}</div>
-        )}
-        {!loading && stepItems?.length > 0 && groupStepItems(stepItems).map((block, i) =>
+        {stepItems?.length > 0 && groupStepItems(stepItems).map((block, i) =>
           block.kind === "thoughts"
             ? <ThoughtsCollapse key={`thoughts-${i}`} items={block.items} />
             : <StepItemRow key={block.item.id} item={block.item} />,
+        )}
+        {loading && liveReasoning && (
+          <div className="step-item step-item-reasoning step-item-live">{liveReasoning}</div>
         )}
         <MarkdownPreview loading={loading} content={text} />
         {!loading && index > 0 && (
