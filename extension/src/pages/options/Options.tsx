@@ -10,7 +10,6 @@ import "@pages/options/Options.css";
 
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import NavSearch from "@pages/options/components/NavSearch";
-import MoreComing from "@pages/options/components/MoreComing";
 import intl from "react-intl-universal";
 import {
   FileSearchOutlined,
@@ -18,7 +17,6 @@ import {
   EditOutlined,
   FileTextOutlined,
   SettingOutlined,
-  AppstoreOutlined,
 } from "@ant-design/icons";
 import PreferenceApp from "@pages/options/preference/components/PreferenceApp";
 import ChatbotApp from "@pages/options/chatbot/components/ChatbotApp";
@@ -32,7 +30,6 @@ const MENU_KEYS = {
   SEARCH: "search",
   WRITER: "writer",
   DOCUMENT_INTELLIGENCE: "document_intelligence",
-  COMING_SOON: "coming_soon",
   PREFERENCE: "preference",
 };
 
@@ -68,11 +65,6 @@ const getHeaderItems = (config: GluonConfigure): MenuProps["items"] => {
     key: MENU_KEYS.PREFERENCE,
     label: intl.get("options_app_preference").d("Preference"),
     icon: <SettingOutlined />,
-  });
-  items.push({
-    key: MENU_KEYS.COMING_SOON,
-    label: intl.get("options_app_more").d("Coming Soon"),
-    icon: <AppstoreOutlined />,
   });
   return items;
 };
@@ -142,7 +134,6 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
       {selectedItem === MENU_KEYS.WRITER && <WriterApp config={effectiveConfig} />}
       {selectedItem === MENU_KEYS.DOCUMENT_INTELLIGENCE && <DocumentIntelligenceApp />}
       {selectedItem === MENU_KEYS.PREFERENCE && <PreferenceApp />}
-      {selectedItem === MENU_KEYS.COMING_SOON && <MoreComing />}
     </Layout>
   );
 };

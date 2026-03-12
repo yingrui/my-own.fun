@@ -29,13 +29,17 @@
 .chatbot-main {
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
-  background-color: var(--gm-color-bg);
+  justify-content: center;
+  padding: 24px;
+  background-color: var(--gm-color-surface);
 }
 
 .chatbot-conversation, .chatbot-addons {
-  flex: 1;
-  background-color: transparent;
+  flex: 0 1 960px;
+  width: min(960px, 100%);
+  margin: 0 auto;
+  background-color: var(--gm-color-surface);
+  border-radius: var(--gm-radius-lg);
   min-width: 0;
 }
 
@@ -47,6 +51,10 @@
   .chatbot-conversation {
     max-width: 100%;
     min-width: auto;
+    width: 100%;
+  }
+
+  .chatbot-main {
     padding: 12px;
   }
 }
