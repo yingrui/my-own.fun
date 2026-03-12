@@ -5,14 +5,39 @@ import {
 } from "@src/shared/storages/base";
 import { createBackendStorage } from "@src/shared/storages/backendStorage";
 
+/** A model provider (e.g. OpenAI, GLM, custom endpoint) */
+export interface ProviderEntry {
+  id: string;
+  name: string;
+  baseURL: string;
+  apiKey: string;
+  organization?: string;
+}
+
+export interface ModelEntry {
+  id: string;
+  name: string;
+  providerId: string;
+  capabilities: {
+    chat: boolean;
+    tools: boolean;
+    thinking: boolean;
+    vision: boolean;
+    embedding: boolean;
+  };
+  isDefault?: boolean;
+}
+
 export type GluonConfigure = {
   apiKey: string;
   baseURL: string;
   organization: string;
+  providers: ProviderEntry[];
   defaultModel: string;
   reasoningModel: string;
   toolsCallModel: string;
   multimodalModel: string;
+  models: ModelEntry[];
   contextLength: number;
   baCopilotKnowledgeApi: string;
   baCopilotApi: string;
@@ -24,22 +49,52 @@ export type GluonConfigure = {
   enableChainOfThoughts: boolean;
   enableSearch: boolean;
   logLevel: string;
-  // below are for options app
   enableOptionsAppSearch: boolean;
   enableOptionsAppChatbot: boolean;
   enableWriting: boolean;
 };
 
+const DEFAULT_PROVIDER_ID = "default";
+
+const DEFAULT_PROVIDERS: ProviderEntry[] = [
+  {
+    id: DEFAULT_PROVIDER_ID,
+    name: "Default",
+    baseURL: "",
+    apiKey: "",
+    organization: "",
+  },
+];
+
+const DEFAULT_MODELS: ModelEntry[] = [
+  {
+    id: "glm-4-plus",
+    name: "GLM-4 Plus",
+    providerId: DEFAULT_PROVIDER_ID,
+    capabilities: { chat: true, tools: true, thinking: false, vision: false, embedding: false },
+    isDefault: true,
+  },
+  {
+    id: "glm-4v-plus",
+    name: "GLM-4V Plus",
+    providerId: DEFAULT_PROVIDER_ID,
+    capabilities: { chat: true, tools: false, thinking: false, vision: true, embedding: false },
+    isDefault: false,
+  },
+];
+
 type ConfigureStorage = BaseStorage<GluonConfigure>;
 
-export const DEFAULT_GM_CONFIG_VALUE = {
+export const DEFAULT_GM_CONFIG_VALUE: GluonConfigure = {
   apiKey: "",
   baseURL: "",
   organization: "",
+  providers: DEFAULT_PROVIDERS,
   defaultModel: "glm-4-plus",
   reasoningModel: "",
   toolsCallModel: "glm-4-plus",
   multimodalModel: "glm-4v-plus",
+  models: DEFAULT_MODELS,
   contextLength: 5,
   baCopilotKnowledgeApi: "",
   baCopilotApi: "",
@@ -51,11 +106,47 @@ export const DEFAULT_GM_CONFIG_VALUE = {
   enableChainOfThoughts: false,
   enableSearch: true,
   logLevel: "info",
-  // below are for options app
   enableOptionsAppSearch: true,
   enableOptionsAppChatbot: false,
   enableWriting: false,
 };
+
+/**
+ * Migrate legacy config: if providers empty but apiKey/baseURL set, create one provider and assign models to it.
+ * Also sync apiKey/baseURL/organization from first provider for backward compat.
+ */
+export function normalizeConfig(config: GluonConfigure): GluonConfigure {
+  let providers = Array.isArray(config.providers) ? config.providers : [];
+  const models = Array.isArray(config.models) ? config.models : DEFAULT_MODELS;
+
+  if (providers.length === 0 && (config.apiKey || config.baseURL)) {
+    providers = [{
+      id: DEFAULT_PROVIDER_ID,
+      name: "Default",
+      baseURL: config.baseURL || "",
+      apiKey: config.apiKey || "",
+      organization: config.organization || "",
+    }];
+  }
+  if (providers.length === 0) {
+    providers = DEFAULT_PROVIDERS;
+  }
+
+  const first = providers[0];
+  const modelsWithProvider = models.map((m) => ({
+    ...m,
+    providerId: m.providerId ?? first?.id ?? DEFAULT_PROVIDER_ID,
+  }));
+
+  return {
+    ...config,
+    providers,
+    models: modelsWithProvider,
+    apiKey: first?.apiKey ?? config.apiKey,
+    baseURL: first?.baseURL ?? config.baseURL,
+    organization: first?.organization ?? config.organization,
+  };
+}
 
 // Use backend storage with local storage fallback
 // Set USE_BACKEND_STORAGE=false in environment to use local storage only
@@ -76,8 +167,23 @@ const storage = USE_BACKEND_STORAGE
       },
     );
 
+let cachedSnapshot: GluonConfigure | null = null;
+let cachedRaw: GluonConfigure | null = null;
+
+function getStableSnapshot(): GluonConfigure {
+  const snap = storage.getSnapshot();
+  if (!snap) return DEFAULT_GM_CONFIG_VALUE;
+  if (cachedRaw === snap) return cachedSnapshot!;
+  cachedRaw = snap;
+  cachedSnapshot = normalizeConfig(snap);
+  return cachedSnapshot;
+}
+
 const configureStorage: ConfigureStorage = {
-  ...storage,
+  get: async () => normalizeConfig(await storage.get()),
+  set: storage.set,
+  subscribe: storage.subscribe,
+  getSnapshot: getStableSnapshot,
 };
 
 export default configureStorage;

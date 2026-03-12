@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Form, Layout, Select } from "antd";
+import { Button, Form, InputNumber, Layout, Select } from "antd";
 import "./index.css";
 import { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
@@ -14,6 +14,7 @@ const SystemSettings: React.FC<SystemSettingsProps> = ({
   onSaveSettings,
 }) => {
   const [form] = Form.useForm();
+  const locale = config.language === "en" || config.language === "English" ? "en" : "zh";
 
   const onSave = async () => {
     onSaveSettings(await form.validateFields());
@@ -26,11 +27,28 @@ const SystemSettings: React.FC<SystemSettingsProps> = ({
           <Form
             name="system"
             layout="vertical"
-            initialValues={config}
+            initialValues={{ ...config, language: locale }}
             form={form}
             onFinish={onSave}
             autoComplete="off"
           >
+            <Form.Item
+              name="language"
+              label={intl.get("language").d("Language")}
+            >
+              <Select
+                options={[
+                  { value: "zh", label: intl.get("zh").d("Chinese") },
+                  { value: "en", label: intl.get("en").d("English") },
+                ]}
+              />
+            </Form.Item>
+            <Form.Item
+              name="contextLength"
+              label={intl.get("contextLength").d("Context Length")}
+            >
+              <InputNumber min={0} max={20} style={{ width: 160 }} />
+            </Form.Item>
             <Form.Item
               name="logLevel"
               label={intl.get("logLevel").d("Log Level")}

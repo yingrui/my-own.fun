@@ -6,8 +6,6 @@ import {
   MenuUnfoldOutlined,
   ProfileOutlined,
   RobotOutlined,
-  SettingOutlined,
-  MessageOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
 import configureStorage from "@src/shared/storages/gluonConfig";
@@ -15,49 +13,35 @@ import "./index.css";
 import intl from "react-intl-universal";
 import _, { isEqual } from "lodash";
 import useStorage from "@src/shared/hooks/useStorage";
-import BasicSettings from "@pages/options/preference/components/BasicSettings";
-import BACopilotSettings from "@pages/options/preference/components/BACopilot";
+import ModelSettings from "@pages/options/preference/components/ModelSettings";
 import FeatureToggles from "@pages/options/preference/components/FeatureToggles";
-import PromptSettings from "@pages/options/preference/components/PromptSettings";
 import SystemSettings from "@pages/options/preference/components/SystemSettings";
 
 const { Sider } = Layout;
 
 const PREFERENCE_MENU_KEYS = {
-  BASIC: "basic",
-  BA_COPILOT: "ba_copilot",
+  MODEL_SETTINGS: "model_settings",
   FEATURE_TOGGLES: "feature_toggles",
-  PROMPTS: "prompts",
   SYSTEM: "system",
 };
 
 const PreferenceApp: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string>(
-    PREFERENCE_MENU_KEYS.BASIC,
+    PREFERENCE_MENU_KEYS.MODEL_SETTINGS,
   );
   const initData = useStorage(configureStorage);
 
   const menuItems: MenuProps["items"] = [
     {
-      key: PREFERENCE_MENU_KEYS.BASIC,
-      icon: <SettingOutlined />,
-      label: intl.get("basic").d("Basic"),
+      key: PREFERENCE_MENU_KEYS.MODEL_SETTINGS,
+      icon: <RobotOutlined />,
+      label: intl.get("models").d("Models"),
     },
     {
       key: PREFERENCE_MENU_KEYS.FEATURE_TOGGLES,
       icon: <ProfileOutlined />,
       label: intl.get("feature_toggles").d("Features"),
-    },
-    {
-      key: PREFERENCE_MENU_KEYS.BA_COPILOT,
-      icon: <RobotOutlined />,
-      label: intl.get("ba_copilot").d("BA Copilot"),
-    },
-    {
-      key: PREFERENCE_MENU_KEYS.PROMPTS,
-      icon: <MessageOutlined />,
-      label: intl.get("prompts").d("Prompts"),
     },
     {
       key: PREFERENCE_MENU_KEYS.SYSTEM,
@@ -122,34 +106,25 @@ const PreferenceApp: React.FC = () => {
         <Menu
           theme="light"
           mode="inline"
-          defaultSelectedKeys={[PREFERENCE_MENU_KEYS.BASIC]}
-          defaultOpenKeys={[PREFERENCE_MENU_KEYS.BASIC]}
+          defaultSelectedKeys={[PREFERENCE_MENU_KEYS.MODEL_SETTINGS]}
+          defaultOpenKeys={[PREFERENCE_MENU_KEYS.MODEL_SETTINGS]}
           items={menuItems}
           style={{ borderRight: 0 }}
           onClick={handleMenuClick}
         />
       </Sider>
-      <Layout>
-        {selectedKey === PREFERENCE_MENU_KEYS.BASIC && (
-          <BasicSettings
+      <Layout className="preference-content-layout">
+        {selectedKey === PREFERENCE_MENU_KEYS.MODEL_SETTINGS && (
+          <ModelSettings
             config={initData}
             onSaveSettings={onSaveSettings}
-          ></BasicSettings>
+          />
         )}
         {selectedKey === PREFERENCE_MENU_KEYS.FEATURE_TOGGLES && (
           <FeatureToggles
             config={initData}
             onSaveSettings={onSaveSettings}
           ></FeatureToggles>
-        )}
-        {selectedKey === PREFERENCE_MENU_KEYS.BA_COPILOT && (
-          <BACopilotSettings
-            config={initData}
-            onSaveSettings={onSaveSettings}
-          ></BACopilotSettings>
-        )}
-        {selectedKey === PREFERENCE_MENU_KEYS.PROMPTS && (
-          <PromptSettings config={initData}></PromptSettings>
         )}
         {selectedKey === PREFERENCE_MENU_KEYS.SYSTEM && (
           <SystemSettings

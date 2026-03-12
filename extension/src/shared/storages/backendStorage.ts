@@ -12,16 +12,19 @@ import {
 } from "@src/shared/services/backendApi";
 
 const SETTINGS_CATEGORY_MAP: Record<string, string> = {
-  // Basic Settings
+  // Model Settings (formerly Basic)
   apiKey: "Basic",
   baseURL: "Basic",
   organization: "Basic",
+  providers: "Basic",
   defaultModel: "Basic",
   reasoningModel: "Basic",
   toolsCallModel: "Basic",
   multimodalModel: "Basic",
+  models: "Basic",
   contextLength: "Basic",
-  language: "Basic",
+  // System (language moved from Basic UI to System Settings)
+  language: "System",
   // Feature Toggles
   enableFloatingBall: "Features",
   enableReflection: "Features",
@@ -56,6 +59,32 @@ function normalizeBackendSettings<D extends Record<string, any>>(raw: Record<str
     } else if (k === "contextLength" && typeof fallback.contextLength === "number") {
       const n = Number(v);
       (out as Record<string, any>)[k] = Number.isFinite(n) ? n : fallback.contextLength;
+    } else if (k === "models") {
+      if (Array.isArray(v)) {
+        (out as Record<string, any>)[k] = v;
+      } else if (typeof v === "string") {
+        try {
+          const parsed = JSON.parse(v);
+          (out as Record<string, any>)[k] = Array.isArray(parsed) ? parsed : (fallback as Record<string, any>).models;
+        } catch {
+          (out as Record<string, any>)[k] = (fallback as Record<string, any>).models;
+        }
+      } else {
+        (out as Record<string, any>)[k] = (fallback as Record<string, any>).models;
+      }
+    } else if (k === "providers") {
+      if (Array.isArray(v)) {
+        (out as Record<string, any>)[k] = v;
+      } else if (typeof v === "string") {
+        try {
+          const parsed = JSON.parse(v);
+          (out as Record<string, any>)[k] = Array.isArray(parsed) ? parsed : (fallback as Record<string, any>).providers;
+        } catch {
+          (out as Record<string, any>)[k] = (fallback as Record<string, any>).providers;
+        }
+      } else {
+        (out as Record<string, any>)[k] = (fallback as Record<string, any>).providers;
+      }
     } else {
       (out as Record<string, any>)[k] = v;
     }
@@ -136,13 +165,20 @@ export function createBackendStorage<D extends Record<string, any>>(
     try {
       // Group settings by category for bulk update
       const settingsByCategory: Record<string, Record<string, any>> = {};
-      
+
       for (const [key, value] of Object.entries(data)) {
         const category = SETTINGS_CATEGORY_MAP[key] || "Basic";
         if (!settingsByCategory[category]) {
           settingsByCategory[category] = {};
         }
-        settingsByCategory[category][key] = value;
+        // Persist models array as JSON string for backend key-value storage
+        if (key === "models" && Array.isArray(value)) {
+          settingsByCategory[category][key] = JSON.stringify(value);
+        } else if (key === "providers" && Array.isArray(value)) {
+          settingsByCategory[category][key] = JSON.stringify(value);
+        } else {
+          settingsByCategory[category][key] = value;
+        }
       }
 
       // Update each category

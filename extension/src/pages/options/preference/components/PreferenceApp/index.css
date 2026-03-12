@@ -9,6 +9,22 @@
   border-right-color: #ccc;
 }
 
+/* Content area: fill remaining width and scroll */
+.preference-content-layout {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.preference-content-layout .basic-settings-app {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
 .ant-form-item {
   margin-bottom: 8px;
 }

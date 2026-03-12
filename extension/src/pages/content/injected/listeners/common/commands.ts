@@ -24,23 +24,22 @@ const addCommands = () => {
     });
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      (async () => {
-        // Get content from the page
-        if (message.type === "get_content") {
-          const page = new PageParser(document).parseContent();
-          sendResponse(page);
-        } else if (message.type === "get_html") {
-          const bodyClone = document.querySelector("body").cloneNode(true);
-          (bodyClone as HTMLElement)
-            .querySelectorAll("script, svg, style")
-            .forEach((elem) => elem.remove());
-          sendResponse({
-            url: document.URL,
-            title: document.title,
-            html: (bodyClone as HTMLElement).innerHTML,
-          });
-        }
-      })();
+      if (message.type === "get_content") {
+        const page = new PageParser(document).parseContent();
+        sendResponse(page);
+        return true;
+      } else if (message.type === "get_html") {
+        const bodyClone = document.querySelector("body").cloneNode(true);
+        (bodyClone as HTMLElement)
+          .querySelectorAll("script, svg, style")
+          .forEach((elem) => elem.remove());
+        sendResponse({
+          url: document.URL,
+          title: document.title,
+          html: (bodyClone as HTMLElement).innerHTML,
+        });
+        return true;
+      }
     });
   }
 };

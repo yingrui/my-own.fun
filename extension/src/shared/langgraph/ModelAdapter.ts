@@ -1,25 +1,86 @@
 /**
  * Creates ChatOpenAI from GluonConfigure for LangGraph.
- * Uses toolsCallModel when available, otherwise defaultModel.
+ * Uses getModelForCapability for tool-calling when models registry is present, otherwise toolsCallModel/defaultModel.
+ * Resolves API credentials from the provider that owns the selected model.
  */
 
 import { ChatOpenAI } from "@langchain/openai";
-import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
+import type { GluonConfigure, ModelEntry } from "@src/shared/storages/gluonConfig";
+
+export type ModelCapability = "chat" | "tools" | "thinking" | "vision" | "embedding";
+
+/**
+ * Resolves the model id to use for a given capability.
+ */
+export function getModelForCapability(
+  config: GluonConfigure,
+  capability: ModelCapability,
+  fallback?: string
+): string {
+  const overrideByCapability: Record<ModelCapability, string | undefined> = {
+    chat: config.defaultModel,
+    tools: config.toolsCallModel,
+    thinking: config.reasoningModel,
+    vision: config.multimodalModel,
+    embedding: undefined,
+  };
+  const override = overrideByCapability[capability];
+
+  const models = config.models;
+  if (Array.isArray(models) && models.length > 0) {
+    const capKey = capability as keyof ModelEntry["capabilities"];
+    const withCap = models.filter((m) => m.capabilities?.[capKey]);
+    const defaultWithCap = withCap.find((m) => m.isDefault);
+    const chosen = defaultWithCap ?? withCap[0];
+    if (chosen?.id) return chosen.id;
+  }
+
+  return override ?? config.defaultModel ?? fallback ?? "gpt-4o-mini";
+}
+
+/**
+ * Returns the provider for the given model id (from config.models[].providerId).
+ * Falls back to config.apiKey/baseURL/organization if no provider found (legacy).
+ */
+export function getProviderForModel(
+  config: GluonConfigure,
+  modelId: string
+): { apiKey: string; baseURL: string; organization?: string } {
+  const model = config.models?.find((m) => m.id === modelId);
+  const providerId = model?.providerId;
+  const provider = Array.isArray(config.providers)
+    ? config.providers.find((p) => p.id === providerId)
+    : undefined;
+  if (provider) {
+    return {
+      apiKey: provider.apiKey,
+      baseURL: provider.baseURL,
+      organization: provider.organization,
+    };
+  }
+  return {
+    apiKey: config.apiKey,
+    baseURL: config.baseURL,
+    organization: config.organization,
+  };
+}
 
 export function createChatModel(config: GluonConfigure, modelOverride?: string): ChatOpenAI {
-  const model = modelOverride ?? config.toolsCallModel ?? config.defaultModel ?? "gpt-4o-mini";
+  const model =
+    modelOverride ??
+    getModelForCapability(config, "tools", config.defaultModel ?? "gpt-4o-mini");
+  const creds = getProviderForModel(config, model);
   return new ChatOpenAI({
-    apiKey: config.apiKey,
+    apiKey: creds.apiKey,
     configuration: {
-      baseURL: config.baseURL,
-      defaultHeaders: config.organization
-        ? { "OpenAI-Organization": config.organization }
+      baseURL: creds.baseURL,
+      defaultHeaders: creds.organization
+        ? { "OpenAI-Organization": creds.organization }
         : undefined,
     },
     model,
-    temperature: 0,
+    temperature: 0.6,
     modelKwargs: {},
-    // Preserve raw API response on each chunk so we can extract non-standard fields like delta.reasoning
     __includeRawResponse: true,
   } as ConstructorParameters<typeof ChatOpenAI>[0]);
 }
