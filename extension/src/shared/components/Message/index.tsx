@@ -7,7 +7,7 @@ import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
 import type { CollapseProps } from "antd";
 import { Collapse, message, Spin, Button } from "antd";
 import copy from "copy-to-clipboard";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import intl from "react-intl-universal";
 import "./index.css";
 import StepComponent from "./StepComponent";
@@ -20,6 +20,10 @@ interface MessageProps {
   name?: string;
   loading?: boolean;
   interaction?: Interaction;
+  /** Status text shown while loading (e.g. "Thinking...", "Searching...") so user knows the AI is working. */
+  statusMessage?: string;
+  /** Model reasoning/thinking stream; shown in a distinct format (e.g. collapsible or muted). */
+  reasoning?: string;
 }
 
 const getStepComponents = (
@@ -37,7 +41,7 @@ const getStepComponents = (
 };
 
 const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
-  const { index, role, content, loading, name, interaction } = props;
+  const { index, role, content, loading, name, interaction, statusMessage: statusMessageProp, reasoning } = props;
   const [steps, setSteps] = useState<CollapseProps["items"]>(
     getStepComponents(interaction),
   );
@@ -45,7 +49,14 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
     interaction ? interaction.getStatusMessage() : "",
   );
   const [showSteps, setShowSteps] = useState<boolean>(false);
+  const [reasoningExpanded, setReasoningExpanded] = useState<boolean>(!!loading);
   const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
+
+  useEffect(() => {
+    if (loading && reasoning) {
+      setReasoningExpanded(true);
+    }
+  }, [loading, reasoning]);
 
   function getContent(): string {
     if (content instanceof Array) {
@@ -112,8 +123,8 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
         {spinning && (
           <div className={"message-spin"}>
             <Spin />
-            {interaction && (
-              <span className={"interaction-status"}>{statusMessage}</span>
+            {(statusMessageProp ?? (interaction && statusMessage)) && (
+              <span className={"interaction-status"}>{statusMessageProp ?? statusMessage}</span>
             )}
           </div>
         )}
@@ -142,6 +153,24 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
             </Button>
             {showSteps && <Collapse accordion items={steps} ghost={true} />}
           </div>
+        )}
+        {reasoning && (
+          <Collapse
+            ghost
+            activeKey={reasoningExpanded ? ["reasoning"] : []}
+            onChange={(keys) => setReasoningExpanded(Array.isArray(keys) ? keys.length > 0 : !!keys)}
+            items={[
+              {
+                key: "reasoning",
+                label: (
+                  <span className="reasoning-label">
+                    {loading ? `${intl.get("message_reasoning_label").d("Thinking")}...` : intl.get("message_reasoning_label").d("Thinking")}
+                  </span>
+                ),
+                children: <div className="message-reasoning">{reasoning}</div>,
+              },
+            ]}
+          />
         )}
         <MarkdownPreview loading={loading} content={getContent()} />
         {!loading && index > 0 && (

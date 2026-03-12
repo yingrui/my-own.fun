@@ -167,6 +167,23 @@ div.ant-collapse-content-box {
   margin: 8px 0;
 }
 
+.message-reasoning {
+  color: #6b7280;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.reasoning-label {
+  color: #8b5cf6;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .steps-toggle-button {
   color: #1890ff;
   font-size: 12px;

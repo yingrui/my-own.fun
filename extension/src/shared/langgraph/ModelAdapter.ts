@@ -18,7 +18,8 @@ export function createChatModel(config: GluonConfigure, modelOverride?: string):
     },
     model,
     temperature: 0,
-    // Ensure compatibility with various OpenAI-compatible APIs
     modelKwargs: {},
-  });
+    // Preserve raw API response on each chunk so we can extract non-standard fields like delta.reasoning
+    __includeRawResponse: true,
+  } as ConstructorParameters<typeof ChatOpenAI>[0]);
 }

@@ -22,11 +22,86 @@ function toText(content: unknown): string {
   return "";
 }
 
+/** Extract reasoning from a message chunk (e.g. delta.reasoning or additional_kwargs.reasoning). */
+function toReasoning(chunk: unknown): string {
+  if (chunk == null) return "";
+  const c = chunk as {
+    reasoning?: unknown;
+    reasoning_content?: unknown;
+    additional_kwargs?: { reasoning?: unknown; reasoning_content?: unknown };
+  };
+  const raw = c.reasoning ?? c.reasoning_content ?? c.additional_kwargs?.reasoning ?? c.additional_kwargs?.reasoning_content;
+  return toText(raw);
+}
+
+/** Extract content and reasoning from a "messages" payload.
+ *  With __includeRawResponse, reasoning lives in additional_kwargs.__raw_response.choices[0].delta.reasoning */
+function parseMessagePayload(payload: unknown): { content: string; reasoning: string } {
+  let content = "";
+  let reasoning = "";
+  if (Array.isArray(payload)) {
+    const [chunk] = payload as [unknown, unknown];
+    const c = chunk as Record<string, unknown>;
+    content = toText(c?.content);
+
+    // 1) Try direct properties (future LangChain versions may forward reasoning)
+    reasoning = toReasoning(chunk);
+
+    // 2) Try additional_kwargs.reasoning / reasoning_content
+    if (!reasoning && c?.additional_kwargs && typeof c.additional_kwargs === "object") {
+      const kw = c.additional_kwargs as Record<string, unknown>;
+      reasoning = toText(kw.reasoning ?? kw.reasoning_content);
+
+      // 3) Try raw response: additional_kwargs.__raw_response.choices[0].delta.reasoning
+      if (!reasoning && kw.__raw_response && typeof kw.__raw_response === "object") {
+        const raw = kw.__raw_response as { choices?: Array<{ delta?: Record<string, unknown> }> };
+        const delta = raw.choices?.[0]?.delta;
+        if (delta) {
+          reasoning = toText(delta.reasoning ?? delta.reasoning_content);
+        }
+      }
+    }
+  }
+  return { content, reasoning };
+}
+
+/** Returns a short status label when the last message in state is a tool message (e.g. "Searching the web..."). */
+function getToolStatusMessage(messages: BaseMessage[]): string | undefined {
+  if (messages.length === 0) return undefined;
+  // LangGraph may send plain objects; check both getType() and .type / .lc_id
+  const getMessageType = (m: unknown): string => {
+    const msg = m as { getType?: () => string; _getType?: () => string; type?: string; lc_id?: string[] };
+    return msg?.getType?.() ?? msg?._getType?.() ?? msg?.type ?? msg?.lc_id?.[2] ?? "";
+  };
+  const last = messages[messages.length - 1];
+  const lastType = getMessageType(last);
+  if (lastType === "tool") {
+    const name = (last as { name?: string }).name ?? "";
+    const labels: Record<string, string> = {
+      search: "Searching the web...",
+      web_search: "Searching the web...",
+      open_url_and_get_content: "Reading the page...",
+      page_content: "Reading the page...",
+      get_page_content: "Reading the page...",
+      research: "Researching...",
+      summary: "Summarizing...",
+    };
+    return labels[name] ?? (name ? `Using ${name}...` : "Working...");
+  }
+  // If last is AI but we have a tool message earlier, show "Writing..." (model is replying after tools)
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (getMessageType(messages[i]) === "tool") {
+      return "Writing...";
+    }
+  }
+  return undefined;
+}
+
 /** True if the message is from the model (AI), so we don't show user input as assistant draft from "values" stream. */
 function isAIMessage(msg: unknown): boolean {
   if (msg instanceof AIMessage) return true;
-  const m = msg as { getType?: () => string; _getType?: () => string };
-  return m?.getType?.() === "ai" || m?._getType?.() === "ai";
+  const m = msg as { getType?: () => string; _getType?: () => string; type?: string };
+  return m?.getType?.() === "ai" || m?._getType?.() === "ai" || m?.type === "ai";
 }
 
 function stringifyResult(result: unknown): string {
@@ -167,7 +242,9 @@ export class LangGraphAgent implements ChatSession {
     const messages = this.trimHistory([...this.messageHistory, new HumanMessage(userInput)]);
     let lastStreamed = "";
     let accumulated = "";
+    let accumulatedReasoning = "";
     let finalValuesMessages: BaseMessage[] | null = null;
+    let chunkCount = 0;
 
     try {
       const stream = await graph.stream(
@@ -179,17 +256,21 @@ export class LangGraphAgent implements ChatSession {
         // Multi-mode streams yield [modeName, payload] tuples
         if (!Array.isArray(chunk) || chunk.length < 2) continue;
         const [mode, payload] = chunk as [string, unknown];
+        chunkCount += 1;
 
         if (mode === "messages") {
-          // payload is [AIMessageChunk, metadata]
-          const tuple = payload as [{ content?: unknown }, unknown];
-          if (!Array.isArray(tuple)) continue;
-          const [messageChunk] = tuple;
-          const token = toText(messageChunk?.content);
+          const { content: token, reasoning: reasoningToken } = parseMessagePayload(payload);
+          if (reasoningToken) {
+            accumulatedReasoning += reasoningToken;
+          }
           if (token) {
             accumulated += token;
             lastStreamed = accumulated;
-            this.updateAssistantDraft(lastStreamed);
+            this.updateAssistantDraft(lastStreamed, "Writing...", accumulatedReasoning || undefined);
+          } else if (accumulatedReasoning) {
+            this.updateAssistantDraft(lastStreamed || accumulated, "Thinking...", accumulatedReasoning);
+          } else if (chunkCount > 0) {
+            this.updateAssistantDraft(lastStreamed || accumulated, "Working...");
           }
         } else if (mode === "values") {
           // payload is full graph state { messages: BaseMessage[] }
@@ -197,21 +278,30 @@ export class LangGraphAgent implements ChatSession {
           const valueMessages = valueState?.messages ?? [];
           if (valueMessages.length > 0) {
             finalValuesMessages = valueMessages;
+            const toolStatus = getToolStatusMessage(valueMessages);
             const last = valueMessages[valueMessages.length - 1];
+            const currentContent = lastStreamed || accumulated;
+            // Prefer specific tool status; else "Working..." when graph has more than user message or we've seen any chunk
+            const statusMessage =
+              toolStatus ?? (valueMessages.length > 1 || chunkCount > 0 ? "Working..." : undefined);
             // Only use content when the last message is from the model; otherwise we'd show user input as assistant reply
             if (isAIMessage(last)) {
               const text = toText((last as { content?: unknown })?.content);
               if (text) {
                 lastStreamed = text;
-                this.updateAssistantDraft(lastStreamed);
+                this.updateAssistantDraft(lastStreamed, statusMessage ?? "Writing...", accumulatedReasoning || undefined);
+              } else {
+                this.updateAssistantDraft(currentContent, statusMessage, accumulatedReasoning || undefined);
               }
+            } else {
+              this.updateAssistantDraft(currentContent, statusMessage, accumulatedReasoning || undefined);
             }
           }
         }
       }
 
       const output = lastStreamed || accumulated || "(No response)";
-      this.finishAssistantTurn(output);
+      this.finishAssistantTurn(output, accumulatedReasoning || undefined);
       if (finalValuesMessages && finalValuesMessages.length > 0) {
         this.messageHistory = this.trimHistory(finalValuesMessages);
       } else {
@@ -227,7 +317,7 @@ export class LangGraphAgent implements ChatSession {
       // Server may have sent [DONE] + proper 0\r\n\r\n but browser/SDK still reports incomplete chunked encoding.
       // If we have content, treat as success so the user sees the full response.
       if (partial && isIncompleteChunkedEncoding) {
-        this.finishAssistantTurn(partial);
+        this.finishAssistantTurn(partial, accumulatedReasoning || undefined);
         if (finalValuesMessages?.length) {
           this.messageHistory = this.trimHistory(finalValuesMessages);
         } else {
@@ -237,7 +327,7 @@ export class LangGraphAgent implements ChatSession {
       }
 
       // Don't show error text in the message bubble; finish with partial only and rethrow so UI can show error elsewhere (e.g. toast).
-      this.finishAssistantTurn(partial || "");
+      this.finishAssistantTurn(partial || "", accumulatedReasoning || undefined);
       throw err;
     }
   }
@@ -271,6 +361,8 @@ export class LangGraphAgent implements ChatSession {
       content: "",
       name: this.name,
       loading: true,
+      statusMessage: "Thinking...",
+      reasoning: "",
     };
     this.state = {
       messages: [...this.state.messages, userMessage, assistantMessage],
@@ -279,17 +371,20 @@ export class LangGraphAgent implements ChatSession {
     this.emit();
   }
 
-  private updateAssistantDraft(content: string): void {
+  private updateAssistantDraft(content: string, statusMessage?: string, reasoning?: string): void {
     const messages = [...this.state.messages];
     const idx = [...messages].reverse().findIndex((m) => m.role === "assistant");
     if (idx < 0) return;
     const realIdx = messages.length - 1 - idx;
-    messages[realIdx] = { ...messages[realIdx], content, loading: true };
+    const next = { ...messages[realIdx], content, loading: true };
+    if (statusMessage !== undefined) next.statusMessage = statusMessage;
+    if (reasoning !== undefined) next.reasoning = reasoning;
+    messages[realIdx] = next;
     this.state = { ...this.state, messages };
     this.emit();
   }
 
-  private finishAssistantTurn(content: string): void {
+  private finishAssistantTurn(content: string, reasoning?: string): void {
     const messages = [...this.state.messages];
     const idx = [...messages].reverse().findIndex((m) => m.role === "assistant");
     if (idx >= 0) {
@@ -298,6 +393,8 @@ export class LangGraphAgent implements ChatSession {
         ...messages[realIdx],
         content,
         loading: false,
+        statusMessage: undefined,
+        reasoning: reasoning !== undefined ? reasoning : messages[realIdx].reasoning,
       };
     }
     this.state = { messages, generating: false };

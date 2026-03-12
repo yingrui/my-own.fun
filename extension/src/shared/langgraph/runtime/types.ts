@@ -6,6 +6,10 @@ export interface SessionMessage {
   content: string;
   name?: string;
   loading?: boolean;
+  /** Shown while loading so the user knows the AI is working (e.g. "Thinking...", "Searching..."). */
+  statusMessage?: string;
+  /** Model reasoning/thinking stream (e.g. from delta.reasoning); shown in a distinct format. */
+  reasoning?: string;
 }
 
 export interface SessionState {

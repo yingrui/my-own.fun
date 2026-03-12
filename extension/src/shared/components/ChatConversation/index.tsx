@@ -170,6 +170,8 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
                   content={message.content}
                   name={message.name}
                   loading={message.loading}
+                  statusMessage={message.statusMessage}
+                  reasoning={message.reasoning}
                 ></Message>
               ))}
               <div className="scroll-anchor" ref={messagesRef}></div>
