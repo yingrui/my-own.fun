@@ -37,7 +37,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     const [text, setText] = useState<string>();
     const [prefix, setPrefix] = useState<PrefixType>("@");
     const [generating, setGenerating] = useState<boolean>();
-    const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
+    const { scrollRef, scrollToBottom, messagesRef, handleScroll } = useScrollAnchor();
     const commandRef = useRef<boolean>();
     const inputMethodRef = useRef<boolean>(false);
     const [messages, setMessages] = useState<SessionMessage[]>(
@@ -54,6 +54,12 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       }
       return () => unsubscribe();
     }, []);
+
+    useEffect(() => {
+      if (generating) {
+        scrollToBottom("auto");
+      }
+    }, [messages, generating, scrollToBottom]);
 
     async function handleSubmit() {
       if (generating) {
@@ -92,6 +98,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       let result = "";
       try {
         setText("");
+        scrollToBottom("smooth", true);
 
         try {
           result = await generate_func();
@@ -160,7 +167,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     return (
       <>
         <div className={style.chat}>
-          <div className={style.chatList}>
+          <div className={style.chatList} ref={scrollRef} onScroll={handleScroll}>
             <div>
               {messages.map((message, i) => (
                 <Message

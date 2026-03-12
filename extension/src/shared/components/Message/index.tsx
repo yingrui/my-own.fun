@@ -8,7 +8,7 @@ import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
 import type { CollapseProps } from "antd";
 import { Collapse, message, Spin, Button } from "antd";
 import copy from "copy-to-clipboard";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import intl from "react-intl-universal";
 import "./index.css";
 import StepComponent from "./StepComponent";
@@ -66,6 +66,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
   );
   const [showSteps, setShowSteps] = useState<boolean>(false);
   const [reasoningExpanded, setReasoningExpanded] = useState<boolean>(!!loading);
+  const reasoningRef = useRef<HTMLDivElement>(null);
   const { scrollRef, scrollToBottom, messagesRef } = useScrollAnchor();
 
   useEffect(() => {
@@ -73,6 +74,11 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
       setReasoningExpanded(true);
     }
   }, [loading, reasoning]);
+
+  useEffect(() => {
+    if (!loading || !reasoningRef.current) return;
+    reasoningRef.current.scrollTop = reasoningRef.current.scrollHeight;
+  }, [loading, reasoning, reasoningSteps]);
 
   function getContent(): string {
     if (content instanceof Array) {
@@ -128,6 +134,11 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
 
   const hasContent = !!getContent();
   const spinning = shouldSpin() && !hasContent;
+  const currentReasoningText = reasoning && reasoning.trim()
+    ? reasoning
+    : loading
+      ? "..."
+      : "";
 
   return (
     <div ref={messagesRef} className={"message-item message-assistant"}>
@@ -184,19 +195,19 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
                   </span>
                 ),
                 children: (
-                  <div className="message-reasoning">
+                  <div className="message-reasoning" ref={reasoningRef}>
                     {!!reasoningSteps?.length && reasoningSteps.map((step) => (
                       <div key={step.id} className="reasoning-step">
                         <div className="reasoning-step-title">{step.title}</div>
                         <div>{step.content}</div>
                       </div>
                     ))}
-                    {reasoning && (
+                    {(loading || !!reasoning) && (
                       <div className="reasoning-step">
                         <div className="reasoning-step-title">
                           {intl.get("message_reasoning_current").d("Current step")}
                         </div>
-                        <div>{reasoning}</div>
+                        <div>{currentReasoningText}</div>
                       </div>
                     )}
                   </div>

@@ -361,7 +361,13 @@ export class LangGraphAgent implements ChatSession {
           // Tool/human/system chunks are reflected via values-mode status/events.
           if (chunkType && chunkType !== "ai") {
             if (chunkCount > 0) {
-              this.updateAssistantDraft(lastStreamed || accumulated, "Working...");
+              this.updateAssistantDraft(
+                lastStreamed || accumulated,
+                "Working...",
+                accumulatedReasoning,
+                toolEvents,
+                reasoningSteps,
+              );
             }
             continue;
           }
@@ -375,7 +381,7 @@ export class LangGraphAgent implements ChatSession {
             this.updateAssistantDraft(
               lastStreamed,
               "Writing...",
-              accumulatedReasoning || undefined,
+              accumulatedReasoning,
               toolEvents,
               reasoningSteps,
             );
@@ -391,7 +397,7 @@ export class LangGraphAgent implements ChatSession {
             this.updateAssistantDraft(
               lastStreamed || accumulated,
               "Working...",
-              undefined,
+              accumulatedReasoning,
               toolEvents,
               reasoningSteps,
             );
@@ -426,7 +432,7 @@ export class LangGraphAgent implements ChatSession {
                 this.updateAssistantDraft(
                   lastStreamed,
                   statusMessage ?? "Writing...",
-                  accumulatedReasoning || undefined,
+                  accumulatedReasoning,
                   toolEvents,
                   reasoningSteps,
                 );
@@ -434,7 +440,7 @@ export class LangGraphAgent implements ChatSession {
                 this.updateAssistantDraft(
                   currentContent,
                   statusMessage,
-                  accumulatedReasoning || undefined,
+                  accumulatedReasoning,
                   toolEvents,
                   reasoningSteps,
                 );
@@ -443,7 +449,7 @@ export class LangGraphAgent implements ChatSession {
               this.updateAssistantDraft(
                 currentContent,
                 statusMessage,
-                accumulatedReasoning || undefined,
+                accumulatedReasoning,
                 toolEvents,
                 reasoningSteps,
               );
