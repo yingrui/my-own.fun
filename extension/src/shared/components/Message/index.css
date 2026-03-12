@@ -178,6 +178,18 @@ div.ant-collapse-content-box {
   overflow-y: auto;
 }
 
+.reasoning-step {
+  margin: 0 0 10px;
+}
+
+.reasoning-step-title {
+  color: #8b5cf6;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
 .reasoning-label {
   color: #8b5cf6;
   font-size: 12px;
@@ -195,4 +207,50 @@ div.ant-collapse-content-box {
 .steps-toggle-button:hover {
   color: #40a9ff;
   text-decoration: underline;
+}
+
+.tool-events {
+  margin: 8px 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tool-event-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.tool-event-badge {
+  border-radius: 9999px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tool-event-selected {
+  background: rgba(24, 144, 255, 0.12);
+  color: #1677ff;
+}
+
+.tool-event-executed {
+  background: rgba(82, 196, 26, 0.14);
+  color: #389e0d;
+}
+
+.tool-event-name {
+  font-weight: 600;
+  color: var(--gm-color-text);
+}
+
+.tool-event-details {
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 380px;
 }

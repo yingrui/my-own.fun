@@ -2,6 +2,7 @@ import { CopyOutlined } from "@ant-design/icons";
 import type { MessageContent } from "@src/shared/agents/core/ChatMessage";
 import ChatMessage from "@src/shared/agents/core/ChatMessage";
 import Interaction from "@src/shared/agents/core/Interaction";
+import type { SessionReasoningStep, SessionToolEvent } from "@src/shared/langgraph/runtime/types";
 import MarkdownPreview from "@src/shared/components/Message/MarkdownPreview";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
 import type { CollapseProps } from "antd";
@@ -24,6 +25,10 @@ interface MessageProps {
   statusMessage?: string;
   /** Model reasoning/thinking stream; shown in a distinct format (e.g. collapsible or muted). */
   reasoning?: string;
+  /** Append-only reasoning snapshots from each major step/tool round. */
+  reasoningSteps?: SessionReasoningStep[];
+  /** Tool events captured from LangGraph tool-calling flow. */
+  toolEvents?: SessionToolEvent[];
 }
 
 const getStepComponents = (
@@ -41,7 +46,18 @@ const getStepComponents = (
 };
 
 const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
-  const { index, role, content, loading, name, interaction, statusMessage: statusMessageProp, reasoning } = props;
+  const {
+    index,
+    role,
+    content,
+    loading,
+    name,
+    interaction,
+    statusMessage: statusMessageProp,
+    reasoning,
+    reasoningSteps,
+    toolEvents,
+  } = props;
   const [steps, setSteps] = useState<CollapseProps["items"]>(
     getStepComponents(interaction),
   );
@@ -154,7 +170,7 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
             {showSteps && <Collapse accordion items={steps} ghost={true} />}
           </div>
         )}
-        {reasoning && (
+        {(reasoning || (reasoningSteps && reasoningSteps.length > 0)) && (
           <Collapse
             ghost
             activeKey={reasoningExpanded ? ["reasoning"] : []}
@@ -167,10 +183,40 @@ const Message: React.FC<MessageProps> = React.memo((props: MessageProps) => {
                     {loading ? `${intl.get("message_reasoning_label").d("Thinking")}...` : intl.get("message_reasoning_label").d("Thinking")}
                   </span>
                 ),
-                children: <div className="message-reasoning">{reasoning}</div>,
+                children: (
+                  <div className="message-reasoning">
+                    {!!reasoningSteps?.length && reasoningSteps.map((step) => (
+                      <div key={step.id} className="reasoning-step">
+                        <div className="reasoning-step-title">{step.title}</div>
+                        <div>{step.content}</div>
+                      </div>
+                    ))}
+                    {reasoning && (
+                      <div className="reasoning-step">
+                        <div className="reasoning-step-title">
+                          {intl.get("message_reasoning_current").d("Current step")}
+                        </div>
+                        <div>{reasoning}</div>
+                      </div>
+                    )}
+                  </div>
+                ),
               },
             ]}
           />
+        )}
+        {!!toolEvents?.length && (
+          <div className="tool-events">
+            {toolEvents.map((event, idx) => (
+              <div key={`${event.name}-${event.status}-${idx}`} className="tool-event-row">
+                <span className={`tool-event-badge tool-event-${event.status}`}>
+                  {event.status === "selected" ? "Selected" : "Executed"}
+                </span>
+                <span className="tool-event-name">{event.name}</span>
+                {event.details && <span className="tool-event-details">{event.details}</span>}
+              </div>
+            ))}
+          </div>
         )}
         <MarkdownPreview loading={loading} content={getContent()} />
         {!loading && index > 0 && (

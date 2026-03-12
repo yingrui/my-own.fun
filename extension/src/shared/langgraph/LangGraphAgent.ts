@@ -7,8 +7,10 @@ import { resetResearchSession } from "@src/shared/langgraph/skills/research";
 import type {
   ChatSession,
   SessionMessage,
+  SessionReasoningStep,
   SessionState,
   SessionStateListener,
+  SessionToolEvent,
 } from "@src/shared/langgraph/runtime/types";
 
 function toText(content: unknown): string {
@@ -66,13 +68,92 @@ function parseMessagePayload(payload: unknown): { content: string; reasoning: st
 }
 
 /** Returns a short status label when the last message in state is a tool message (e.g. "Searching the web..."). */
+function getMessageType(m: unknown): string {
+  const msg = m as { getType?: () => string; _getType?: () => string; type?: string; lc_id?: string[] };
+  return msg?.getType?.() ?? msg?._getType?.() ?? msg?.type ?? msg?.lc_id?.[2] ?? "";
+}
+
+function normalizeToolName(name?: string): string {
+  return (name ?? "").trim();
+}
+
+function toShortDetails(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  const text = typeof value === "string" ? value : JSON.stringify(value);
+  const normalized = text.trim();
+  if (!normalized) return undefined;
+  return normalized.length > 140 ? `${normalized.slice(0, 140)}...` : normalized;
+}
+
+function collectToolEvents(messages: BaseMessage[]): SessionToolEvent[] {
+  const events: SessionToolEvent[] = [];
+  for (const message of messages) {
+    const type = getMessageType(message);
+    if (type === "ai") {
+      const ai = message as { tool_calls?: Array<{ name?: string; args?: unknown }>; additional_kwargs?: { tool_calls?: Array<{ function?: { name?: string; arguments?: string } }> } };
+      const directCalls = Array.isArray(ai.tool_calls) ? ai.tool_calls : [];
+      for (const call of directCalls) {
+        const toolName = normalizeToolName(call.name);
+        if (!toolName) continue;
+        events.push({
+          name: toolName,
+          status: "selected",
+          details: toShortDetails(call.args),
+        });
+      }
+      const rawCalls = Array.isArray(ai.additional_kwargs?.tool_calls)
+        ? ai.additional_kwargs?.tool_calls
+        : [];
+      for (const call of rawCalls) {
+        const toolName = normalizeToolName(call?.function?.name);
+        if (!toolName) continue;
+        events.push({
+          name: toolName,
+          status: "selected",
+          details: toShortDetails(call?.function?.arguments),
+        });
+      }
+    }
+    if (type === "tool") {
+      const tool = message as { name?: string; content?: unknown };
+      const toolName = normalizeToolName(tool.name);
+      if (!toolName) continue;
+      events.push({
+        name: toolName,
+        status: "executed",
+        details: toShortDetails(tool.content),
+      });
+    }
+  }
+  const seen = new Set<string>();
+  const deduped: SessionToolEvent[] = [];
+  for (const event of events) {
+    const key = `${event.status}::${event.name}::${event.details ?? ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(event);
+  }
+  return deduped;
+}
+
+function makeReasoningStep(
+  stepIndex: number,
+  content: string,
+  trigger?: SessionToolEvent,
+): SessionReasoningStep {
+  const trimmed = content.trim();
+  const title = trigger
+    ? `Step ${stepIndex}: ${trigger.status === "selected" ? "Select" : "Execute"} ${trigger.name}`
+    : `Step ${stepIndex}: Final reasoning`;
+  return {
+    id: `reasoning_step_${stepIndex}`,
+    title,
+    content: trimmed,
+  };
+}
+
 function getToolStatusMessage(messages: BaseMessage[]): string | undefined {
   if (messages.length === 0) return undefined;
-  // LangGraph may send plain objects; check both getType() and .type / .lc_id
-  const getMessageType = (m: unknown): string => {
-    const msg = m as { getType?: () => string; _getType?: () => string; type?: string; lc_id?: string[] };
-    return msg?.getType?.() ?? msg?._getType?.() ?? msg?.type ?? msg?.lc_id?.[2] ?? "";
-  };
   const last = messages[messages.length - 1];
   const lastType = getMessageType(last);
   if (lastType === "tool") {
@@ -189,14 +270,25 @@ export class LangGraphAgent implements ChatSession {
     const tool = this.skills.flatMap((s) => s.getTools()).find((t) => t.name === command);
     if (tool) {
       this.startAssistantTurn(userMessage);
+      const selectedEvent: SessionToolEvent = {
+        name: command,
+        status: "selected",
+        details: toShortDetails(args),
+      };
+      this.updateAssistantDraft("", `Using ${command}...`, undefined, [selectedEvent]);
       try {
         const result = await tool.invoke(args);
         const output = stringifyResult(result);
-        this.finishAssistantTurn(output);
+        const executedEvent: SessionToolEvent = {
+          name: command,
+          status: "executed",
+          details: toShortDetails(output),
+        };
+        this.finishAssistantTurn(output, undefined, [selectedEvent, executedEvent]);
         return output;
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        this.finishAssistantTurn(`Error: ${message}`);
+        this.finishAssistantTurn(`Error: ${message}`, undefined, [selectedEvent]);
         return `Error: ${message}`;
       }
     }
@@ -243,6 +335,9 @@ export class LangGraphAgent implements ChatSession {
     let lastStreamed = "";
     let accumulated = "";
     let accumulatedReasoning = "";
+    let reasoningSteps: SessionReasoningStep[] = [];
+    let toolEventCountHandled = 0;
+    let toolEvents: SessionToolEvent[] = [];
     let finalValuesMessages: BaseMessage[] | null = null;
     let chunkCount = 0;
 
@@ -259,6 +354,17 @@ export class LangGraphAgent implements ChatSession {
         chunkCount += 1;
 
         if (mode === "messages") {
+          const tuple = payload as [unknown, unknown];
+          const msgChunk = Array.isArray(tuple) ? tuple[0] : payload;
+          const chunkType = getMessageType(msgChunk);
+          // Only assistant text should be appended to the visible reply.
+          // Tool/human/system chunks are reflected via values-mode status/events.
+          if (chunkType && chunkType !== "ai") {
+            if (chunkCount > 0) {
+              this.updateAssistantDraft(lastStreamed || accumulated, "Working...");
+            }
+            continue;
+          }
           const { content: token, reasoning: reasoningToken } = parseMessagePayload(payload);
           if (reasoningToken) {
             accumulatedReasoning += reasoningToken;
@@ -266,11 +372,29 @@ export class LangGraphAgent implements ChatSession {
           if (token) {
             accumulated += token;
             lastStreamed = accumulated;
-            this.updateAssistantDraft(lastStreamed, "Writing...", accumulatedReasoning || undefined);
+            this.updateAssistantDraft(
+              lastStreamed,
+              "Writing...",
+              accumulatedReasoning || undefined,
+              toolEvents,
+              reasoningSteps,
+            );
           } else if (accumulatedReasoning) {
-            this.updateAssistantDraft(lastStreamed || accumulated, "Thinking...", accumulatedReasoning);
+            this.updateAssistantDraft(
+              lastStreamed || accumulated,
+              "Thinking...",
+              accumulatedReasoning,
+              toolEvents,
+              reasoningSteps,
+            );
           } else if (chunkCount > 0) {
-            this.updateAssistantDraft(lastStreamed || accumulated, "Working...");
+            this.updateAssistantDraft(
+              lastStreamed || accumulated,
+              "Working...",
+              undefined,
+              toolEvents,
+              reasoningSteps,
+            );
           }
         } else if (mode === "values") {
           // payload is full graph state { messages: BaseMessage[] }
@@ -278,6 +402,16 @@ export class LangGraphAgent implements ChatSession {
           const valueMessages = valueState?.messages ?? [];
           if (valueMessages.length > 0) {
             finalValuesMessages = valueMessages;
+            toolEvents = collectToolEvents(valueMessages);
+            if (toolEvents.length > toolEventCountHandled && accumulatedReasoning.trim()) {
+              const trigger = toolEvents[toolEvents.length - 1];
+              reasoningSteps = [
+                ...reasoningSteps,
+                makeReasoningStep(reasoningSteps.length + 1, accumulatedReasoning, trigger),
+              ];
+              accumulatedReasoning = "";
+            }
+            toolEventCountHandled = toolEvents.length;
             const toolStatus = getToolStatusMessage(valueMessages);
             const last = valueMessages[valueMessages.length - 1];
             const currentContent = lastStreamed || accumulated;
@@ -289,19 +423,44 @@ export class LangGraphAgent implements ChatSession {
               const text = toText((last as { content?: unknown })?.content);
               if (text) {
                 lastStreamed = text;
-                this.updateAssistantDraft(lastStreamed, statusMessage ?? "Writing...", accumulatedReasoning || undefined);
+                this.updateAssistantDraft(
+                  lastStreamed,
+                  statusMessage ?? "Writing...",
+                  accumulatedReasoning || undefined,
+                  toolEvents,
+                  reasoningSteps,
+                );
               } else {
-                this.updateAssistantDraft(currentContent, statusMessage, accumulatedReasoning || undefined);
+                this.updateAssistantDraft(
+                  currentContent,
+                  statusMessage,
+                  accumulatedReasoning || undefined,
+                  toolEvents,
+                  reasoningSteps,
+                );
               }
             } else {
-              this.updateAssistantDraft(currentContent, statusMessage, accumulatedReasoning || undefined);
+              this.updateAssistantDraft(
+                currentContent,
+                statusMessage,
+                accumulatedReasoning || undefined,
+                toolEvents,
+                reasoningSteps,
+              );
             }
           }
         }
       }
 
+      if (accumulatedReasoning.trim()) {
+        reasoningSteps = [
+          ...reasoningSteps,
+          makeReasoningStep(reasoningSteps.length + 1, accumulatedReasoning),
+        ];
+      }
+
       const output = lastStreamed || accumulated || "(No response)";
-      this.finishAssistantTurn(output, accumulatedReasoning || undefined);
+      this.finishAssistantTurn(output, undefined, toolEvents, reasoningSteps);
       if (finalValuesMessages && finalValuesMessages.length > 0) {
         this.messageHistory = this.trimHistory(finalValuesMessages);
       } else {
@@ -317,7 +476,13 @@ export class LangGraphAgent implements ChatSession {
       // Server may have sent [DONE] + proper 0\r\n\r\n but browser/SDK still reports incomplete chunked encoding.
       // If we have content, treat as success so the user sees the full response.
       if (partial && isIncompleteChunkedEncoding) {
-        this.finishAssistantTurn(partial, accumulatedReasoning || undefined);
+        if (accumulatedReasoning.trim()) {
+          reasoningSteps = [
+            ...reasoningSteps,
+            makeReasoningStep(reasoningSteps.length + 1, accumulatedReasoning),
+          ];
+        }
+        this.finishAssistantTurn(partial, undefined, toolEvents, reasoningSteps);
         if (finalValuesMessages?.length) {
           this.messageHistory = this.trimHistory(finalValuesMessages);
         } else {
@@ -327,7 +492,13 @@ export class LangGraphAgent implements ChatSession {
       }
 
       // Don't show error text in the message bubble; finish with partial only and rethrow so UI can show error elsewhere (e.g. toast).
-      this.finishAssistantTurn(partial || "", accumulatedReasoning || undefined);
+      if (accumulatedReasoning.trim()) {
+        reasoningSteps = [
+          ...reasoningSteps,
+          makeReasoningStep(reasoningSteps.length + 1, accumulatedReasoning),
+        ];
+      }
+      this.finishAssistantTurn(partial || "", undefined, toolEvents, reasoningSteps);
       throw err;
     }
   }
@@ -371,7 +542,13 @@ export class LangGraphAgent implements ChatSession {
     this.emit();
   }
 
-  private updateAssistantDraft(content: string, statusMessage?: string, reasoning?: string): void {
+  private updateAssistantDraft(
+    content: string,
+    statusMessage?: string,
+    reasoning?: string,
+    toolEvents?: SessionToolEvent[],
+    reasoningSteps?: SessionReasoningStep[],
+  ): void {
     const messages = [...this.state.messages];
     const idx = [...messages].reverse().findIndex((m) => m.role === "assistant");
     if (idx < 0) return;
@@ -379,12 +556,19 @@ export class LangGraphAgent implements ChatSession {
     const next = { ...messages[realIdx], content, loading: true };
     if (statusMessage !== undefined) next.statusMessage = statusMessage;
     if (reasoning !== undefined) next.reasoning = reasoning;
+    if (toolEvents !== undefined) next.toolEvents = toolEvents;
+    if (reasoningSteps !== undefined) next.reasoningSteps = reasoningSteps;
     messages[realIdx] = next;
     this.state = { ...this.state, messages };
     this.emit();
   }
 
-  private finishAssistantTurn(content: string, reasoning?: string): void {
+  private finishAssistantTurn(
+    content: string,
+    reasoning?: string,
+    toolEvents?: SessionToolEvent[],
+    reasoningSteps?: SessionReasoningStep[],
+  ): void {
     const messages = [...this.state.messages];
     const idx = [...messages].reverse().findIndex((m) => m.role === "assistant");
     if (idx >= 0) {
@@ -395,6 +579,9 @@ export class LangGraphAgent implements ChatSession {
         loading: false,
         statusMessage: undefined,
         reasoning: reasoning !== undefined ? reasoning : messages[realIdx].reasoning,
+        toolEvents: toolEvents !== undefined ? toolEvents : messages[realIdx].toolEvents,
+        reasoningSteps:
+          reasoningSteps !== undefined ? reasoningSteps : messages[realIdx].reasoningSteps,
       };
     }
     this.state = { messages, generating: false };

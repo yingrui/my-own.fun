@@ -80,6 +80,8 @@ export function createChatModel(config: GluonConfigure, modelOverride?: string):
     },
     model,
     temperature: 0.6,
+    // Keep native tool-calling on chat-completions for OpenAI-compatible endpoints.
+    useResponsesApi: false,
     modelKwargs: {},
     __includeRawResponse: true,
   } as ConstructorParameters<typeof ChatOpenAI>[0]);
