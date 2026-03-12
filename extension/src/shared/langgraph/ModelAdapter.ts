@@ -2,9 +2,11 @@
  * Creates ChatOpenAI from GluonConfigure for LangGraph.
  * Uses getModelForCapability for tool-calling when models registry is present, otherwise toolsCallModel/defaultModel.
  * Resolves API credentials from the provider that owns the selected model.
+ * Uses DeepSeekCompatibleChatOpenAI when the model is DeepSeek so thinking mode + tool-calls work (reasoning_content).
  */
 
 import { ChatOpenAI } from "@langchain/openai";
+import { DeepSeekCompatibleChatOpenAI } from "@src/shared/langgraph/DeepSeekChatModel";
 import type { GluonConfigure, ModelEntry } from "@src/shared/storages/gluonConfig";
 
 export type ModelCapability = "chat" | "tools" | "thinking" | "vision" | "embedding";
@@ -70,7 +72,8 @@ export function createChatModel(config: GluonConfigure, modelOverride?: string):
     modelOverride ??
     getModelForCapability(config, "tools", config.defaultModel ?? "gpt-4o-mini");
   const creds = getProviderForModel(config, model);
-  return new ChatOpenAI({
+  const isDeepSeekReasoner = /deepseek-reasoner/i.test(model);
+  const baseConfig = {
     apiKey: creds.apiKey,
     configuration: {
       baseURL: creds.baseURL,
@@ -79,10 +82,15 @@ export function createChatModel(config: GluonConfigure, modelOverride?: string):
         : undefined,
     },
     model,
-    temperature: 0.6,
+    temperature: 0.5,
     // Keep native tool-calling on chat-completions for OpenAI-compatible endpoints.
     useResponsesApi: false,
     modelKwargs: {},
     __includeRawResponse: true,
-  } as ConstructorParameters<typeof ChatOpenAI>[0]);
+  } as ConstructorParameters<typeof ChatOpenAI>[0];
+
+  if (isDeepSeekReasoner) {
+    return new DeepSeekCompatibleChatOpenAI(baseConfig);
+  }
+  return new ChatOpenAI(baseConfig);
 }
