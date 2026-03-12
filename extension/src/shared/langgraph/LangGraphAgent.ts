@@ -332,6 +332,7 @@ export class LangGraphAgent implements ChatSession {
     });
 
     const messages = this.trimHistory([...this.messageHistory, new HumanMessage(userInput)]);
+    const inputMessageCount = messages.length;
     let lastStreamed = "";
     let accumulated = "";
     let accumulatedReasoning = "";
@@ -408,7 +409,8 @@ export class LangGraphAgent implements ChatSession {
           const valueMessages = valueState?.messages ?? [];
           if (valueMessages.length > 0) {
             finalValuesMessages = valueMessages;
-            toolEvents = collectToolEvents(valueMessages);
+            const currentRunMessages = valueMessages.slice(inputMessageCount);
+            toolEvents = collectToolEvents(currentRunMessages);
             if (toolEvents.length > toolEventCountHandled && accumulatedReasoning.trim()) {
               const trigger = toolEvents[toolEvents.length - 1];
               reasoningSteps = [
@@ -418,7 +420,9 @@ export class LangGraphAgent implements ChatSession {
               accumulatedReasoning = "";
             }
             toolEventCountHandled = toolEvents.length;
-            const toolStatus = getToolStatusMessage(valueMessages);
+            const toolStatus = getToolStatusMessage(
+              currentRunMessages.length > 0 ? currentRunMessages : valueMessages,
+            );
             const last = valueMessages[valueMessages.length - 1];
             const currentContent = lastStreamed || accumulated;
             // Prefer specific tool status; else "Working..." when graph has more than user message or we've seen any chunk
@@ -540,6 +544,8 @@ export class LangGraphAgent implements ChatSession {
       loading: true,
       statusMessage: "Thinking...",
       reasoning: "",
+      reasoningSteps: [],
+      toolEvents: [],
     };
     this.state = {
       messages: [...this.state.messages, userMessage, assistantMessage],
