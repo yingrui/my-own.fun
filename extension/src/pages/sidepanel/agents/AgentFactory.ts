@@ -7,6 +7,7 @@ import {
   createSidepanelEnvironmentBuilder,
   createResearchEnvironmentBuilder,
 } from "@src/shared/langgraph";
+import type { Skill } from "@src/shared/langgraph";
 import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 
 class AgentFactory {
@@ -15,7 +16,9 @@ class AgentFactory {
     const description = intl.get("agent_description_myfun").d(
       "myFun, your browser assistant",
     );
-    const skills = [pageContentSkill, researchSkill];
+    const skills: Skill[] = config.enableSearch
+      ? [pageContentSkill, researchSkill]
+      : [pageContentSkill];
 
     return new LangGraphAgent({
       config,

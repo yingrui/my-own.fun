@@ -105,16 +105,22 @@ export function createBackendStorage<D extends Record<string, any>>(
   let backendAvailable = false;
   let useBackend = true; // Flag to enable/disable backend usage
 
+  let initResolve: () => void;
+  const initPromise = new Promise<void>((resolve) => { initResolve = resolve; });
+
   // Check backend availability on initialization
   (async () => {
-    const available = await checkBackendHealth();
-    backendAvailable = available;
-    if (available) {
-      await ensureProfile();
-      await loadFromBackend();
-    } else {
-      // Fallback to local storage
-      await loadFromLocalStorage();
+    try {
+      const available = await checkBackendHealth();
+      backendAvailable = available;
+      if (available) {
+        await ensureProfile();
+        await loadFromBackend();
+      } else {
+        await loadFromLocalStorage();
+      }
+    } finally {
+      initResolve!();
     }
   })();
 
@@ -236,25 +242,20 @@ export function createBackendStorage<D extends Record<string, any>>(
   };
 
   const get = async (): Promise<D> => {
-    // If cache is already loaded, return it
-    if (cache !== null) {
-      return cache;
-    }
-    
-    // Otherwise, try to load from backend or local storage
+    if (cache !== null) return cache;
+    await initPromise;
+    if (cache !== null) return cache;
     if (backendAvailable) {
       try {
         await loadFromBackend();
         return cache || fallback;
       } catch (error) {
-        // Fallback to local storage
         await loadFromLocalStorage();
         return cache || fallback;
       }
-    } else {
-      await loadFromLocalStorage();
-      return cache || fallback;
     }
+    await loadFromLocalStorage();
+    return cache || fallback;
   };
 
   // Initial load is handled in the async block above

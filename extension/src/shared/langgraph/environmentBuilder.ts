@@ -8,11 +8,12 @@ export function createSidepanelEnvironmentBuilder(
   const language = config.language ?? "English";
 
   return async (): Promise<string> => {
+    const now = new Date().toLocaleString(language === "English" ? "en-US" : undefined);
     const content = await get_content();
     const maxContentLength = 100 * 1024;
 
     if (!content) {
-      return `As an assistant or chrome copilot named ${agentName}.
+      return `As an assistant or chrome copilot named ${agentName}. Current time: ${now}.
 You can answer questions in ${language}. Output in markdown.`;
     }
 
@@ -23,6 +24,7 @@ You can answer questions in ${language}. Output in markdown.`;
 
     return `## Role
 As a web browser assistant or chrome copilot, named ${agentName}.
+Current time: ${now}.
 You're good at data extraction, summarization, and helping with web content.
 
 ## Context
