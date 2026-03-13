@@ -169,12 +169,14 @@ class StreamContext {
       this.prevItemCount = items.length;
     }
 
+    this.streamDelta = "";
     const last = allMessages[allMessages.length - 1];
     if (last && msgType(last) === "ai") {
-      const t = toText((last as { content?: unknown }).content);
-      if (t) {
-        this.confirmedText = t;
-        this.streamDelta = "";
+      const ai = last as { content?: unknown; tool_calls?: unknown[] };
+      const hasToolCalls = Array.isArray(ai.tool_calls) && ai.tool_calls.length > 0;
+      if (!hasToolCalls) {
+        const t = toText(ai.content);
+        if (t) this.confirmedText = t;
       }
     }
   }
