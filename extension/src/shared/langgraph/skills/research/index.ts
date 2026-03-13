@@ -10,7 +10,8 @@ import {
   openUrlAndGetContent,
   type TabPageContent,
 } from "@src/shared/utils/tabContent";
-import type { Skill } from "./types";
+import type { Skill } from "../types";
+import instructions from "./SKILL.md?raw";
 
 const MAX_CONTENT_LENGTH = 80 * 1024;
 const MAX_PAGES_PER_SESSION = 8;
@@ -38,6 +39,7 @@ export const researchSkill: Skill = {
   id: "research",
   name: "Research",
   description: "Search the web and open pages to extract content for deep research.",
+  instructions,
 
   getTools() {
     return [

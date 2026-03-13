@@ -1,4 +1,4 @@
 export type { Skill } from "./types";
-export { pageContentSkill } from "./pageContent";
-export { createWriterSkill } from "./writerSkill";
+export { pageContentSkill } from "./page-content";
+export { createWriterSkill } from "./writer";
 export { researchSkill, resetResearchSession } from "./research";

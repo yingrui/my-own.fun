@@ -5,7 +5,7 @@ import {
   LangGraphAgent,
   createWriterEnvironmentBuilder,
 } from "@src/shared/langgraph";
-import { createWriterSkill } from "@src/shared/langgraph/skills/writerSkill";
+import { createWriterSkill } from "@src/shared/langgraph/skills/writer";
 import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 
 class WriterAgentFactory {

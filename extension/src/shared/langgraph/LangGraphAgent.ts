@@ -2,8 +2,7 @@ import { AIMessage, HumanMessage, type BaseMessage } from "@langchain/core/messa
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import { createChatModel } from "@src/shared/langgraph/ModelAdapter";
 import { buildAgentGraph } from "@src/shared/langgraph/agentGraph";
-import type { Skill } from "@src/shared/langgraph/skills";
-import { resetResearchSession } from "@src/shared/langgraph/skills/research";
+import { type Skill, resetResearchSession } from "@src/shared/langgraph/skills";
 import { StreamContext } from "@src/shared/langgraph/StreamContext";
 import type {
   ChatSession,
@@ -122,6 +121,7 @@ export class LangGraphAgent implements ChatSession {
     const graph = buildAgentGraph({
       llm: createChatModel(this.config),
       tools: this.skills.flatMap((s) => s.getTools()),
+      skills: this.skills,
       getSystemPrompt: systemPromptOverride ?? this.getSystemPrompt,
     });
 

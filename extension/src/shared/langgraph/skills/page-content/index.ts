@@ -6,6 +6,7 @@
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { get_content } from "@src/shared/utils";
+import instructions from "./SKILL.md?raw";
 
 async function getPageContent(): Promise<string> {
   const content = await get_content();
@@ -28,6 +29,7 @@ export const pageContentSkill = {
   id: "page_content",
   name: "Page Content",
   description: "Get the current webpage's URL, title, text content, and links.",
+  instructions,
 
   getTools() {
     return [

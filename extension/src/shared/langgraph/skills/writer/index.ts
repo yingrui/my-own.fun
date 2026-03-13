@@ -8,7 +8,8 @@ import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import type WriterContext from "@src/pages/options/writer/context/WriterContext";
 import { createChatModel } from "@src/shared/langgraph/ModelAdapter";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import type { Skill } from "./types";
+import type { Skill } from "../types";
+import instructions from "./SKILL.md?raw";
 
 export function createWriterSkill(
   config: GluonConfigure,
@@ -20,6 +21,7 @@ export function createWriterSkill(
     id: "writer",
     name: "Writer",
     description: "Outline and autocomplete for the article.",
+    instructions,
 
     getTools() {
       return [
