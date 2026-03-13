@@ -46,7 +46,8 @@ export function createOptionsEnvironmentBuilder(
   const language = config.language ?? "English";
 
   return async (): Promise<string> => {
-    return `As an AI assistant named ${agentName}. Answer in ${language}. Use markdown.`;
+    const now = new Date().toLocaleString(language === "English" ? "en-US" : undefined);
+    return `As an AI assistant named ${agentName}. Current time: ${now}. Answer in ${language}. Use markdown.`;
   };
 }
 
