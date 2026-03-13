@@ -5,7 +5,6 @@ import {
   pageContentSkill,
   researchSkill,
   createSidepanelEnvironmentBuilder,
-  createResearchEnvironmentBuilder,
 } from "@src/shared/langgraph";
 import type { Skill } from "@src/shared/langgraph";
 import type { ChatSession } from "@src/shared/langgraph/runtime/types";
@@ -27,14 +26,6 @@ class AgentFactory {
       contextLength: config.contextLength ?? 5,
       skills,
       getSystemPrompt: createSidepanelEnvironmentBuilder(config, name),
-      commandOptions: [
-        { value: "summary", label: "/summary" },
-        { value: "search", label: "/search" },
-        { value: "research", label: "/research" },
-      ],
-      commandSystemPrompts: {
-        research: createResearchEnvironmentBuilder(config, name),
-      },
     });
   }
 }
