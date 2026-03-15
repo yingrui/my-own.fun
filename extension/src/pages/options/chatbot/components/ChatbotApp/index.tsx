@@ -4,7 +4,7 @@ import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import type { SessionMessage } from "@src/shared/langgraph/runtime/types";
 import ChatWindow from "@pages/options/chatbot/components/ChatWindow";
 import ArtifactPanel from "@src/shared/components/ArtifactPanel";
-import { extractArtifacts } from "@src/shared/artifacts";
+import { extractArtifacts, extractPartialArtifact } from "@src/shared/artifacts";
 import "./index.css";
 import AgentFactory from "@pages/options/chatbot/agents/AgentFactory";
 import intl from "react-intl-universal";
@@ -19,6 +19,8 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const [messages, setMessages] = useState<SessionMessage[]>([]);
   const agent = useMemo(() => new AgentFactory().create(config), [config]);
   const artifacts = useMemo(() => extractArtifacts(messages), [messages]);
+  const partialArtifact = useMemo(() => extractPartialArtifact(messages), [messages]);
+  const hasArtifactContent = artifacts.length > 0 || partialArtifact != null;
   const artifactsByMessageId = useMemo(() => {
     const map: Record<string, typeof artifacts> = {};
     for (const a of artifacts) {
@@ -57,11 +59,11 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
         )
       }
       content={
-        <Layout className={`chatbot-main${artifacts.length > 0 ? " chatbot-main--with-artifacts" : ""}`}>
+        <Layout className={`chatbot-main${hasArtifactContent ? " chatbot-main--with-artifacts" : ""}`}>
           <Layout className={"chatbot-conversation"}>
             <ChatWindow config={config} agent={agent} artifactsByMessageId={artifactsByMessageId} />
           </Layout>
-          {artifacts.length > 0 && (
+          {hasArtifactContent && (
             <div className={"chatbot-artifact-panel"}>
               <ArtifactPanel messages={messages} />
             </div>

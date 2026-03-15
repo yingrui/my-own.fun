@@ -7,6 +7,20 @@
   border-radius: var(--gm-radius-lg);
   overflow: hidden;
   height: 100%;
+  position: relative;
+}
+
+.partialBadge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--gm-color-muted);
+  background: var(--gm-color-surface);
+  border: 1px solid var(--gm-color-border);
+  border-radius: var(--gm-radius-sm);
 }
 
 .iframe {

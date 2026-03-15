@@ -6,4 +6,6 @@ export interface Artifact {
   type: ArtifactType;
   content: string;
   createdAt: number;
+  /** True when extracted from streaming (incomplete) content. */
+  isPartial?: boolean;
 }

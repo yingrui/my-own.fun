@@ -149,6 +149,58 @@ export function extractArtifacts(messages: SessionMessage[]): Artifact[] {
   return result;
 }
 
+const PARTIAL_LANG_RE = /```(html|htm|svg|css|javascript|js)\n/gi;
+
+/**
+ * Extract a partial artifact from the last loading assistant message.
+ * Used for live preview during streaming before the code block is complete.
+ */
+export function extractPartialArtifact(messages: SessionMessage[]): Artifact | null {
+  if (!messages.length) return null;
+  const last = messages[messages.length - 1];
+  if (last?.role !== "assistant" || !last.loading || !last.content?.trim()) return null;
+
+  const text = last.content;
+  const re = new RegExp(PARTIAL_LANG_RE.source, "gi");
+  let m: RegExpExecArray | null;
+  let lastIdx = -1;
+  let lastLang = "";
+
+  while ((m = re.exec(text)) !== null) {
+    lastIdx = m.index;
+    lastLang = (m[1] || "").toLowerCase();
+  }
+
+  if (lastIdx < 0 || !lastLang) return null;
+
+  const afterMarker = text.slice(lastIdx + 3 + lastLang.length + 1); // ``` + lang + \n
+  if (afterMarker.includes("```")) return null;
+
+  const raw = afterMarker.trim();
+  if (raw.length < 3) return null;
+
+  const type: Artifact["type"] = lastLang === "svg" ? "svg" : lastLang === "html" || lastLang === "htm" ? "html" : "combined";
+
+  let content = raw;
+  if (lastLang === "svg") {
+    content = raw.startsWith("<") ? raw : `<svg>${raw}</svg>`;
+  } else if (lastLang === "html" || lastLang === "htm") {
+    if (!raw.includes("<")) content = `<div>${raw}</div>`;
+    else if (!/<\/?\s*html\b|<!DOCTYPE/i.test(raw)) content = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${raw}</body></html>`;
+  } else if (lastLang === "css" || lastLang === "javascript" || lastLang === "js") {
+    content = `<!DOCTYPE html><html><head><meta charset="utf-8">${lastLang === "css" ? `<style>${raw}</style>` : ""}</head><body>${lastLang !== "css" ? `<script>${raw}</script>` : ""}</body></html>`;
+  }
+
+  return {
+    id: `partial-${last.id}`,
+    messageId: last.id,
+    type,
+    content,
+    createdAt: Date.now(),
+    isPartial: true,
+  };
+}
+
 const ARTIFACT_PLACEHOLDER = "\n\n*[View interactive preview in Artifacts panel →]*\n\n";
 
 /**

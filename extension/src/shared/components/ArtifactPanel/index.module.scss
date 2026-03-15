@@ -32,7 +32,12 @@
   .actions {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
+  }
+
+  .generating {
+    font-size: 12px;
+    font-style: italic;
   }
 }
 

@@ -4,7 +4,7 @@ import { CopyOutlined, ExpandOutlined, LinkOutlined } from "@ant-design/icons";
 import copy from "copy-to-clipboard";
 import type { SessionMessage } from "@src/shared/langgraph/runtime/types";
 import type { Artifact } from "@src/shared/artifacts/types";
-import { extractArtifacts } from "@src/shared/artifacts";
+import { extractArtifacts, extractPartialArtifact } from "@src/shared/artifacts";
 import ArtifactPreview from "@src/shared/components/ArtifactPreview";
 import ArtifactFullscreen from "@src/shared/components/ArtifactPanel/ArtifactFullscreen";
 import style from "./index.module.scss";
@@ -21,6 +21,7 @@ function openInNewTab(artifact: Artifact): void {
 
 const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages }) => {
   const artifacts = useMemo(() => extractArtifacts(messages), [messages]);
+  const partialArtifact = useMemo(() => extractPartialArtifact(messages), [messages]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fullscreenArtifact, setFullscreenArtifact] = useState<Artifact | null>(null);
   const prevLengthRef = useRef(0);
@@ -38,23 +39,24 @@ const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages }) => {
   }, [artifacts]);
 
   const selectedArtifact = artifacts.length > 0 ? artifacts[selectedIndex] ?? artifacts[artifacts.length - 1] : null;
+  const displayArtifact = partialArtifact ?? selectedArtifact;
 
   const handleCopy = () => {
-    if (selectedArtifact) {
-      copy(selectedArtifact.content, {});
+    if (displayArtifact && !partialArtifact) {
+      copy(displayArtifact.content, {});
       antdMessage.success("Copied to clipboard");
     }
   };
 
   const handleOpenInNewTab = () => {
-    if (selectedArtifact) {
-      openInNewTab(selectedArtifact);
+    if (displayArtifact && !partialArtifact) {
+      openInNewTab(displayArtifact);
     }
   };
 
   const handleFullscreen = () => {
-    if (selectedArtifact) {
-      setFullscreenArtifact(selectedArtifact);
+    if (displayArtifact && !partialArtifact) {
+      setFullscreenArtifact(displayArtifact);
     }
   };
 
@@ -74,20 +76,26 @@ const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages }) => {
               }))}
               className={style.selector}
             />
-          ) : artifacts.length > 0 ? (
+          ) : artifacts.length > 0 && !partialArtifact ? (
             <Typography.Text type="secondary" className={style.count}>
               1 found
             </Typography.Text>
           ) : null}
         </div>
-        {selectedArtifact && (
+        {displayArtifact && (
           <div className={style.actions}>
+            {partialArtifact && (
+              <Typography.Text type="secondary" className={style.generating}>
+                Generating...
+              </Typography.Text>
+            )}
             <Button
               type="text"
               size="small"
               icon={<CopyOutlined />}
               onClick={handleCopy}
               title="Copy"
+              disabled={!!partialArtifact}
             />
             <Button
               type="text"
@@ -95,6 +103,7 @@ const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages }) => {
               icon={<LinkOutlined />}
               onClick={handleOpenInNewTab}
               title="Open in new tab"
+              disabled={!!partialArtifact}
             />
             <Button
               type="text"
@@ -102,12 +111,13 @@ const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages }) => {
               icon={<ExpandOutlined />}
               onClick={handleFullscreen}
               title="Full screen"
+              disabled={!!partialArtifact}
             />
           </div>
         )}
       </div>
       <div className={style.content}>
-        <ArtifactPreview artifact={selectedArtifact} />
+        <ArtifactPreview artifact={displayArtifact} />
       </div>
       {fullscreenArtifact && (
         <ArtifactFullscreen
