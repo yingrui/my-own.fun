@@ -32,11 +32,6 @@ function parseCodeBlocks(text: string): RawBlock[] {
   return blocks;
 }
 
-function isWebLang(lang: string): boolean {
-  const l = lang.toLowerCase();
-  return l === "html" || l === "htm" || l === "css" || l === "javascript" || l === "js";
-}
-
 function buildCombinedDoc(html: string, css: string, js: string): string {
   const hasFullDoc = /<html[\s>]|<!DOCTYPE/i.test(html);
   if (hasFullDoc && !css && !js) return html.trim();
@@ -53,86 +48,64 @@ function buildCombinedDoc(html: string, css: string, js: string): string {
   return parts.join("\n");
 }
 
+/** Emit one artifact per code block; no merging of consecutive blocks. */
+function blockToArtifact(b: RawBlock, msgId: string, i: number): Artifact | null {
+  const type = RENDERABLE_LANGS[b.lang];
+  if (!type) return null;
+
+  if (type === "svg") {
+    const content = b.content.trim();
+    if (content.length === 0) return null;
+    return {
+      id: `a-${msgId}-${i}`,
+      messageId: msgId,
+      type: "svg",
+      content: content.startsWith("<") ? content : `<svg>${content}</svg>`,
+      createdAt: Date.now(),
+    };
+  }
+
+  if (type === "html") {
+    const content = b.content.trim();
+    if (content.length < 10) return null;
+    return {
+      id: `a-${msgId}-${i}`,
+      messageId: msgId,
+      type: "html",
+      content: content.startsWith("<") ? content : `<div>${content}</div>`,
+      createdAt: Date.now(),
+    };
+  }
+
+  if (type === "combined") {
+    const raw = b.content.trim();
+    if (raw.length < 5) return null;
+    const html = b.lang === "html" || b.lang === "htm" ? raw : "";
+    const css = b.lang === "css" ? raw : "";
+    const js = b.lang === "javascript" || b.lang === "js" ? raw : "";
+    const content = buildCombinedDoc(html, css, js);
+    if (content.length < 20) return null;
+    return {
+      id: `a-${msgId}-${i}`,
+      messageId: msgId,
+      type: "combined",
+      content,
+      createdAt: Date.now(),
+    };
+  }
+
+  return null;
+}
+
 function extractFromMessage(msg: SessionMessage): Artifact[] {
   if (msg.role !== "assistant" || !msg.content?.trim()) return [];
 
   const blocks = parseCodeBlocks(msg.content);
   const artifacts: Artifact[] = [];
-  const used = new Set<number>();
 
   for (let i = 0; i < blocks.length; i++) {
-    if (used.has(i)) continue;
-
-    const b = blocks[i];
-    const type = RENDERABLE_LANGS[b.lang];
-    if (!type) continue;
-
-    if (type === "svg") {
-      const content = b.content.trim();
-      if (content.length > 0) {
-        artifacts.push({
-          id: `a-${msg.id}-${i}`,
-          messageId: msg.id,
-          type: "svg",
-          content: content.startsWith("<") ? content : `<svg>${content}</svg>`,
-          createdAt: Date.now(),
-        });
-        used.add(i);
-      }
-      continue;
-    }
-
-    if (type === "html") {
-      const nextIsWeb = i + 1 < blocks.length && isWebLang(blocks[i + 1].lang);
-      if (nextIsWeb) {
-        const run: RawBlock[] = [];
-        let j = i;
-        while (j < blocks.length && isWebLang(blocks[j].lang)) {
-          run.push(blocks[j]);
-          used.add(j);
-          j++;
-        }
-        const html = run.filter((x) => x.lang === "html" || x.lang === "htm").map((x) => x.content).join("\n");
-        const css = run.filter((x) => x.lang === "css").map((x) => x.content).join("\n");
-        const js = run.filter((x) => x.lang === "javascript" || x.lang === "js").map((x) => x.content).join("\n");
-        const content = buildCombinedDoc(html, css, js);
-        if (content.length >= 20) {
-          artifacts.push({ id: `a-${msg.id}-${i}`, messageId: msg.id, type: "combined", content, createdAt: Date.now() });
-        }
-        i = j - 1; // for-loop will increment to j
-      } else {
-        const content = b.content.trim();
-        if (content.length >= 10) {
-          artifacts.push({
-            id: `a-${msg.id}-${i}`,
-            messageId: msg.id,
-            type: "html",
-            content: content.startsWith("<") ? content : `<div>${content}</div>`,
-            createdAt: Date.now(),
-          });
-          used.add(i);
-        }
-      }
-      continue;
-    }
-
-    if (type === "combined") {
-      const run: RawBlock[] = [];
-      let j = i;
-      while (j < blocks.length && isWebLang(blocks[j].lang)) {
-        run.push(blocks[j]);
-        used.add(j);
-        j++;
-      }
-      const html = run.filter((x) => x.lang === "html" || x.lang === "htm").map((x) => x.content).join("\n");
-      const css = run.filter((x) => x.lang === "css").map((x) => x.content).join("\n");
-      const js = run.filter((x) => x.lang === "javascript" || x.lang === "js").map((x) => x.content).join("\n");
-      const content = buildCombinedDoc(html, css, js);
-      if (content.length >= 20) {
-        artifacts.push({ id: `a-${msg.id}-${i}`, messageId: msg.id, type: "combined", content, createdAt: Date.now() });
-      }
-      i = j - 1; // for-loop will increment to j
-    }
+    const a = blockToArtifact(blocks[i], msg.id, i);
+    if (a) artifacts.push(a);
   }
 
   return artifacts;

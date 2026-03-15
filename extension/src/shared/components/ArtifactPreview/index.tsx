@@ -18,9 +18,6 @@ const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
 
   return (
     <div className={style.preview}>
-      {artifact.isPartial && (
-        <div className={style.partialBadge}>Generating…</div>
-      )}
       <iframe
         className={style.iframe}
         srcDoc={artifact.content}
