@@ -18,6 +18,19 @@
   display: block;
 }
 
+.mermaidWrap {
+  flex: 1;
+  min-height: 200px;
+  padding: 16px;
+  overflow: auto;
+
+  .mermaid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
 .empty {
   flex: 1;
   display: flex;

@@ -1,5 +1,6 @@
 import React from "react";
 import type { Artifact } from "@src/shared/artifacts/types";
+import Mermaid from "@src/shared/components/Message/MarkDownBlock/MermaidBlock";
 import style from "./index.module.scss";
 
 interface ArtifactPreviewProps {
@@ -11,7 +12,17 @@ const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
     return (
       <div className={style.empty}>
         <span>Artifacts from code blocks will appear here.</span>
-        <span className={style.hint}>Ask for HTML, SVG, or web content.</span>
+        <span className={style.hint}>Ask for HTML, SVG, Mermaid, or web content.</span>
+      </div>
+    );
+  }
+
+  if (artifact.type === "mermaid") {
+    return (
+      <div className={style.preview}>
+        <div className={style.mermaidWrap}>
+          <Mermaid chart={artifact.content} loading={artifact.isPartial} />
+        </div>
       </div>
     );
   }

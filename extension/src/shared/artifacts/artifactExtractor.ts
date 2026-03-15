@@ -10,6 +10,7 @@ const RENDERABLE_LANGS: Record<string, ArtifactType> = {
   javascript: "combined",
   js: "combined",
   css: "combined",
+  mermaid: "mermaid",
 };
 
 interface RawBlock {
@@ -32,6 +33,35 @@ function parseCodeBlocks(text: string): RawBlock[] {
   return blocks;
 }
 
+/** Group consecutive html/css/js blocks. html/htm starts a new group; css/js extends. */
+function groupCombinedBlocks(blocks: RawBlock[]): RawBlock[][] {
+  const groups: RawBlock[][] = [];
+  let current: RawBlock[] = [];
+
+  for (const b of blocks) {
+    const type = RENDERABLE_LANGS[b.lang];
+    if (!type) continue;
+
+    if (type === "svg" || type === "mermaid") {
+      if (current.length) {
+        groups.push(current);
+        current = [];
+      }
+      groups.push([b]);
+      continue;
+    }
+
+    const starting = b.lang === "html" || b.lang === "htm";
+    if (starting && current.length) {
+      groups.push(current);
+      current = [];
+    }
+    current.push(b);
+  }
+  if (current.length) groups.push(current);
+  return groups;
+}
+
 function buildCombinedDoc(html: string, css: string, js: string): string {
   const hasFullDoc = /<html[\s>]|<!DOCTYPE/i.test(html);
   if (hasFullDoc && !css && !js) return html.trim();
@@ -48,7 +78,25 @@ function buildCombinedDoc(html: string, css: string, js: string): string {
   return parts.join("\n");
 }
 
-/** Emit one artifact per code block; no merging of consecutive blocks. */
+function blocksToCombinedContent(blocks: RawBlock[]): string {
+  let html = "";
+  const cssParts: string[] = [];
+  const jsParts: string[] = [];
+
+  for (const b of blocks) {
+    const raw = b.content.trim();
+    if (!raw) continue;
+    const l = b.lang.toLowerCase();
+    if (l === "html" || l === "htm") html = raw;
+    else if (l === "css") cssParts.push(raw);
+    else if (l === "javascript" || l === "js") jsParts.push(raw);
+  }
+
+  const css = cssParts.join("\n");
+  const js = jsParts.join("\n");
+  return buildCombinedDoc(html, css, js);
+}
+
 function blockToArtifact(b: RawBlock, msgId: string, i: number): Artifact | null {
   const type = RENDERABLE_LANGS[b.lang];
   if (!type) return null;
@@ -65,30 +113,13 @@ function blockToArtifact(b: RawBlock, msgId: string, i: number): Artifact | null
     };
   }
 
-  if (type === "html") {
+  if (type === "mermaid") {
     const content = b.content.trim();
-    if (content.length < 10) return null;
+    if (content.length < 5) return null;
     return {
       id: `a-${msgId}-${i}`,
       messageId: msgId,
-      type: "html",
-      content: content.startsWith("<") ? content : `<div>${content}</div>`,
-      createdAt: Date.now(),
-    };
-  }
-
-  if (type === "combined") {
-    const raw = b.content.trim();
-    if (raw.length < 5) return null;
-    const html = b.lang === "html" || b.lang === "htm" ? raw : "";
-    const css = b.lang === "css" ? raw : "";
-    const js = b.lang === "javascript" || b.lang === "js" ? raw : "";
-    const content = buildCombinedDoc(html, css, js);
-    if (content.length < 20) return null;
-    return {
-      id: `a-${msgId}-${i}`,
-      messageId: msgId,
-      type: "combined",
+      type: "mermaid",
       content,
       createdAt: Date.now(),
     };
@@ -101,11 +132,35 @@ function extractFromMessage(msg: SessionMessage): Artifact[] {
   if (msg.role !== "assistant" || !msg.content?.trim()) return [];
 
   const blocks = parseCodeBlocks(msg.content);
+  const groups = groupCombinedBlocks(blocks);
   const artifacts: Artifact[] = [];
 
-  for (let i = 0; i < blocks.length; i++) {
-    const a = blockToArtifact(blocks[i], msg.id, i);
-    if (a) artifacts.push(a);
+  for (const group of groups) {
+    const first = group[0];
+    const type = RENDERABLE_LANGS[first.lang];
+    const artifactIndex = artifacts.length;
+
+    if (type === "svg") {
+      const a = blockToArtifact(first, msg.id, artifactIndex);
+      if (a) artifacts.push(a);
+      continue;
+    }
+
+    if (type === "mermaid") {
+      const a = blockToArtifact(first, msg.id, artifactIndex);
+      if (a) artifacts.push(a);
+      continue;
+    }
+
+    const content = blocksToCombinedContent(group);
+    if (content.length < 20) continue;
+    artifacts.push({
+      id: `a-${msg.id}-${artifacts.length}`,
+      messageId: msg.id,
+      type: "combined",
+      content,
+      createdAt: Date.now(),
+    });
   }
 
   return artifacts;
@@ -122,11 +177,12 @@ export function extractArtifacts(messages: SessionMessage[]): Artifact[] {
   return result;
 }
 
-const PARTIAL_LANG_RE = /```(html|htm|svg|css|javascript|js)\n/gi;
+const PARTIAL_LANG_RE = /```(html|htm|svg|css|javascript|js|mermaid)\n/gi;
 
 /**
  * Extract a partial artifact from the last loading assistant message.
  * Used for live preview during streaming before the code block is complete.
+ * Merges any complete html/css/js blocks with the streaming partial when applicable.
  */
 export function extractPartialArtifact(messages: SessionMessage[]): Artifact | null {
   if (!messages.length) return null;
@@ -146,32 +202,46 @@ export function extractPartialArtifact(messages: SessionMessage[]): Artifact | n
 
   if (lastIdx < 0 || !lastLang) return null;
 
-  const afterMarker = text.slice(lastIdx + 3 + lastLang.length + 1); // ``` + lang + \n
+  const afterMarker = text.slice(lastIdx + 3 + lastLang.length + 1);
   if (afterMarker.includes("```")) return null;
 
   const raw = afterMarker.trim();
   if (raw.length < 3) return null;
 
-  const type: Artifact["type"] = lastLang === "svg" ? "svg" : lastLang === "html" || lastLang === "htm" ? "html" : "combined";
+  const type: Artifact["type"] =
+    lastLang === "svg" ? "svg" : lastLang === "mermaid" ? "mermaid" : "combined";
 
-  let content = raw;
   if (lastLang === "svg") {
-    content = raw.startsWith("<") ? raw : `<svg>${raw}</svg>`;
-  } else if (lastLang === "html" || lastLang === "htm") {
-    if (!raw.includes("<")) content = `<div>${raw}</div>`;
-    else if (!/<\/?\s*html\b|<!DOCTYPE/i.test(raw)) content = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${raw}</body></html>`;
-  } else if (lastLang === "css" || lastLang === "javascript" || lastLang === "js") {
-    content = `<!DOCTYPE html><html><head><meta charset="utf-8">${lastLang === "css" ? `<style>${raw}</style>` : ""}</head><body>${lastLang !== "css" ? `<script>${raw}</script>` : ""}</body></html>`;
+    const content = raw.startsWith("<") ? raw : `<svg>${raw}</svg>`;
+    return { id: `partial-${last.id}`, messageId: last.id, type: "svg", content, createdAt: Date.now(), isPartial: true };
   }
 
-  return {
-    id: `partial-${last.id}`,
-    messageId: last.id,
-    type,
-    content,
-    createdAt: Date.now(),
-    isPartial: true,
-  };
+  if (lastLang === "mermaid") {
+    return { id: `partial-${last.id}`, messageId: last.id, type: "mermaid", content: raw, createdAt: Date.now(), isPartial: true };
+  }
+
+  const completeBlocks = parseCodeBlocks(text.slice(0, lastIdx));
+  const partialBlock: RawBlock = { lang: lastLang, content: raw, index: completeBlocks.length };
+  const allBlocks = [...completeBlocks, partialBlock];
+  const groups = groupCombinedBlocks(allBlocks);
+  const lastGroup = groups[groups.length - 1];
+  if (lastGroup && lastGroup.includes(partialBlock)) {
+    const content = blocksToCombinedContent(lastGroup);
+    if (content.length >= 20) {
+      return { id: `partial-${last.id}`, messageId: last.id, type: "combined", content, createdAt: Date.now(), isPartial: true };
+    }
+  }
+
+  let content: string;
+  if (lastLang === "html" || lastLang === "htm") {
+    if (!raw.includes("<")) content = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><div>${raw}</div></body></html>`;
+    else if (!/<\/?\s*html\b|<!DOCTYPE/i.test(raw)) content = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${raw}</body></html>`;
+    else content = raw;
+  } else {
+    content = buildCombinedDoc("", lastLang === "css" ? raw : "", lastLang !== "css" ? raw : "");
+  }
+
+  return { id: `partial-${last.id}`, messageId: last.id, type: "combined", content, createdAt: Date.now(), isPartial: true };
 }
 
 /** Prefix for artifact links; href="#artifact-{id}" */
@@ -181,28 +251,63 @@ function artifactPlaceholder(artifactId: string): string {
   return `\n\n*[View interactive preview in Artifacts panel →](${ARTIFACT_LINK_PREFIX}${artifactId})*\n\n`;
 }
 
+const COLLAPSE_BLOCK_RE = /```(html|htm|svg|css|javascript|js|mermaid)\n([\s\S]*?)```/gi;
+
+function emitCheck(lang: string, trimmed: string): boolean {
+  const l = (lang || "").toLowerCase();
+  return (
+    (l === "svg" && trimmed.length > 0) ||
+    (l === "mermaid" && trimmed.length >= 5) ||
+    ((l === "html" || l === "htm") && trimmed.length >= 10) ||
+    (["css", "javascript", "js"].includes(l) && trimmed.length >= 5)
+  );
+}
+
 /**
- * Replace artifact code blocks with clickable placeholders. Each placeholder links to a specific artifact.
+ * Replace artifact code blocks with clickable placeholders. Consecutive html/css/js blocks share one placeholder.
  * @param content - Message content
- * @param messageId - Message id for generating artifact ids (a-{messageId}-{blockIndex})
+ * @param messageId - Message id for generating artifact ids (a-{messageId}-{artifactIndex})
  */
 export function collapseArtifactCodeBlocks(content: string, messageId: string): string {
   if (!content?.trim()) return content;
 
-  let blockIndex = 0;
-  return content.replace(
-    /```(html|htm|svg|css|javascript|js)\n([\s\S]*?)```/gi,
-    (match, lang, code) => {
-      const l = (lang || "").toLowerCase();
-      const trimmed = (code || "").trim();
-      if (!trimmed) return match;
-      const emit =
-        (l === "svg" && trimmed.length > 0) ||
-        ((l === "html" || l === "htm") && trimmed.length >= 10) ||
-        (["css", "javascript", "js"].includes(l) && trimmed.length >= 5);
-      if (!emit) return match;
-      const id = `a-${messageId}-${blockIndex++}`;
-      return artifactPlaceholder(id);
-    },
-  );
+  const matches: { lang: string; code: string; full: string }[] = [];
+  let m: RegExpExecArray | null;
+  const re = new RegExp(COLLAPSE_BLOCK_RE.source, "gi");
+  while ((m = re.exec(content)) !== null) {
+    const lang = (m[1] || "").toLowerCase();
+    const code = (m[2] || "").trim();
+    if (lang && code && emitCheck(lang, code)) {
+      matches.push({ lang, code, full: m[0] });
+    }
+  }
+
+  if (!matches.length) return content;
+
+  const blocks: RawBlock[] = matches.map((x, i) => ({ lang: x.lang, content: x.code, index: i }));
+  const groups = groupCombinedBlocks(blocks);
+
+  const matchToGroup = new Map<number, { groupIndex: number; isFirst: boolean }>();
+  let g = 0;
+  for (const group of groups) {
+    for (let i = 0; i < group.length; i++) {
+      matchToGroup.set(group[i].index, { groupIndex: g, isFirst: i === 0 });
+    }
+    g++;
+  }
+
+  let matchIndex = 0;
+  const replaceRe = new RegExp(COLLAPSE_BLOCK_RE.source, "gi");
+  return content.replace(replaceRe, (fullMatch, lang, code) => {
+    const langLower = (lang || "").toLowerCase();
+    const trimmed = (code || "").trim();
+    if (!emitCheck(langLower, trimmed)) return fullMatch;
+
+    const idx = matchIndex++;
+    const info = matchToGroup.get(idx);
+    if (!info) return fullMatch;
+    if (!info.isFirst) return "";
+
+    return artifactPlaceholder(`a-${messageId}-${info.groupIndex}`);
+  });
 }

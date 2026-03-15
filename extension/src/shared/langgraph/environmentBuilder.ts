@@ -49,7 +49,15 @@ export function createOptionsEnvironmentBuilder(
 
   return async (): Promise<string> => {
     const now = new Date().toLocaleString(language === "English" ? "en-US" : undefined);
-    return `As an AI assistant named ${agentName}. Current time: ${now}. Answer in ${language}. Use markdown.`;
+    return `As an AI assistant named ${agentName}. Current time: ${now}. Answer in ${language}. Use markdown.
+
+## Artifacts (Visual Content)
+When generating HTML, SVG, Mermaid diagrams, or interactive web content, use fenced code blocks so they render in the Artifacts panel:
+- \`\`\`html for HTML structure
+- \`\`\`css for styles (when separate)
+- \`\`\`javascript or \`\`\`js for scripts (when separate)
+- \`\`\`mermaid for flowcharts, sequence diagrams, and other diagrams
+Combine html, css, and javascript in one message when possible for best artifact rendering.`;
   };
 }
 
