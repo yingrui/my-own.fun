@@ -1,24 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import type { Artifact } from "@src/shared/artifacts/types";
 import { sanitizeArtifactHtml } from "@src/shared/artifacts";
 import Mermaid from "@src/shared/components/Message/MarkDownBlock/MermaidBlock";
 import style from "./index.module.scss";
+
+/** Imperatively toggle display to work around iframe render bug, done synchronously to avoid blink */
+function triggerIframeReflow(iframe: HTMLIFrameElement | null) {
+  if (!iframe) return;
+  iframe.style.display = "none";
+  void iframe.offsetHeight; // force reflow
+  iframe.style.display = "block";
+}
 
 interface ArtifactPreviewProps {
   artifact: Artifact | null;
 }
 
 const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
-  const [displayBlock, setDisplayBlock] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     if (!artifact || artifact.type === "mermaid") return;
-    setDisplayBlock(false);
+    const el = iframeRef.current;
+    if (!el) return;
     const t = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setDisplayBlock(true));
+      triggerIframeReflow(el);
     });
     return () => cancelAnimationFrame(t);
   }, [artifact?.id, artifact?.content]);
+
   if (!artifact) {
     return (
       <div className={style.empty}>
@@ -41,8 +51,8 @@ const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
   return (
     <div className={style.preview}>
       <iframe
+        ref={iframeRef}
         className={style.iframe}
-        style={{ display: displayBlock ? "block" : "none" }}
         srcDoc={sanitizeArtifactHtml(artifact.content)}
         sandbox="allow-scripts"
         title="Artifact preview"
