@@ -2,8 +2,8 @@ import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import intl from "react-intl-universal";
 import {
   LangGraphAgent,
-  pageContentSkill,
   researchSkill,
+  webSurfingSkill,
   createSidepanelEnvironmentBuilder,
 } from "@src/shared/langgraph";
 import type { Skill } from "@src/shared/langgraph";
@@ -16,8 +16,8 @@ class AgentFactory {
       "myFun, your browser assistant",
     );
     const skills: Skill[] = config.enableSearch
-      ? [pageContentSkill, researchSkill]
-      : [pageContentSkill];
+      ? [researchSkill, webSurfingSkill]
+      : [webSurfingSkill];
 
     return new LangGraphAgent({
       config,

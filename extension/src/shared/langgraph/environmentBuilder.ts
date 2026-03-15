@@ -9,35 +9,13 @@ export function createSidepanelEnvironmentBuilder(
 
   return async (): Promise<string> => {
     const now = new Date().toLocaleString(language === "English" ? "en-US" : undefined);
-    const content = await get_content();
-    const maxContentLength = 100 * 1024;
-
-    if (!content) {
-      return `As an assistant or chrome copilot named ${agentName}. Current time: ${now}.
-You can answer questions in ${language}. Output in markdown.`;
-    }
-
-    const text =
-      content.text.length > maxContentLength
-        ? content.text.slice(0, maxContentLength) + "\n\n... [truncated]"
-        : content.text;
-
-    return `## Role
-As a web browser assistant or chrome copilot, named ${agentName}.
+    return `As a web browser assistant or chrome copilot, named ${agentName}.
 Current time: ${now}.
-You're good at data extraction, summarization, and helping with web content.
+You're good at data extraction, summarization, helping with web content, and interacting with web pages.
 
-## Context
-URL: ${content.url}
-Title: ${content.title}
+please use read_skill to read the skill instructions before using the tools.
 
-Content:
-${text}
-
-Links: ${JSON.stringify(content.links)}
-
-## Output
-Answer in ${language}. Use markdown. For diagrams, use mermaid.`;
+Answer in ${language}.`;
   };
 }
 

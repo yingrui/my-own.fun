@@ -2,6 +2,18 @@ import { matchURL } from "@pages/content/injected/listeners/utils";
 import PageParser from "@src/shared/webpage/PageParser";
 import LayoutElement from "@src/shared/webpage/LayoutElement";
 
+function resolveByXpath(xpath: string): HTMLElement | null {
+  const result = document.evaluate(
+    xpath,
+    document,
+    null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE,
+    null,
+  );
+  const node = result.singleNodeValue;
+  return node instanceof HTMLElement ? node : null;
+}
+
 const addCommands = () => {
   const visualizeLayout = (tree: LayoutElement) => {
     tree.element.style.border = "1px solid red";
@@ -38,6 +50,66 @@ const addCommands = () => {
           title: document.title,
           html: (bodyClone as HTMLElement).innerHTML,
         });
+        return true;
+      } else if (message.type === "get_page_layout") {
+        try {
+          const page = new PageParser(document).parse();
+          const layoutPojo = page.layoutTree?.toPojo();
+          const data = { url: page.url, title: page.title, layout: layoutPojo };
+          sendResponse({ success: true, data });
+        } catch (err) {
+          sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) });
+        }
+        return true;
+      } else if (message.type === "click_element") {
+        const el = resolveByXpath(message.xpath);
+        if (!el) {
+          sendResponse({ success: false, error: "Element not found" });
+          return true;
+        }
+        try {
+          el.click();
+          sendResponse({ success: true });
+        } catch (err) {
+          sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) });
+        }
+        return true;
+      } else if (message.type === "input_text") {
+        const el = resolveByXpath(message.xpath);
+        if (!el) {
+          sendResponse({ success: false, error: "Element not found" });
+          return true;
+        }
+        try {
+          const input = el as HTMLInputElement | HTMLTextAreaElement;
+          input.value = message.value ?? "";
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          sendResponse({ success: true });
+        } catch (err) {
+          sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) });
+        }
+        return true;
+      } else if (message.type === "submit_form") {
+        const el = resolveByXpath(message.xpath);
+        if (!el) {
+          sendResponse({ success: false, error: "Element not found" });
+          return true;
+        }
+        try {
+          if (el instanceof HTMLFormElement) {
+            el.submit();
+          } else if (el.tagName.toLowerCase() === "button" || (el as HTMLInputElement).type === "submit") {
+            const form = el.closest("form");
+            if (form) form.submit();
+            else el.click();
+          } else {
+            el.click();
+          }
+          sendResponse({ success: true });
+        } catch (err) {
+          sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) });
+        }
         return true;
       }
     });

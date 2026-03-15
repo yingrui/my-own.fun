@@ -89,6 +89,7 @@ const TOOL_STATUS_LABELS: Record<string, string> = {
   open_url_and_get_content: "Reading the page...",
   page_content: "Reading the page...",
   get_page_content: "Reading the page...",
+  get_page_layout: "Reading page layout...",
   research: "Researching...",
   summary: "Summarizing...",
 };
