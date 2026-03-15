@@ -192,6 +192,39 @@ div.ant-collapse-content-box {
   opacity: 0.7;
 }
 
+/* Cursor-style tool call panel */
+.tool-call-panel {
+  margin: 6px 0;
+  border: 1px solid var(--gm-color-border, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--gm-color-surface, #f9fafb);
+  font-size: 12px;
+}
+
+.tool-call-panel-title {
+  padding: 8px 12px;
+  background: var(--gm-color-surface-subtle, #f3f4f6);
+  color: var(--gm-color-text, #374151);
+  font-weight: 600;
+  font-family: ui-monospace, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--gm-color-border, #e5e7eb);
+}
+
+.tool-call-panel-content {
+  padding: 8px 12px;
+  color: #6b7280;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: calc(1.45em * 4);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .step-item-tool {
   display: flex;
   align-items: center;

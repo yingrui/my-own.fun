@@ -1,8 +1,9 @@
 .panel {
-  display: flex;
-  flex-direction: column;
   height: 100%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
 .header {
@@ -42,10 +43,11 @@
 }
 
 .content {
-  flex: 1;
-  min-height: 0;
-  padding: 16px;
+  min-height: 300px;
+  height: 100%;
+  min-width: 0;
+  overflow-y: hidden;
+  position: relative;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }

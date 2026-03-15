@@ -77,7 +77,10 @@ function extractMessageItems(runMessages: BaseMessage[]): SessionStepItem[] {
     if (type === "tool") {
       const t = msg as { name?: string; content?: unknown };
       const name = (t.name ?? "").trim();
-      if (name) items.push({ id: id("te"), type: "tool_executed", content: truncate(t.content), toolName: name });
+      const resultText = t.content != null
+        ? (typeof t.content === "string" ? t.content : JSON.stringify(t.content))
+        : "";
+      if (name) items.push({ id: id("te"), type: "tool_executed", content: resultText, toolName: name });
     }
   }
   return items;

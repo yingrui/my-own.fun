@@ -86,7 +86,7 @@ export class LangGraphAgent implements ChatSession {
       try {
         const result = await tool.invoke(args);
         const output = typeof result === "string" ? result : JSON.stringify(result, null, 2);
-        const executed: SessionStepItem = { id: "cmd_exec", type: "tool_executed", content: truncate(output), toolName: command };
+        const executed: SessionStepItem = { id: "cmd_exec", type: "tool_executed", content: output, toolName: command };
         this.finishTurn(output, [selected, executed]);
         return output;
       } catch (err) {

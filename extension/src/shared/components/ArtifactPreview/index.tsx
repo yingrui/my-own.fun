@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { Artifact } from "@src/shared/artifacts/types";
 import { sanitizeArtifactHtml } from "@src/shared/artifacts";
 import Mermaid from "@src/shared/components/Message/MarkDownBlock/MermaidBlock";
@@ -9,6 +9,16 @@ interface ArtifactPreviewProps {
 }
 
 const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
+  const [displayBlock, setDisplayBlock] = useState(false);
+
+  useEffect(() => {
+    if (!artifact || artifact.type === "mermaid") return;
+    setDisplayBlock(false);
+    const t = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setDisplayBlock(true));
+    });
+    return () => cancelAnimationFrame(t);
+  }, [artifact?.id, artifact?.content]);
   if (!artifact) {
     return (
       <div className={style.empty}>
@@ -32,6 +42,7 @@ const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
     <div className={style.preview}>
       <iframe
         className={style.iframe}
+        style={{ display: displayBlock ? "block" : "none" }}
         srcDoc={sanitizeArtifactHtml(artifact.content)}
         sandbox="allow-scripts"
         title="Artifact preview"
