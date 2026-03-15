@@ -174,31 +174,35 @@ export function extractPartialArtifact(messages: SessionMessage[]): Artifact | n
   };
 }
 
-const ARTIFACT_PLACEHOLDER = "\n\n*[View interactive preview in Artifacts panel →]*\n\n";
+/** Prefix for artifact links; href="#artifact-{id}" */
+export const ARTIFACT_LINK_PREFIX = "#artifact-";
+
+function artifactPlaceholder(artifactId: string): string {
+  return `\n\n*[View interactive preview in Artifacts panel →](${ARTIFACT_LINK_PREFIX}${artifactId})*\n\n`;
+}
 
 /**
- * Replace artifact code blocks (html, svg, html+css+js) in content with a short placeholder.
- * Use when the message has artifacts so the full code is not duplicated in chat.
+ * Replace artifact code blocks with clickable placeholders. Each placeholder links to a specific artifact.
+ * @param content - Message content
+ * @param messageId - Message id for generating artifact ids (a-{messageId}-{blockIndex})
  */
-export function collapseArtifactCodeBlocks(content: string): string {
+export function collapseArtifactCodeBlocks(content: string, messageId: string): string {
   if (!content?.trim()) return content;
 
-  let result = content.replace(
+  let blockIndex = 0;
+  return content.replace(
     /```(html|htm|svg|css|javascript|js)\n([\s\S]*?)```/gi,
     (match, lang, code) => {
       const l = (lang || "").toLowerCase();
       const trimmed = (code || "").trim();
       if (!trimmed) return match;
-      if (l === "svg" && trimmed.length > 0) return ARTIFACT_PLACEHOLDER;
-      if ((l === "html" || l === "htm") && trimmed.length >= 10) return ARTIFACT_PLACEHOLDER;
-      if (["css", "javascript", "js"].includes(l) && trimmed.length >= 5) return ARTIFACT_PLACEHOLDER;
-      return match;
+      const emit =
+        (l === "svg" && trimmed.length > 0) ||
+        ((l === "html" || l === "htm") && trimmed.length >= 10) ||
+        (["css", "javascript", "js"].includes(l) && trimmed.length >= 5);
+      if (!emit) return match;
+      const id = `a-${messageId}-${blockIndex++}`;
+      return artifactPlaceholder(id);
     },
   );
-
-  result = result.replace(
-    new RegExp(`(\\*\\[View interactive preview[^\\]]+\\]\\*\\s*)+`, "g"),
-    `\n\n${ARTIFACT_PLACEHOLDER.trim()}\n\n`,
-  );
-  return result;
 }

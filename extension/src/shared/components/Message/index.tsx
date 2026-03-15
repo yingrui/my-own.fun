@@ -20,6 +20,10 @@ interface MessageProps {
   stepItems?: SessionStepItem[];
   /** When true, collapse artifact code blocks (html/svg/css/js) to a short placeholder. */
   collapseArtifacts?: boolean;
+  /** Message id, used for artifact placeholder links. */
+  messageId?: string;
+  /** Called when user clicks an artifact placeholder link. */
+  onArtifactClick?: (artifactId: string) => void;
 }
 
 function textContent(content: string | MessageContent[]): string {
@@ -101,17 +105,17 @@ const ThoughtsCollapse: React.FC<{ items: SessionStepItem[] }> = ({ items }) => 
 );
 
 const Message: React.FC<MessageProps> = React.memo((props) => {
-  const { index, role, content, loading, name, statusMessage, reasoning, stepItems, collapseArtifacts } = props;
+  const { index, role, content, loading, name, statusMessage, reasoning, stepItems, collapseArtifacts, messageId, onArtifactClick } = props;
   let text = textContent(content);
-  if (role === "assistant" && collapseArtifacts && typeof text === "string") {
-    text = collapseArtifactCodeBlocks(text);
+  if (role === "assistant" && collapseArtifacts && messageId && typeof text === "string") {
+    text = collapseArtifactCodeBlocks(text, messageId);
   }
 
   if (role === "user") {
     return (
       <div className="message-item">
         <div className="message-content user-message-content">
-          <MarkdownPreview loading={false} content={text} />
+          <MarkdownPreview loading={false} content={text} onArtifactClick={onArtifactClick} />
         </div>
         <img className="user-avatar" src="/icons/user-icon.png" />
       </div>
@@ -141,7 +145,7 @@ const Message: React.FC<MessageProps> = React.memo((props) => {
         {loading && liveReasoning && (
           <div className="step-item step-item-reasoning step-item-live">{liveReasoning}</div>
         )}
-        <MarkdownPreview loading={loading} content={text} />
+        <MarkdownPreview loading={loading} content={text} onArtifactClick={onArtifactClick} />
         {!loading && index > 0 && (
           <div>
             <CopyOutlined

@@ -17,6 +17,7 @@ interface ChatbotAppProps {
 const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const [collapsed, setCollapsed] = useState(true);
   const [messages, setMessages] = useState<SessionMessage[]>([]);
+  const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
   const agent = useMemo(() => new AgentFactory().create(config), [config]);
   const artifacts = useMemo(() => extractArtifacts(messages), [messages]);
   const partialArtifact = useMemo(() => extractPartialArtifact(messages), [messages]);
@@ -61,11 +62,11 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
       content={
         <Layout className={`chatbot-main${hasArtifactContent ? " chatbot-main--with-artifacts" : ""}`}>
           <Layout className={"chatbot-conversation"}>
-            <ChatWindow config={config} agent={agent} artifactsByMessageId={artifactsByMessageId} />
+            <ChatWindow config={config} agent={agent} artifactsByMessageId={artifactsByMessageId} onArtifactClick={setSelectedArtifactId} />
           </Layout>
           {hasArtifactContent && (
             <div className={"chatbot-artifact-panel"}>
-              <ArtifactPanel messages={messages} />
+              <ArtifactPanel messages={messages} selectedArtifactId={selectedArtifactId} />
             </div>
           )}
         </Layout>

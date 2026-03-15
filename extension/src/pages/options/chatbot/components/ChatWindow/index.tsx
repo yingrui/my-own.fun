@@ -12,9 +12,10 @@ interface ChatWindowProps {
   config: GluonConfigure;
   agent: ChatSession;
   artifactsByMessageId?: Record<string, Artifact[]>;
+  onArtifactClick?: (artifactId: string) => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent, artifactsByMessageId = {} }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent, artifactsByMessageId = {}, onArtifactClick }) => {
   const [question, setQuestion] = useState<string>("");
   const isNewConversation = () => _.isEmpty(question);
 
@@ -33,6 +34,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent, artifactsByMessa
           question={question}
           enableClearCommand={false}
           artifactsByMessageId={artifactsByMessageId}
+          onArtifactClick={onArtifactClick}
         />
       )}
     </Layout>

@@ -19,6 +19,7 @@ interface ChatConversationProps {
   question?: string;
   enableClearCommand?: boolean;
   artifactsByMessageId?: Record<string, Artifact[]>;
+  onArtifactClick?: (artifactId: string) => void;
 }
 
 interface ChatConversationRef {
@@ -30,7 +31,7 @@ interface ChatConversationRef {
 }
 
 const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
-  ({ agent, question, enableClearCommand, artifactsByMessageId = {} }, ref) => {
+  ({ agent, question, enableClearCommand, artifactsByMessageId = {}, onArtifactClick }, ref) => {
     const [text, setText] = useState<string>();
     const [generating, setGenerating] = useState<boolean>();
     const { scrollRef, scrollToBottom, messagesRef, handleScroll } = useScrollAnchor();
@@ -148,6 +149,8 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
                   reasoning={message.reasoning}
                   stepItems={message.stepItems}
                   collapseArtifacts={(artifactsByMessageId[message.id ?? ""]?.length ?? 0) > 0}
+                  messageId={message.id}
+                  onArtifactClick={onArtifactClick}
                 ></Message>
               ))}
               <div className="scroll-anchor" ref={messagesRef}></div>

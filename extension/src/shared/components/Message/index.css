@@ -163,6 +163,14 @@ div.ant-collapse-content-box {
   word-wrap: break-word;
 }
 
+.markdown-artifact-link {
+  cursor: pointer;
+}
+
+.markdown-artifact-link:hover {
+  text-decoration: underline;
+}
+
 .steps-container {
   margin: 8px 0;
 }

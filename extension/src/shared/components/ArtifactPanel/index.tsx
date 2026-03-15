@@ -11,6 +11,8 @@ import style from "./index.module.scss";
 
 interface ArtifactPanelProps {
   messages: SessionMessage[];
+  /** When set, select the artifact with this id. Used when user clicks placeholder in chat. */
+  selectedArtifactId?: string | null;
 }
 
 function openInNewTab(artifact: Artifact): void {
@@ -19,7 +21,7 @@ function openInNewTab(artifact: Artifact): void {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages }) => {
+const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages, selectedArtifactId }) => {
   const artifacts = useMemo(() => extractArtifacts(messages), [messages]);
   const partialArtifact = useMemo(() => extractPartialArtifact(messages), [messages]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -37,6 +39,13 @@ const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages }) => {
       });
     }
   }, [artifacts]);
+
+  useEffect(() => {
+    if (selectedArtifactId && artifacts.length > 0) {
+      const idx = artifacts.findIndex((a) => a.id === selectedArtifactId);
+      if (idx >= 0) setSelectedIndex(idx);
+    }
+  }, [selectedArtifactId, artifacts]);
 
   const selectedArtifact = artifacts.length > 0 ? artifacts[selectedIndex] ?? artifacts[artifacts.length - 1] : null;
   const displayArtifact = partialArtifact ?? selectedArtifact;
