@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { type MentionProps, Mentions, Modal, Spin } from "antd";
+import { Input, Modal, Spin } from "antd";
 import getCaretCoordinates from "textarea-caret";
-import { delay } from "@src/shared/utils";
 import type { ChatSession, SessionState } from "@src/shared/langgraph/runtime/types";
 import WriterContext from "@pages/options/writer/context/WriterContext";
 import "./index.css";
@@ -15,8 +14,6 @@ interface DialogProps {
   setValue: (value: string) => void;
 }
 
-type PrefixType = "@" | "/";
-
 const AssistantDialog: React.FC<DialogProps> = ({
   dialogWidth,
   textareaId,
@@ -28,14 +25,10 @@ const AssistantDialog: React.FC<DialogProps> = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const mentionsId = "writer-editor-mentions";
 
-  // TODO: extract a shared Mentions Component
   const [text, setText] = useState<string>("");
-  const [prefix, setPrefix] = useState<PrefixType>("/");
   const [generating, setGenerating] = useState<boolean>();
   const [currentText, setCurrentText] = useState<string>("");
   const inputMethodRef = useRef<boolean>(false);
-  const commandRef = useRef<boolean>();
-  // End of Mentions Component
 
   function getLatestAssistantText(state: SessionState, onlyLoading = false): string {
     for (let i = state.messages.length - 1; i >= 0; i -= 1) {
@@ -81,12 +74,8 @@ const AssistantDialog: React.FC<DialogProps> = ({
       setCursorPosition({ x, y });
       setIsModalVisible(true);
       setTimeout(() => {
-        const mentions = document.getElementById(
-          mentionsId,
-        ) as HTMLTextAreaElement;
-        if (mentions) {
-          mentions.focus();
-        }
+        const el = document.getElementById(mentionsId);
+        if (el) (el as HTMLTextAreaElement).focus();
       }, 200);
     } else if (event.ctrlKey && event.altKey && event.key === "Enter") {
       await autocomplete();
@@ -174,36 +163,17 @@ const AssistantDialog: React.FC<DialogProps> = ({
     insertTextAtCursor(content);
   }
 
-  // Mentions Component
-  const handleSearchChange = async () => {
-    commandRef.current = true;
-    await delay(200);
-    commandRef.current = false;
-  };
-
-  const onSearch: MentionProps["onSearch"] = (_, newPrefix) => {
-    setPrefix(newPrefix as PrefixType);
-  };
-
-  async function onKeyDown(e: any) {
+  function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       inputMethodRef.current = e.keyCode !== 13;
     }
   }
 
-  async function onKeyUp(e: any) {
-    if (e.key == "Enter" && e.keyCode == 13 && !e.shiftKey) {
+  function onKeyUp(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && e.keyCode === 13 && !e.shiftKey) {
       e.preventDefault();
-      if (!commandRef.current && !inputMethodRef.current) {
-        await handleSubmit();
-      }
-    }
-  }
-
-  function getCommandOptions() {
-    if (prefix === "/") {
-      return agent.getCommandOptions?.() ?? [];
+      if (!inputMethodRef.current) handleSubmit();
     }
   }
 
@@ -222,26 +192,20 @@ const AssistantDialog: React.FC<DialogProps> = ({
         left: cursorPosition.x,
       }}
     >
-      <Mentions
+      <Input.TextArea
         id={mentionsId}
         placeholder={intl
           .get("options_app_writer_dialog_placeholder")
-          .d("type `/` specify instruction, type `Enter` submit.")}
-        prefix={["/", "@"]}
+          .d("Type your message, press Enter to submit.")}
         autoSize={{ minRows: 1, maxRows: 4 }}
-        autoFocus={true}
-        onSelect={handleSearchChange}
+        autoFocus
         onKeyDown={onKeyDown}
         onKeyUp={onKeyUp}
-        onSearch={onSearch}
-        options={getCommandOptions()}
         value={text}
         disabled={generating}
         readOnly={generating}
-        onChange={(value) => {
-          setText(value);
-        }}
-      ></Mentions>
+        onChange={(e) => setText(e.target.value)}
+      />
       {generating && (
         <div className={"generating"}>
           {currentText.length <= 0 && <Spin />}

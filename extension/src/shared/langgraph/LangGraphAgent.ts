@@ -54,10 +54,7 @@ export class LangGraphAgent implements ChatSession {
     this.skills = opts.skills;
     this.contextLength = opts.contextLength;
     this.getSystemPrompt = opts.getSystemPrompt;
-    this.commandOptions = opts.commandOptions ?? [
-      { value: "summary", label: "/summary" },
-      { value: "search", label: "/search" },
-    ];
+    this.commandOptions = opts.commandOptions ?? [];
     this.commandSystemPrompts = opts.commandSystemPrompts ?? {};
   }
 

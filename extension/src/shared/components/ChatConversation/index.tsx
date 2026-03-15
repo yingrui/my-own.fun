@@ -2,9 +2,7 @@ import SensitiveTopicError from "@src/shared/agents/core/errors/SensitiveTopicEr
 import Message from "@src/shared/components/Message";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
 import type { ChatSession, SessionMessage } from "@src/shared/langgraph/runtime/types";
-import { delay } from "@src/shared/utils";
-import { type MentionProps, Mentions, message as antdMessage } from "antd";
-import type { MentionsRef } from "antd/lib/mentions";
+import { Input, message as antdMessage } from "antd";
 import {
   forwardRef,
   useEffect,
@@ -29,16 +27,11 @@ interface ChatConversationRef {
   ) => Promise<string>;
 }
 
-type PrefixType = "@" | "/";
-
 const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
   ({ agent, question, enableClearCommand }, ref) => {
-    const mentionRef = useRef<MentionsRef>();
     const [text, setText] = useState<string>();
-    const [prefix, setPrefix] = useState<PrefixType>("@");
     const [generating, setGenerating] = useState<boolean>();
     const { scrollRef, scrollToBottom, messagesRef, handleScroll } = useScrollAnchor();
-    const commandRef = useRef<boolean>();
     const inputMethodRef = useRef<boolean>(false);
     const [messages, setMessages] = useState<SessionMessage[]>(
       agent.getState().messages,
@@ -69,15 +62,13 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         setText("");
         return;
       }
-      // when command is clear, then clear the chat history
-      if (
-        text.startsWith("/clear") ||
-        text.startsWith("/c") ||
-        text.startsWith("/cl")
-      ) {
-        agent.clear();
-        setText("");
-        return;
+      if (enableClearCommand) {
+        const t = text.trim().toLowerCase();
+        if (t === "/clear" || t === "/c" || t === "/cl") {
+          agent.clear();
+          setText("");
+          return;
+        }
       }
       await generateReply(text, () => agent.chat(text));
     }
@@ -116,13 +107,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       return result;
     }
 
-    const handleSearchChange = async () => {
-      commandRef.current = true;
-      await delay(200);
-      commandRef.current = false;
-    };
-
-    async function onKeyDown(e: any) {
+    function onKeyDown(e: React.KeyboardEvent) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         // if keyCode is not 13, then it's input method enter
@@ -130,30 +115,10 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       }
     }
 
-    async function onKeyUp(e: any) {
-      if (e.key == "Enter" && e.keyCode == 13 && !e.shiftKey) {
+    function onKeyUp(e: React.KeyboardEvent) {
+      if (e.key === "Enter" && e.keyCode === 13 && !e.shiftKey) {
         e.preventDefault();
-        if (!commandRef.current && !inputMethodRef.current) {
-          handleSubmit();
-        }
-      }
-    }
-
-    const onSearch: MentionProps["onSearch"] = (_, newPrefix) => {
-      setPrefix(newPrefix as PrefixType);
-    };
-
-    function getCommandOptions() {
-      if (prefix === "@") {
-        return agent.getAgentOptions?.() ?? [];
-      }
-
-      if (prefix === "/") {
-        const options = agent.getCommandOptions?.() ?? [];
-        if (enableClearCommand) {
-          options.push({ value: "clear", label: "/clear" }); // add clear command
-        }
-        return options;
+        if (!inputMethodRef.current) handleSubmit();
       }
     }
 
@@ -187,25 +152,16 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
           </div>
 
           <div className={style.form}>
-            <Mentions
-              ref={mentionRef}
-              onSelect={handleSearchChange}
-              onSearch={onSearch}
+            <Input.TextArea
               onKeyDown={onKeyDown}
               onKeyUp={onKeyUp}
-              prefix={["/", "@"]}
               value={text}
               disabled={generating}
               readOnly={generating}
-              options={getCommandOptions()}
               placeholder={intl
                 .get("placeholder_side_panel_input")
-                .d(
-                  "`/` specify instruction, `@` find agent, type `Enter` ask question.",
-                )}
-              onChange={(value) => {
-                setText(value);
-              }}
+                .d("Type your message, press Enter to send.")}
+              onChange={(e) => setText(e.target.value)}
               autoSize={{ minRows: 2, maxRows: 4 }}
             />
           </div>

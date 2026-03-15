@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { type MentionProps, Mentions } from "antd";
+import { Input } from "antd";
 import "./index.css";
 import intl from "react-intl-universal";
-import { delay } from "@src/shared/utils";
 import type { ChatSession } from "@src/shared/langgraph/runtime/types";
-import type { MentionsRef } from "antd/lib/mentions";
 
 interface GreetingProps {
   onQuestionChange: (query: string) => void;
@@ -12,64 +10,33 @@ interface GreetingProps {
   enableClearCommand?: boolean;
 }
 
-type PrefixType = "@" | "/";
-
 const Greeting: React.FC<GreetingProps> = ({
   onQuestionChange,
   agent,
   enableClearCommand,
 }) => {
   const [text, setText] = useState<string>("");
-  const [prefix, setPrefix] = useState<PrefixType>("@");
-  const commandRef = useRef<boolean>();
   const inputMethodRef = useRef<boolean>(false);
-  const mentionRef = useRef<MentionsRef>();
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    // Try to automatically focus on the input field. It only works when you open the options page.
-    // It doesn't work when you open a new tab, the focus would be on the address bar.
-    mentionRef.current.focus();
+    inputRef.current?.focus();
   }, []);
 
-  const handleSearchChange = async () => {
-    commandRef.current = true;
-    await delay(200);
-    commandRef.current = false;
-  };
-
-  async function onKeyDown(e: any) {
+  function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      // if keyCode is not 13, then it's input method enter
       inputMethodRef.current = e.keyCode !== 13;
     }
   }
 
-  const onKeyUp = (e: any) => {
-    if (e.key == "Enter" && e.keyCode == 13 && !e.shiftKey) {
+  function onKeyUp(e: React.KeyboardEvent) {
+    if (e.key === "Enter" && e.keyCode === 13 && !e.shiftKey) {
       e.preventDefault();
-      if (!commandRef.current && !inputMethodRef.current) {
+      if (!inputMethodRef.current) {
         const queryString = text.trim();
-        onQuestionChange(queryString);
+        if (queryString) onQuestionChange(queryString);
       }
-    }
-  };
-
-  const onSearch: MentionProps["onSearch"] = (_, newPrefix) => {
-    setPrefix(newPrefix as PrefixType);
-  };
-
-  function getCommandOptions() {
-    if (prefix === "@") {
-      return agent.getAgentOptions?.() ?? [];
-    }
-
-    if (prefix === "/") {
-      const options = agent.getCommandOptions?.() ?? [];
-      if (enableClearCommand) {
-        options.push({ value: "clear", label: "/clear" }); // add clear command
-      }
-      return options;
     }
   }
 
@@ -83,22 +50,16 @@ const Greeting: React.FC<GreetingProps> = ({
       </div>
       <div className={"chatbot-input-first-page"}>
         <div className={"chatbot-input-area"}>
-          <Mentions
+          <Input.TextArea
+            ref={inputRef}
             className={"chatbot-input"}
-            ref={mentionRef}
-            onSelect={handleSearchChange}
-            onSearch={onSearch}
             onKeyDown={onKeyDown}
             onKeyUp={onKeyUp}
-            prefix={["/", "@"]}
             value={text}
-            options={getCommandOptions()}
             placeholder={intl
               .get("placeholder_side_panel_input")
-              .d(
-                "`/` specify instruction, `@` find agent, type `Enter` ask question.",
-              )}
-            onChange={(value) => setText(value)}
+              .d("Type your message, press Enter to send.")}
+            onChange={(e) => setText(e.target.value)}
             autoSize={{ minRows: 3, maxRows: 5 }}
             allowClear
           />
