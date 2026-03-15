@@ -1,16 +1,15 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button, message as antdMessage, Select, Typography } from "antd";
 import { CopyOutlined, ExpandOutlined, LinkOutlined } from "@ant-design/icons";
 import copy from "copy-to-clipboard";
-import type { SessionMessage } from "@src/shared/langgraph/runtime/types";
 import type { Artifact } from "@src/shared/artifacts/types";
-import { extractArtifacts, extractPartialArtifact } from "@src/shared/artifacts";
 import ArtifactPreview from "@src/shared/components/ArtifactPreview";
 import ArtifactFullscreen from "@src/shared/components/ArtifactPanel/ArtifactFullscreen";
 import style from "./index.module.scss";
 
 interface ArtifactPanelProps {
-  messages: SessionMessage[];
+  artifacts: Artifact[];
+  partialArtifact: Artifact | null;
   /** When set, select the artifact with this id. Used when user clicks placeholder in chat. */
   selectedArtifactId?: string | null;
 }
@@ -21,9 +20,11 @@ function openInNewTab(artifact: Artifact): void {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages, selectedArtifactId }) => {
-  const artifacts = useMemo(() => extractArtifacts(messages), [messages]);
-  const partialArtifact = useMemo(() => extractPartialArtifact(messages), [messages]);
+const ArtifactPanel: React.FC<ArtifactPanelProps> = ({
+  artifacts = [],
+  partialArtifact = null,
+  selectedArtifactId,
+}) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [fullscreenArtifact, setFullscreenArtifact] = useState<Artifact | null>(null);
   const prevLengthRef = useRef(0);
@@ -77,7 +78,7 @@ const ArtifactPanel: React.FC<ArtifactPanelProps> = ({ messages, selectedArtifac
           {artifacts.length > 1 ? (
             <Select
               size="small"
-              value={selectedIndex}
+              value={Math.min(selectedIndex, artifacts.length - 1)}
               onChange={setSelectedIndex}
               options={artifacts.map((a, i) => ({
                 value: i,

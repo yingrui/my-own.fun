@@ -1,5 +1,6 @@
 import React from "react";
 import type { Artifact } from "@src/shared/artifacts/types";
+import { sanitizeArtifactHtml } from "@src/shared/artifacts";
 import Mermaid from "@src/shared/components/Message/MarkDownBlock/MermaidBlock";
 import style from "./index.module.scss";
 
@@ -31,7 +32,7 @@ const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
     <div className={style.preview}>
       <iframe
         className={style.iframe}
-        srcDoc={artifact.content}
+        srcDoc={sanitizeArtifactHtml(artifact.content)}
         sandbox="allow-scripts"
         title="Artifact preview"
       />

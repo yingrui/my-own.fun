@@ -11,7 +11,16 @@
     top: 16px;
     right: 16px;
     z-index: 1001;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: rgba(0, 0, 0, 0.65) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    &:hover {
+      background: rgba(255, 255, 255, 1) !important;
+      color: rgba(0, 0, 0, 0.85) !important;
+      border-color: rgba(0, 0, 0, 0.2) !important;
+    }
   }
 
   .iframe {

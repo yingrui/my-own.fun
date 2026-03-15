@@ -8,10 +8,12 @@ import { initI18n } from "@src/shared/utils/i18n";
 import intl from "react-intl-universal";
 import "@src/shared/theme/theme.css";
 import AppThemeProvider from "@src/shared/theme/AppThemeProvider";
+import { suppressLangChainMergeWarnings } from "@src/shared/utils/suppressLangChainWarnings";
 
 refreshOnUpdate("pages/options");
 
 function init() {
+  suppressLangChainMergeWarnings();
   const appContainer = document.querySelector("#app-container");
   if (!appContainer) {
     throw new Error("Can not find #app-container");

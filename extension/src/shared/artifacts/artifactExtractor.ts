@@ -1,7 +1,11 @@
 import type { SessionMessage } from "@src/shared/langgraph/runtime/types";
 import type { Artifact, ArtifactType } from "./types";
 
+// ─── Constants ─────────────────────────────────────────────────────────────
+
 const CODE_BLOCK_RE = /```(\w+)\n([\s\S]*?)```/g;
+const COLLAPSE_BLOCK_RE = /```(html|htm|svg|css|javascript|js|mermaid)\n([\s\S]*?)```/gi;
+const PARTIAL_LANG_RE = /```(html|htm|svg|css|javascript|js|mermaid)\n/gi;
 
 const RENDERABLE_LANGS: Record<string, ArtifactType> = {
   html: "html",
@@ -12,6 +16,10 @@ const RENDERABLE_LANGS: Record<string, ArtifactType> = {
   css: "combined",
   mermaid: "mermaid",
 };
+
+const MIN_LENGTH = { mermaid: 5, html: 10, css: 5, js: 5 } as const;
+
+// ─── Types & Parsing ───────────────────────────────────────────────────────
 
 interface RawBlock {
   lang: string;
@@ -78,6 +86,16 @@ function buildCombinedDoc(html: string, css: string, js: string): string {
   return parts.join("\n");
 }
 
+function createArtifact(
+  id: string,
+  messageId: string,
+  type: Artifact["type"],
+  content: string,
+  isPartial?: boolean,
+): Artifact {
+  return { id, messageId, type, content, createdAt: Date.now(), ...(isPartial && { isPartial }) };
+}
+
 function blocksToCombinedContent(blocks: RawBlock[]): string {
   let html = "";
   const cssParts: string[] = [];
@@ -104,25 +122,18 @@ function blockToArtifact(b: RawBlock, msgId: string, i: number): Artifact | null
   if (type === "svg") {
     const content = b.content.trim();
     if (content.length === 0) return null;
-    return {
-      id: `a-${msgId}-${i}`,
-      messageId: msgId,
-      type: "svg",
-      content: content.startsWith("<") ? content : `<svg>${content}</svg>`,
-      createdAt: Date.now(),
-    };
+    return createArtifact(
+      `a-${msgId}-${i}`,
+      msgId,
+      "svg",
+      content.startsWith("<") ? content : `<svg>${content}</svg>`,
+    );
   }
 
   if (type === "mermaid") {
     const content = b.content.trim();
-    if (content.length < 5) return null;
-    return {
-      id: `a-${msgId}-${i}`,
-      messageId: msgId,
-      type: "mermaid",
-      content,
-      createdAt: Date.now(),
-    };
+    if (content.length < MIN_LENGTH.mermaid) return null;
+    return createArtifact(`a-${msgId}-${i}`, msgId, "mermaid", content);
   }
 
   return null;
@@ -154,13 +165,7 @@ function extractFromMessage(msg: SessionMessage): Artifact[] {
 
     const content = blocksToCombinedContent(group);
     if (content.length < 20) continue;
-    artifacts.push({
-      id: `a-${msg.id}-${artifacts.length}`,
-      messageId: msg.id,
-      type: "combined",
-      content,
-      createdAt: Date.now(),
-    });
+    artifacts.push(createArtifact(`a-${msg.id}-${artifacts.length}`, msg.id, "combined", content));
   }
 
   return artifacts;
@@ -177,7 +182,7 @@ export function extractArtifacts(messages: SessionMessage[]): Artifact[] {
   return result;
 }
 
-const PARTIAL_LANG_RE = /```(html|htm|svg|css|javascript|js|mermaid)\n/gi;
+// ─── Partial / Streaming Extraction ───────────────────────────────────────
 
 /**
  * Extract a partial artifact from the last loading assistant message.
@@ -208,16 +213,13 @@ export function extractPartialArtifact(messages: SessionMessage[]): Artifact | n
   const raw = afterMarker.trim();
   if (raw.length < 3) return null;
 
-  const type: Artifact["type"] =
-    lastLang === "svg" ? "svg" : lastLang === "mermaid" ? "mermaid" : "combined";
-
   if (lastLang === "svg") {
     const content = raw.startsWith("<") ? raw : `<svg>${raw}</svg>`;
-    return { id: `partial-${last.id}`, messageId: last.id, type: "svg", content, createdAt: Date.now(), isPartial: true };
+    return createArtifact(`partial-${last.id}`, last.id, "svg", content, true);
   }
 
   if (lastLang === "mermaid") {
-    return { id: `partial-${last.id}`, messageId: last.id, type: "mermaid", content: raw, createdAt: Date.now(), isPartial: true };
+    return createArtifact(`partial-${last.id}`, last.id, "mermaid", raw, true);
   }
 
   const completeBlocks = parseCodeBlocks(text.slice(0, lastIdx));
@@ -228,7 +230,7 @@ export function extractPartialArtifact(messages: SessionMessage[]): Artifact | n
   if (lastGroup && lastGroup.includes(partialBlock)) {
     const content = blocksToCombinedContent(lastGroup);
     if (content.length >= 20) {
-      return { id: `partial-${last.id}`, messageId: last.id, type: "combined", content, createdAt: Date.now(), isPartial: true };
+      return createArtifact(`partial-${last.id}`, last.id, "combined", content, true);
     }
   }
 
@@ -241,8 +243,10 @@ export function extractPartialArtifact(messages: SessionMessage[]): Artifact | n
     content = buildCombinedDoc("", lastLang === "css" ? raw : "", lastLang !== "css" ? raw : "");
   }
 
-  return { id: `partial-${last.id}`, messageId: last.id, type: "combined", content, createdAt: Date.now(), isPartial: true };
+  return createArtifact(`partial-${last.id}`, last.id, "combined", content, true);
 }
+
+// ─── Collapse & Placeholders ───────────────────────────────────────────────
 
 /** Prefix for artifact links; href="#artifact-{id}" */
 export const ARTIFACT_LINK_PREFIX = "#artifact-";
@@ -251,15 +255,13 @@ function artifactPlaceholder(artifactId: string): string {
   return `\n\n*[View interactive preview in Artifacts panel →](${ARTIFACT_LINK_PREFIX}${artifactId})*\n\n`;
 }
 
-const COLLAPSE_BLOCK_RE = /```(html|htm|svg|css|javascript|js|mermaid)\n([\s\S]*?)```/gi;
-
 function emitCheck(lang: string, trimmed: string): boolean {
   const l = (lang || "").toLowerCase();
   return (
     (l === "svg" && trimmed.length > 0) ||
-    (l === "mermaid" && trimmed.length >= 5) ||
-    ((l === "html" || l === "htm") && trimmed.length >= 10) ||
-    (["css", "javascript", "js"].includes(l) && trimmed.length >= 5)
+    (l === "mermaid" && trimmed.length >= MIN_LENGTH.mermaid) ||
+    ((l === "html" || l === "htm") && trimmed.length >= MIN_LENGTH.html) ||
+    (["css", "javascript", "js"].includes(l) && trimmed.length >= MIN_LENGTH.css)
   );
 }
 

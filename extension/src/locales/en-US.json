@@ -64,6 +64,7 @@
   "theme_light": "Light",
   "theme_dark": "Dark",
   "logLevel": "Log Level",
+  "message_reasoning_label": "Thoughts",
   "miss_required_settings": "Please complete the API configuration first.",
   "model_add": "Add model",
   "model_default": "Default",

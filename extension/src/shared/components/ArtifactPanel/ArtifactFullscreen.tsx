@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Button } from "antd";
 import { CloseOutlined } from "@ant-design/icons";
 import type { Artifact } from "@src/shared/artifacts/types";
+import { sanitizeArtifactHtml } from "@src/shared/artifacts";
 import style from "./ArtifactFullscreen.module.scss";
 
 interface ArtifactFullscreenProps {
@@ -22,7 +23,7 @@ const ArtifactFullscreen: React.FC<ArtifactFullscreenProps> = ({ artifact, onClo
     <div className={style.overlay}>
       <Button
         className={style.closeBtn}
-        type="primary"
+        type="default"
         icon={<CloseOutlined />}
         onClick={onClose}
         size="large"
@@ -31,7 +32,7 @@ const ArtifactFullscreen: React.FC<ArtifactFullscreenProps> = ({ artifact, onClo
       </Button>
       <iframe
         className={style.iframe}
-        srcDoc={artifact.content}
+        srcDoc={sanitizeArtifactHtml(artifact.content)}
         sandbox="allow-scripts"
         title="Artifact fullscreen"
       />

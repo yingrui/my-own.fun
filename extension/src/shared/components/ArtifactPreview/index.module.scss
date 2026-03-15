@@ -1,18 +1,16 @@
+/* Use block (not flex) so the iframe's min-height drives layout; flex was collapsing to 0 */
 .preview {
   flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+  min-height: 400px;
+  min-width: 0;
   background: var(--gm-color-surface);
   border-radius: var(--gm-radius-lg);
   overflow: hidden;
-  height: 100%;
 }
 
 .iframe {
-  flex: 1;
   width: 100%;
-  min-height: 600px;
+  min-height: 400px;
   height: 100%;
   border: none;
   display: block;

@@ -4,7 +4,7 @@ import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import type { SessionMessage } from "@src/shared/langgraph/runtime/types";
 import ChatWindow from "@pages/options/chatbot/components/ChatWindow";
 import ArtifactPanel from "@src/shared/components/ArtifactPanel";
-import { extractArtifacts, extractPartialArtifact } from "@src/shared/artifacts";
+import { useArtifacts } from "@src/shared/artifacts";
 import "./index.css";
 import AgentFactory from "@pages/options/chatbot/agents/AgentFactory";
 import intl from "react-intl-universal";
@@ -19,17 +19,7 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const [messages, setMessages] = useState<SessionMessage[]>([]);
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
   const agent = useMemo(() => new AgentFactory().create(config), [config]);
-  const artifacts = useMemo(() => extractArtifacts(messages), [messages]);
-  const partialArtifact = useMemo(() => extractPartialArtifact(messages), [messages]);
-  const hasArtifactContent = artifacts.length > 0 || partialArtifact != null;
-  const artifactsByMessageId = useMemo(() => {
-    const map: Record<string, typeof artifacts> = {};
-    for (const a of artifacts) {
-      if (!map[a.messageId]) map[a.messageId] = [];
-      map[a.messageId].push(a);
-    }
-    return map;
-  }, [artifacts]);
+  const { artifacts, partialArtifact, hasArtifactContent, artifactsByMessageId } = useArtifacts(messages);
 
   useEffect(() => {
     setMessages(agent.getState().messages);
@@ -66,7 +56,11 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
           </Layout>
           {hasArtifactContent && (
             <div className={"chatbot-artifact-panel"}>
-              <ArtifactPanel messages={messages} selectedArtifactId={selectedArtifactId} />
+              <ArtifactPanel
+                artifacts={artifacts}
+                partialArtifact={partialArtifact}
+                selectedArtifactId={selectedArtifactId}
+              />
             </div>
           )}
         </Layout>
