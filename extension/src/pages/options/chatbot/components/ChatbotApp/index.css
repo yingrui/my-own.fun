@@ -30,11 +30,41 @@
   display: flex;
   flex-direction: row;
   justify-content: center;
+  align-items: stretch;
+  gap: 24px;
   padding: 24px;
   background-color: var(--gm-color-surface);
 }
 
-.chatbot-conversation, .chatbot-addons {
+/* Default: constrained width, centered (no artifact panel) */
+.chatbot-conversation {
+  flex: 0 1 960px;
+  width: min(960px, 100%);
+  margin: 0 auto;
+  background-color: var(--gm-color-surface);
+  border-radius: var(--gm-radius-lg);
+  min-width: 0;
+}
+
+/* With artifacts: 50/50 split */
+.chatbot-main--with-artifacts .chatbot-conversation {
+  flex: 1 1 50%;
+  width: auto;
+  margin: 0;
+}
+
+.chatbot-artifact-panel {
+  flex: 1 1 50%;
+  min-width: 320px;
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--gm-color-surface);
+  border-radius: var(--gm-radius-lg);
+  border: 1px solid var(--gm-color-border);
+}
+
+.chatbot-addons {
   flex: 0 1 960px;
   width: min(960px, 100%);
   margin: 0 auto;
@@ -44,7 +74,8 @@
 }
 
 @media (max-width: 900px) {
-  .chatbot-addons {
+  .chatbot-addons,
+  .chatbot-artifact-panel {
     display: none;
   }
 

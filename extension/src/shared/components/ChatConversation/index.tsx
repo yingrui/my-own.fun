@@ -1,6 +1,7 @@
 import SensitiveTopicError from "@src/shared/agents/core/errors/SensitiveTopicError";
 import Message from "@src/shared/components/Message";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
+import type { Artifact } from "@src/shared/artifacts/types";
 import type { ChatSession, SessionMessage } from "@src/shared/langgraph/runtime/types";
 import { Input, message as antdMessage } from "antd";
 import {
@@ -17,6 +18,7 @@ interface ChatConversationProps {
   agent: ChatSession;
   question?: string;
   enableClearCommand?: boolean;
+  artifactsByMessageId?: Record<string, Artifact[]>;
 }
 
 interface ChatConversationRef {
@@ -28,7 +30,7 @@ interface ChatConversationRef {
 }
 
 const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
-  ({ agent, question, enableClearCommand }, ref) => {
+  ({ agent, question, enableClearCommand, artifactsByMessageId = {} }, ref) => {
     const [text, setText] = useState<string>();
     const [generating, setGenerating] = useState<boolean>();
     const { scrollRef, scrollToBottom, messagesRef, handleScroll } = useScrollAnchor();
@@ -145,6 +147,7 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
                   statusMessage={message.statusMessage}
                   reasoning={message.reasoning}
                   stepItems={message.stepItems}
+                  collapseArtifacts={(artifactsByMessageId[message.id ?? ""]?.length ?? 0) > 0}
                 ></Message>
               ))}
               <div className="scroll-anchor" ref={messagesRef}></div>

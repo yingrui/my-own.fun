@@ -1,6 +1,7 @@
 import { CopyOutlined } from "@ant-design/icons";
 import type { MessageContent } from "@src/shared/agents/core/ChatMessage";
 import type { SessionStepItem } from "@src/shared/langgraph/runtime/types";
+import { collapseArtifactCodeBlocks } from "@src/shared/artifacts";
 import MarkdownPreview from "@src/shared/components/Message/MarkdownPreview";
 import { Collapse, message, Spin } from "antd";
 import copy from "copy-to-clipboard";
@@ -17,6 +18,8 @@ interface MessageProps {
   statusMessage?: string;
   reasoning?: string;
   stepItems?: SessionStepItem[];
+  /** When true, collapse artifact code blocks (html/svg/css/js) to a short placeholder. */
+  collapseArtifacts?: boolean;
 }
 
 function textContent(content: string | MessageContent[]): string {
@@ -98,8 +101,11 @@ const ThoughtsCollapse: React.FC<{ items: SessionStepItem[] }> = ({ items }) => 
 );
 
 const Message: React.FC<MessageProps> = React.memo((props) => {
-  const { index, role, content, loading, name, statusMessage, reasoning, stepItems } = props;
-  const text = textContent(content);
+  const { index, role, content, loading, name, statusMessage, reasoning, stepItems, collapseArtifacts } = props;
+  let text = textContent(content);
+  if (role === "assistant" && collapseArtifacts && typeof text === "string") {
+    text = collapseArtifactCodeBlocks(text);
+  }
 
   if (role === "user") {
     return (

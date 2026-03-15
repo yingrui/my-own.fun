@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Layout } from "antd";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
+import type { Artifact } from "@src/shared/artifacts/types";
 import "./index.css";
 import type { ChatSession } from "@src/shared/langgraph/runtime/types";
 import ChatConversation from "@src/shared/components/ChatConversation";
@@ -10,9 +11,10 @@ import Greeting from "@pages/options/chatbot/components/Greeting";
 interface ChatWindowProps {
   config: GluonConfigure;
   agent: ChatSession;
+  artifactsByMessageId?: Record<string, Artifact[]>;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent, artifactsByMessageId = {} }) => {
   const [question, setQuestion] = useState<string>("");
   const isNewConversation = () => _.isEmpty(question);
 
@@ -30,6 +32,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ config, agent }) => {
           agent={agent}
           question={question}
           enableClearCommand={false}
+          artifactsByMessageId={artifactsByMessageId}
         />
       )}
     </Layout>

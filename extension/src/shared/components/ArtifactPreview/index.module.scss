@@ -1,0 +1,37 @@
+.preview {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--gm-color-surface);
+  border-radius: var(--gm-radius-lg);
+  overflow: hidden;
+  height: 100%;
+}
+
+.iframe {
+  flex: 1;
+  width: 100%;
+  min-height: 600px;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--gm-color-muted);
+  font-size: 14px;
+  text-align: center;
+
+  .hint {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+}
