@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, Layout, List, Modal, Typography } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Button, Input, Layout, List, Modal, Tooltip, Typography } from "antd";
+import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import type { SessionMessage } from "@src/shared/langgraph/runtime/types";
 import ChatWindow from "@pages/options/chatbot/components/ChatWindow";
@@ -42,6 +42,58 @@ function messagesForSave(messages: SessionMessage[]): SessionMessage[] {
   }));
 }
 
+type DateGroup = { label: string; sortOrder: number; conversations: ChatConversationRecord[] };
+
+function groupConversationsByDate(conversations: ChatConversationRecord[]): DateGroup[] {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
+  const sevenDaysAgo = todayStart - 7 * 24 * 60 * 60 * 1000;
+
+  const groups = new Map<string, { label: string; sortOrder: number; items: ChatConversationRecord[] }>();
+
+  for (const c of conversations) {
+    const ts = c.updatedAt ?? c.createdAt;
+    const d = ts ? new Date(ts) : now;
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+    let label: string;
+    let sortOrder: number;
+
+    if (dayStart >= todayStart) {
+      label = intl.get("chat_group_today").d("Today");
+      sortOrder = 0;
+    } else if (dayStart >= yesterdayStart) {
+      label = intl.get("chat_group_yesterday").d("Yesterday");
+      sortOrder = 1;
+    } else if (dayStart >= sevenDaysAgo) {
+      label = intl.get("chat_group_7days").d("7 Days");
+      sortOrder = 2;
+    } else {
+      label = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      sortOrder = 3 + (sevenDaysAgo - dayStart) / (24 * 60 * 60 * 1000);
+    }
+
+    const key = label.startsWith("20") ? label : `${sortOrder}-${label}`;
+    if (!groups.has(key)) {
+      groups.set(key, { label, sortOrder, items: [] });
+    }
+    groups.get(key)!.items.push(c);
+  }
+
+  for (const g of groups.values()) {
+    g.items.sort((a, b) => {
+      const ta = new Date(a.updatedAt ?? a.createdAt ?? 0).getTime();
+      const tb = new Date(b.updatedAt ?? b.createdAt ?? 0).getTime();
+      return tb - ta;
+    });
+  }
+
+  return Array.from(groups.values())
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((g) => ({ label: g.label, sortOrder: g.sortOrder, conversations: g.items }));
+}
+
 interface ChatbotAppProps {
   config: GluonConfigure;
 }
@@ -54,10 +106,17 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ChatConversationRecord[]>([]);
   const [conversationsLoading, setConversationsLoading] = useState(true);
+  const [editingChatId, setEditingChatId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [expandedActionsChatId, setExpandedActionsChatId] = useState<string | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const agent = useMemo(() => new AgentFactory().create(config), [config]);
   const { artifacts, partialArtifact, hasArtifactContent, artifactsByMessageId } = useArtifacts(messages);
+  const groupedConversations = useMemo(
+    () => groupConversationsByDate(conversations),
+    [conversations]
+  );
 
   useEffect(() => {
     const state = agent.getState();
@@ -131,6 +190,7 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const handleSelectChat = useCallback(
     async (chatId: string) => {
       if (chatId === currentChatId) return;
+      setExpandedActionsChatId(null);
       try {
         const chat = await getChatConversation(chatId);
         if (!chat) return;
@@ -146,7 +206,8 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   );
 
   const handleDeleteChat = useCallback(
-    (chatId: string) => {
+    (e: React.MouseEvent, chatId: string) => {
+      e.stopPropagation();
       Modal.confirm({
         title: intl.get("chat_delete_confirm_title").d("Delete conversation?"),
         content: intl.get("chat_delete_confirm_content").d("This cannot be undone."),
@@ -160,6 +221,7 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
               agent.clear();
               setCurrentChatId(null);
             }
+            setEditingChatId(null);
             await loadConversations();
           } catch (err) {
             antdMessage.error(
@@ -170,6 +232,35 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
       });
     },
     [agent, currentChatId, loadConversations]
+  );
+
+  const handleStartEdit = useCallback((e: React.MouseEvent, item: ChatConversationRecord) => {
+    e.stopPropagation();
+    setExpandedActionsChatId(null);
+    setEditingChatId(item.chatId);
+    setEditingTitle(item.title);
+  }, []);
+
+  const handleSaveTitle = useCallback(
+    async (chatId: string) => {
+      const trimmed = editingTitle.trim();
+      if (!trimmed) {
+        setEditingChatId(null);
+        return;
+      }
+      try {
+        await updateChatConversation(chatId, { title: trimmed });
+        setConversations((prev) =>
+          prev.map((c) => (c.chatId === chatId ? { ...c, title: trimmed } : c))
+        );
+      } catch (err) {
+        antdMessage.error(
+          intl.get("chat_save_error").d("Failed to save. Check backend connection.")
+        );
+      }
+      setEditingChatId(null);
+    },
+    [editingTitle]
   );
 
   return (
@@ -200,48 +291,107 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
                   {intl.get("chat_none").d("No saved conversations yet")}
                 </Typography.Text>
               ) : (
-                <List
-                  size="small"
-                  dataSource={conversations}
-                  renderItem={(item) => (
-                    <List.Item
-                      key={item.chatId}
-                      onClick={() => handleSelectChat(item.chatId)}
-                      style={{
-                        cursor: "pointer",
-                        background: currentChatId === item.chatId ? "var(--gm-color-selected-bg, #e6f4ff)" : undefined,
-                        borderRadius: 4,
-                        padding: "4px 8px",
-                        marginBottom: 4,
-                      }}
-                      actions={[
-                        <Typography.Text
-                          key="del"
-                          type="danger"
-                          style={{ fontSize: 11 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteChat(item.chatId);
-                          }}
-                        >
-                          {intl.get("common_delete").d("Delete")}
-                        </Typography.Text>,
-                      ]}
-                    >
-                      <List.Item.Meta
-                        title={<Typography.Text ellipsis style={{ fontSize: 13 }}>{item.title}</Typography.Text>}
-                        description={
-                          item.updatedAt
-                            ? new Date(item.updatedAt).toLocaleDateString(undefined, {
-                                month: "short",
-                                day: "numeric",
-                              })
-                            : null
-                        }
+                <div className="chatbot-conversations-grouped">
+                  {groupedConversations.map((group) => (
+                    <div key={group.label} className="chatbot-conversations-group">
+                      <Typography.Text
+                        type="secondary"
+                        className="chatbot-conversations-group-header"
+                      >
+                        {group.label}
+                      </Typography.Text>
+                      <List
+                        size="small"
+                        dataSource={group.conversations}
+                        renderItem={(item) => (
+                          <List.Item
+                            key={item.chatId}
+                            onClick={() => {
+                              setExpandedActionsChatId(null);
+                              if (editingChatId !== item.chatId) handleSelectChat(item.chatId);
+                            }}
+                            style={{
+                              cursor: editingChatId === item.chatId ? "default" : "pointer",
+                              background: currentChatId === item.chatId ? "var(--gm-color-selected-bg, #e6f4ff)" : undefined,
+                              borderRadius: 4,
+                              marginBottom: 4,
+                            }}
+                            actions={[
+                              editingChatId === item.chatId ? (
+                                <>
+                                  <Tooltip key="check" title={intl.get("save").d("Save")} placement="top">
+                                    <CheckOutlined
+                                      style={{ fontSize: 12, marginRight: 6, color: "var(--ant-color-primary)" }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleSaveTitle(item.chatId);
+                                      }}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip key="del" title={intl.get("common_delete").d("Delete")} placement="top">
+                                    <DeleteOutlined
+                                      style={{ fontSize: 12, color: "var(--ant-color-error)" }}
+                                      onClick={(e) => handleDeleteChat(e, item.chatId)}
+                                    />
+                                  </Tooltip>
+                                </>
+                              ) : expandedActionsChatId === item.chatId ? (
+                                <>
+                                  <Tooltip key="edit" title={intl.get("chat_edit_title").d("Edit title")} placement="top">
+                                    <EditOutlined
+                                      style={{ fontSize: 12, marginRight: 6 }}
+                                      onClick={(e) => handleStartEdit(e, item)}
+                                    />
+                                  </Tooltip>
+                                  <Tooltip key="del" title={intl.get("common_delete").d("Delete")} placement="top">
+                                    <DeleteOutlined
+                                      style={{ fontSize: 12, color: "var(--ant-color-error)" }}
+                                      onClick={(e) => handleDeleteChat(e, item.chatId)}
+                                    />
+                                  </Tooltip>
+                                </>
+                              ) : (
+                                <Typography.Link
+                                  key="more"
+                                  style={{ fontSize: 12, padding: 0 }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedActionsChatId(item.chatId);
+                                  }}
+                                >
+                                  ...
+                                </Typography.Link>
+                              ),
+                            ]}
+                          >
+                            <List.Item.Meta
+                              title={
+                                editingChatId === item.chatId ? (
+                                  <Input
+                                    size="small"
+                                    value={editingTitle}
+                                    onChange={(e) => setEditingTitle(e.target.value)}
+                                    onBlur={() => handleSaveTitle(item.chatId)}
+                                    onPressEnter={() => handleSaveTitle(item.chatId)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    autoFocus
+                                    style={{ fontSize: 13 }}
+                                  />
+                                ) : (
+                                  <Tooltip title={item.title} placement="topLeft">
+                                    <Typography.Text ellipsis style={{ fontSize: 13 }}>
+                                      {item.title}
+                                    </Typography.Text>
+                                  </Tooltip>
+                                )
+                              }
+                            />
+                          </List.Item>
+                        )}
                       />
-                    </List.Item>
-                  )}
-                />
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

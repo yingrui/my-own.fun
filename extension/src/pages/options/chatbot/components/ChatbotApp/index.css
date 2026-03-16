@@ -4,13 +4,39 @@
 }
 
 .chatbot-sider-content {
-  padding: 20px 16px;
+  padding: 20px 10px;
 }
 
 .chatbot-conversations-list {
   max-height: 280px;
   overflow-y: auto;
   margin-top: 8px;
+}
+
+.chatbot-conversations-list .ant-list-item {
+  border-block-end: none;
+  padding: 0px 0px 0px 8px;
+}
+
+.chatbot-conversations-list .ant-list-item-action {
+  margin-inline-start: 0px;
+}
+
+.chatbot-conversations-grouped {
+  display: flex;
+  flex-direction: column;
+}
+
+.chatbot-conversations-group-header {
+  font-size: 11px;
+  display: block;
+  margin-bottom: 6px;
+  margin-top: 12px;
+  color: var(--ant-color-text-secondary);
+}
+
+.chatbot-conversations-group:first-child .chatbot-conversations-group-header {
+  margin-top: 0;
 }
 
 .chatbot-main {
