@@ -7,6 +7,8 @@ import type { StructuredToolInterface } from "@langchain/core/tools";
 import { z } from "zod";
 import {
   getPageLayout,
+  getPageContent,
+  getOpenTabs,
   clickElement,
   inputText,
   submitForm,
@@ -39,6 +41,32 @@ export const webSurfingSkill: Skill = {
           name: "get_page_layout",
           description:
             "Get the current page's layout tree with xpaths for links, inputs, and buttons. Call this first when the user wants to interact with the page.",
+          schema: z.object({}),
+        },
+      ) as StructuredToolInterface,
+      tool(
+        async ({ tab_id }: { tab_id?: number }) => getPageContent(tab_id),
+        {
+          name: "get_page_content",
+          description:
+            "Get the text content, title, URL, and links of a webpage. Use tab_id from get_open_tabs to read a specific tab; omit tab_id for the current active tab. Use when the user asks about a page, wants a summary, or needs information from it.",
+          schema: z.object({
+            tab_id: z
+              .number()
+              .optional()
+              .describe("Tab ID from get_open_tabs. Omit for the current active tab."),
+          }),
+        },
+      ) as StructuredToolInterface,
+      tool(
+        async () => {
+          const tabs = await getOpenTabs();
+          return JSON.stringify(tabs, null, 2);
+        },
+        {
+          name: "get_open_tabs",
+          description:
+            "List all open tabs in the current window. Returns id, title, and url for each tab. Use tab ids with get_page_content to read content from a specific tab.",
           schema: z.object({}),
         },
       ) as StructuredToolInterface,

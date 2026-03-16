@@ -103,6 +103,12 @@ const addCommands = () => {
             const form = el.closest("form");
             if (form) form.submit();
             else el.click();
+          } else if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+            // Simulate Enter key to submit (e.g. search inputs, single-line forms)
+            const opts = { key: "Enter", keyCode: 13, which: 13, bubbles: true };
+            el.dispatchEvent(new KeyboardEvent("keydown", opts));
+            el.dispatchEvent(new KeyboardEvent("keypress", opts));
+            el.dispatchEvent(new KeyboardEvent("keyup", opts));
           } else {
             el.click();
           }

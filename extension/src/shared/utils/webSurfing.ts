@@ -3,6 +3,14 @@
  * Navigate uses chrome.tabs directly (extension context only).
  */
 
+import { get_content } from "@src/shared/utils";
+
+export interface OpenTabInfo {
+  id: number;
+  title: string;
+  url: string;
+}
+
 function sendToActiveTab<T = unknown>(message: Record<string, unknown>): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     chrome.tabs.query({ currentWindow: true, active: true }, (tabs) => {
@@ -26,6 +34,57 @@ export interface PageLayoutData {
   url: string;
   title: string;
   layout: Record<string, unknown>;
+}
+
+export interface PageContentData {
+  url: string;
+  title: string;
+  text: string;
+  links: Array<{ text: string; href: string }>;
+}
+
+function getContentFromTab(tabId: number): Promise<PageContentData | null> {
+  return new Promise<PageContentData | null>((resolve) => {
+    chrome.tabs.sendMessage(tabId, { type: "get_content" }, (response) => {
+      if (chrome.runtime.lastError || !response) {
+        resolve(null);
+      } else {
+        resolve(response as PageContentData);
+      }
+    });
+  });
+}
+
+export async function getPageContent(tabId?: number): Promise<string> {
+  try {
+    const content = tabId
+      ? await getContentFromTab(tabId)
+      : ((await get_content()) as PageContentData | null);
+    if (!content) {
+      return "Could not get page content. The extension may not be attached to the page.";
+    }
+    const maxLength = 100 * 1024;
+    const text =
+      content.text?.length > maxLength
+        ? `${content.text.slice(0, maxLength)}\n\n... [truncated]`
+        : content.text ?? "";
+    return JSON.stringify(
+      { url: content.url, title: content.title, text, links: content.links ?? [] },
+      null,
+      2,
+    );
+  } catch {
+    return "Could not get page content. The extension may not be attached to the page.";
+  }
+}
+
+export async function getOpenTabs(): Promise<OpenTabInfo[]> {
+  const tabs = await new Promise<chrome.tabs.Tab[]>((resolve) => {
+    chrome.tabs.query({ currentWindow: true }, resolve);
+  });
+  return tabs
+    .filter((t): t is chrome.tabs.Tab & { id: number } => typeof t.id === "number")
+    .map((t) => ({ id: t.id, title: t.title ?? t.url ?? "", url: t.url ?? "" }));
 }
 
 export async function getPageLayout(): Promise<PageLayoutData | null> {
