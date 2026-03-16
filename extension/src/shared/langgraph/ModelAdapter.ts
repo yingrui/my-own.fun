@@ -83,6 +83,7 @@ export function createChatModel(config: GluonConfigure, modelOverride?: string):
     },
     model,
     temperature: 0.5,
+    maxTokens: config.maxTokens ?? 8192,
     // Keep native tool-calling on chat-completions for OpenAI-compatible endpoints.
     useResponsesApi: false,
     modelKwargs: {},

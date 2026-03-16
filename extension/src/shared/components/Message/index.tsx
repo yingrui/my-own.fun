@@ -1,4 +1,4 @@
-import { CopyOutlined } from "@ant-design/icons";
+import { CopyOutlined, ReloadOutlined } from "@ant-design/icons";
 import type { MessageContent } from "@src/shared/agents/core/ChatMessage";
 import type { SessionStepItem } from "@src/shared/langgraph/runtime/types";
 import { collapseArtifactCodeBlocks } from "@src/shared/artifacts";
@@ -24,6 +24,8 @@ interface MessageProps {
   messageId?: string;
   /** Called when user clicks an artifact placeholder link. */
   onArtifactClick?: (artifactId: string) => void;
+  /** Called when user clicks refresh to reprocess last user input. Only for assistant messages. */
+  onRefresh?: () => void;
 }
 
 function textContent(content: string | MessageContent[]): string {
@@ -130,7 +132,7 @@ const ThoughtsCollapse: React.FC<{ items: SessionStepItem[] }> = ({ items }) => 
 );
 
 const Message: React.FC<MessageProps> = React.memo((props) => {
-  const { index, role, content, loading, name, statusMessage, reasoning, stepItems, collapseArtifacts, messageId, onArtifactClick } = props;
+  const { index, role, content, loading, name, statusMessage, reasoning, stepItems, collapseArtifacts, messageId, onArtifactClick, onRefresh } = props;
   let text = textContent(content);
   if (role === "assistant" && collapseArtifacts && messageId && typeof text === "string") {
     text = collapseArtifactCodeBlocks(text, messageId);
@@ -185,11 +187,19 @@ const Message: React.FC<MessageProps> = React.memo((props) => {
         )}
         <MarkdownPreview loading={loading} content={text} onArtifactClick={onArtifactClick} />
         {!loading && index > 0 && (
-          <div>
+          <div className="message-actions">
             <CopyOutlined
               className="copy-icon"
               onClick={() => { copy(text, {}); message.success("copy success"); }}
+              title={intl.get("copy").d("Copy")}
             />
+            {onRefresh && (
+              <ReloadOutlined
+                className="refresh-icon"
+                onClick={onRefresh}
+                title={intl.get("message_regenerate").d("Regenerate")}
+              />
+            )}
           </div>
         )}
       </div>

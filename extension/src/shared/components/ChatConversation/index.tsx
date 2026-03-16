@@ -76,6 +76,12 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
       await generateReply(text, () => agent.chat(text));
     }
 
+    async function handleRefresh(lastUserInput: string) {
+      if (generating) return;
+      agent.removeLastTurn?.();
+      await generateReply(lastUserInput, () => agent.chat(lastUserInput));
+    }
+
     function handleError(e) {
       if (e instanceof SensitiveTopicError) {
         return intl.get("sensitive_topic").d("Sensitive topic detected.");
@@ -151,6 +157,11 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
                   collapseArtifacts={(artifactsByMessageId[message.id ?? ""]?.length ?? 0) > 0}
                   messageId={message.id}
                   onArtifactClick={onArtifactClick}
+                  onRefresh={
+                    message.role === "assistant" && i > 0 && messages[i - 1]?.role === "user"
+                      ? () => handleRefresh(messages[i - 1].content)
+                      : undefined
+                  }
                 ></Message>
               ))}
               <div className="scroll-anchor" ref={messagesRef}></div>

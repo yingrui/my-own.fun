@@ -23,6 +23,7 @@ const SETTINGS_CATEGORY_MAP: Record<string, string> = {
   multimodalModel: "Basic",
   models: "Basic",
   contextLength: "Basic",
+  maxTokens: "System",
   // System (language moved from Basic UI to System Settings)
   language: "System",
   themeMode: "System",
@@ -60,6 +61,9 @@ function normalizeBackendSettings<D extends Record<string, any>>(raw: Record<str
     } else if (k === "contextLength" && typeof fallback.contextLength === "number") {
       const n = Number(v);
       (out as Record<string, any>)[k] = Number.isFinite(n) ? n : fallback.contextLength;
+    } else if (k === "maxTokens" && typeof (fallback as Record<string, any>).maxTokens === "number") {
+      const n = Number(v);
+      (out as Record<string, any>)[k] = Number.isFinite(n) ? n : (fallback as Record<string, any>).maxTokens;
     } else if (k === "models") {
       if (Array.isArray(v)) {
         (out as Record<string, any>)[k] = v;

@@ -85,8 +85,22 @@ div.ant-collapse-content-box {
   height: 32px;
 }
 
-.copy-icon {
-  width: 10px;
+.message-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-icon,
+.refresh-icon {
+  width: 14px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.copy-icon:hover,
+.refresh-icon:hover {
+  color: #374151;
 }
 
 .markdown blockquote {

@@ -75,6 +75,21 @@ export class LangGraphAgent implements ChatSession {
     this.emit();
   }
 
+  /** Remove the last user+assistant turn. Used before regenerating. */
+  removeLastTurn() {
+    const msgs = this.state.messages;
+    if (msgs.length < 2) return;
+    const lastUser = msgs[msgs.length - 2];
+    const lastAssistant = msgs[msgs.length - 1];
+    if (lastUser.role !== "user" || lastAssistant.role !== "assistant") return;
+    this.state = {
+      messages: msgs.slice(0, -2),
+      generating: false,
+    };
+    this.messageHistory = this.messageHistory.slice(0, -2);
+    this.emit();
+  }
+
   /** Hydrate agent from persisted messages (e.g. loaded from backend). */
   loadConversation(messages: SessionMessage[]) {
     const cleanMessages = messages.map((m) => ({

@@ -63,6 +63,12 @@ const SystemSettings: React.FC<SystemSettingsProps> = ({
               <InputNumber min={0} max={20} style={{ width: 160 }} />
             </Form.Item>
             <Form.Item
+              name="maxTokens"
+              label={intl.get("maxTokens").d("Max Tokens")}
+            >
+              <InputNumber min={1} max={128000} style={{ width: 160 }} />
+            </Form.Item>
+            <Form.Item
               name="logLevel"
               label={intl.get("logLevel").d("Log Level")}
             >

@@ -39,6 +39,7 @@ export type GluonConfigure = {
   multimodalModel: string;
   models: ModelEntry[];
   contextLength: number;
+  maxTokens: number;
   baCopilotKnowledgeApi: string;
   baCopilotApi: string;
   baCopilotTechDescription: string;
@@ -97,6 +98,7 @@ export const DEFAULT_GM_CONFIG_VALUE: GluonConfigure = {
   multimodalModel: "glm-4v-plus",
   models: DEFAULT_MODELS,
   contextLength: 5,
+  maxTokens: 8192,
   baCopilotKnowledgeApi: "",
   baCopilotApi: "",
   baCopilotTechDescription: "",
@@ -143,6 +145,7 @@ export function normalizeConfig(config: GluonConfigure): GluonConfigure {
   return {
     ...config,
     themeMode: config.themeMode === "dark" || config.themeMode === "light" ? config.themeMode : "auto",
+    maxTokens: typeof config.maxTokens === "number" && config.maxTokens > 0 ? config.maxTokens : DEFAULT_GM_CONFIG_VALUE.maxTokens,
     providers,
     models: modelsWithProvider,
     apiKey: first?.apiKey ?? config.apiKey,
