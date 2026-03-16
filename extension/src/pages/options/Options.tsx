@@ -94,6 +94,7 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
   const headerItems = useMemo(() => getHeaderItems(effectiveConfig), [effectiveConfig]);
   const defaultSelectedItem = (headerItems[0]?.key as string) || MENU_KEYS.DOCUMENT_INTELLIGENCE;
   const [selectedItem, setSelectedItem] = useState<string>(defaultSelectedItem);
+  const [homeKey, setHomeKey] = useState(0);
 
   useEffect(() => {
     const keys = new Set((headerItems || []).map((item: any) => item?.key));
@@ -109,13 +110,18 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
     }
   };
 
+  const handleLogoClick = () => {
+    setHomeKey((k) => k + 1);
+    clickLogoOrMenuItem(defaultSelectedItem);
+  };
+
   return (
     <Layout>
       <Header id="app-header">
         <Logo
           query={query}
           setQuery={setQuery}
-          onClick={() => clickLogoOrMenuItem(defaultSelectedItem)}
+          onClick={handleLogoClick}
         />
         <div className="nav-menus">
           <Menu
@@ -127,13 +133,13 @@ const Options: React.FC<OptionsProps> = ({ config }) => {
           />
         </div>
       </Header>
-      {selectedItem === MENU_KEYS.CHATBOT && <ChatbotApp config={effectiveConfig} />}
+      {selectedItem === MENU_KEYS.CHATBOT && <ChatbotApp key={homeKey} config={effectiveConfig} />}
       {selectedItem === MENU_KEYS.SEARCH && (
-        <SearchApp config={effectiveConfig} query={query} onQueryChange={setQuery} />
+        <SearchApp key={homeKey} config={effectiveConfig} query={query} onQueryChange={setQuery} />
       )}
-      {selectedItem === MENU_KEYS.WRITER && <WriterApp config={effectiveConfig} />}
-      {selectedItem === MENU_KEYS.DOCUMENT_INTELLIGENCE && <DocumentIntelligenceApp />}
-      {selectedItem === MENU_KEYS.PREFERENCE && <PreferenceApp />}
+      {selectedItem === MENU_KEYS.WRITER && <WriterApp key={homeKey} config={effectiveConfig} />}
+      {selectedItem === MENU_KEYS.DOCUMENT_INTELLIGENCE && <DocumentIntelligenceApp key={homeKey} />}
+      {selectedItem === MENU_KEYS.PREFERENCE && <PreferenceApp key={homeKey} />}
     </Layout>
   );
 };
