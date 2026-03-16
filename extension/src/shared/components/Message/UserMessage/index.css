@@ -36,6 +36,7 @@
   background: var(--gm-color-surface-subtle);
   border-radius: 14px;
   padding: 4px 14px;
+  overflow: auto;
   word-break: break-word;
 }
 

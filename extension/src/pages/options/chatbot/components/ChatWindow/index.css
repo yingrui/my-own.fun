@@ -1,18 +1,3 @@
 .chat-window-layout {
   background-color: var(--gm-color-surface);
 }
-
-.chat {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.form {
-  margin: 16px 20px;
-}
