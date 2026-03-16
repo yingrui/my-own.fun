@@ -46,6 +46,7 @@ export interface ChatSession {
   ): Promise<string>;
   executeCommandWithUserInput?(command: string, userInput?: string): Promise<string>;
   clear(): void;
+  loadConversation?(messages: SessionMessage[]): void;
   getCommandOptions?(): { value: string; label: string }[];
   getAgentOptions?(): { value: string; label: string }[];
 }

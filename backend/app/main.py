@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import document_library, documents, profiles, settings
+from app.api.v1 import chats, document_library, documents, profiles, settings
 from app.config import settings as app_settings
 import logging
 
@@ -27,6 +27,7 @@ app.add_middleware(
 # Include routers
 app.include_router(profiles.router, prefix="/api/v1")
 app.include_router(settings.router, prefix="/api/v1")
+app.include_router(chats.router, prefix="/api/v1")
 app.include_router(document_library.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
 

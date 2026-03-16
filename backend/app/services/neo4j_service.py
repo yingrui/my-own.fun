@@ -1,3 +1,4 @@
+import json
 from neo4j import GraphDatabase
 from typing import Optional, Dict, Any, List
 from app.config import settings
@@ -189,6 +190,108 @@ class Neo4jService:
             """
         result = self.execute_write(query, params)
         return result and result[0].get("deleted", 0) > 0
+
+    def add_chat(
+        self,
+        profile_id: str,
+        chat_id: str,
+        title: str,
+        messages: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Add or update a chat conversation for the profile."""
+        self.get_or_create_profile(profile_id)
+        messages_json = json.dumps(messages)
+        query = """
+        MATCH (p:ChromeProfile {profileId: $profileId})
+        MERGE (p)-[:HAS_CHAT]->(c:ChatConversation {chatId: $chatId})
+        ON CREATE SET
+            c.title = $title,
+            c.messages = $messages,
+            c.createdAt = datetime(),
+            c.updatedAt = datetime()
+        ON MATCH SET
+            c.title = $title,
+            c.messages = $messages,
+            c.updatedAt = datetime()
+        RETURN c.chatId as chatId, c.title as title, c.messages as messages,
+               c.createdAt as createdAt, c.updatedAt as updatedAt
+        """
+        result = self.execute_write(query, {
+            "profileId": profile_id,
+            "chatId": chat_id,
+            "title": title,
+            "messages": messages_json,
+        })
+        if result:
+            r = result[0]
+            return self._format_chat_response(r)
+        return {}
+
+    def get_chats(self, profile_id: str) -> List[Dict[str, Any]]:
+        """List all chats for the profile, ordered by updatedAt DESC."""
+        query = """
+        MATCH (p:ChromeProfile {profileId: $profileId})-[:HAS_CHAT]->(c:ChatConversation)
+        RETURN c.chatId as chatId, c.title as title, c.messages as messages,
+               c.createdAt as createdAt, c.updatedAt as updatedAt
+        ORDER BY c.updatedAt DESC
+        """
+        rows = self.execute_query(query, {"profileId": profile_id})
+        return [self._format_chat_response(r) for r in rows]
+
+    def get_chat(self, profile_id: str, chat_id: str) -> Optional[Dict[str, Any]]:
+        """Get a single chat by id."""
+        query = """
+        MATCH (p:ChromeProfile {profileId: $profileId})-[:HAS_CHAT]->(c:ChatConversation {chatId: $chatId})
+        RETURN c.chatId as chatId, c.title as title, c.messages as messages,
+               c.createdAt as createdAt, c.updatedAt as updatedAt
+        """
+        rows = self.execute_query(query, {"profileId": profile_id, "chatId": chat_id})
+        return self._format_chat_response(rows[0]) if rows else None
+
+    def update_chat(
+        self,
+        profile_id: str,
+        chat_id: str,
+        title: Optional[str] = None,
+        messages: Optional[List[Dict[str, Any]]] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Update a chat's title and/or messages."""
+        existing = self.get_chat(profile_id, chat_id)
+        if not existing:
+            return None
+        new_title = title if title is not None else existing["title"]
+        new_messages = messages if messages is not None else existing["messages"]
+        return self.add_chat(profile_id, chat_id, new_title, new_messages)
+
+    def delete_chat(self, profile_id: str, chat_id: str) -> bool:
+        """Delete a chat conversation."""
+        query = """
+        MATCH (p:ChromeProfile {profileId: $profileId})-[r:HAS_CHAT]->(c:ChatConversation {chatId: $chatId})
+        DELETE r, c
+        RETURN count(c) as deleted
+        """
+        result = self.execute_write(query, {"profileId": profile_id, "chatId": chat_id})
+        return result and result[0].get("deleted", 0) > 0
+
+    def _format_chat_response(self, r: Dict[str, Any]) -> Dict[str, Any]:
+        """Format chat row for API response."""
+        messages_raw = r.get("messages")
+        if isinstance(messages_raw, str):
+            try:
+                messages = json.loads(messages_raw)
+            except json.JSONDecodeError:
+                messages = []
+        else:
+            messages = messages_raw or []
+        created = r.get("createdAt")
+        updated = r.get("updatedAt")
+        return {
+            "chat_id": r.get("chatId", ""),
+            "title": r.get("title", "New chat"),
+            "messages": messages,
+            "created_at": str(created) if created else None,
+            "updated_at": str(updated) if updated else None,
+        }
 
 
 # Global instance

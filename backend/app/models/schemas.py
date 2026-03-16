@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 
 class ProfileCreate(BaseModel):
@@ -41,4 +41,23 @@ class DocumentLibraryAdd(BaseModel):
     filename: str = ""
     extracted_at: int = 0
     block_count: int = 0
+
+
+class ChatCreate(BaseModel):
+    chat_id: str
+    title: str = "New chat"
+    messages: List[Dict[str, Any]] = []
+
+
+class ChatUpdate(BaseModel):
+    title: Optional[str] = None
+    messages: Optional[List[Dict[str, Any]]] = None
+
+
+class ChatResponse(BaseModel):
+    chat_id: str
+    title: str
+    messages: List[Dict[str, Any]]
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 

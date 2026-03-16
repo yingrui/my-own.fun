@@ -356,3 +356,137 @@ export async function removeDocumentFromLibrary(
   }
 }
 
+// ---------------------------------------------------------------------------
+// Chat conversations
+// ---------------------------------------------------------------------------
+
+export interface ChatConversationRecord {
+  chatId: string;
+  title: string;
+  messages: Array<{
+    id: string;
+    role: "assistant" | "user" | "system";
+    content: string;
+    name?: string;
+    stepItems?: Array<{ id: string; type: string; content: string; toolName?: string }>;
+  }>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** List all chat conversations for the profile */
+export async function listChatConversations(): Promise<ChatConversationRecord[]> {
+  try {
+    const profileId = await getProfileId();
+    await ensureProfile();
+    const response = await fetch(`${BACKEND_API_URL}/profiles/${profileId}/chats`);
+    if (!response.ok) {
+      if (response.status === 404) return [];
+      throw new Error(`Failed to list chats: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return (data.chats ?? []).map((c: Record<string, unknown>) => ({
+      chatId: c.chat_id ?? c.chatId,
+      title: (c.title ?? "New chat") as string,
+      messages: (c.messages ?? []) as ChatConversationRecord["messages"],
+      createdAt: c.created_at ?? c.createdAt,
+      updatedAt: c.updated_at ?? c.updatedAt,
+    }));
+  } catch (error) {
+    console.error("Failed to list chat conversations:", error);
+    return [];
+  }
+}
+
+/** Get a single chat conversation by id */
+export async function getChatConversation(
+  chatId: string
+): Promise<ChatConversationRecord | null> {
+  try {
+    const profileId = await getProfileId();
+    const response = await fetch(
+      `${BACKEND_API_URL}/profiles/${profileId}/chats/${encodeURIComponent(chatId)}`
+    );
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error(`Failed to get chat: ${response.statusText}`);
+    }
+    const c = await response.json();
+    return {
+      chatId: c.chat_id ?? c.chatId,
+      title: (c.title ?? "New chat") as string,
+      messages: (c.messages ?? []) as ChatConversationRecord["messages"],
+      createdAt: c.created_at ?? c.createdAt,
+      updatedAt: c.updated_at ?? c.updatedAt,
+    };
+  } catch (error) {
+    console.error("Failed to get chat conversation:", error);
+    return null;
+  }
+}
+
+/** Create a new chat conversation */
+export async function createChatConversation(
+  chatId: string,
+  title: string,
+  messages: ChatConversationRecord["messages"]
+): Promise<{ chatId: string }> {
+  await ensureProfile();
+  const profileId = await getProfileId();
+  const response = await fetch(
+    `${BACKEND_API_URL}/profiles/${profileId}/chats`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        title,
+        messages,
+      }),
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Failed to create chat: ${response.statusText}`);
+  }
+  const data = await response.json();
+  return { chatId: data.chatId ?? chatId };
+}
+
+/** Update an existing chat conversation */
+export async function updateChatConversation(
+  chatId: string,
+  updates: { title?: string; messages?: ChatConversationRecord["messages"] }
+): Promise<void> {
+  const profileId = await getProfileId();
+  const response = await fetch(
+    `${BACKEND_API_URL}/profiles/${profileId}/chats/${encodeURIComponent(chatId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: updates.title,
+        messages: updates.messages,
+      }),
+    }
+  );
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error("Chat not found");
+    }
+    throw new Error(`Failed to update chat: ${response.statusText}`);
+  }
+}
+
+/** Delete a chat conversation */
+export async function deleteChatConversation(chatId: string): Promise<void> {
+  const profileId = await getProfileId();
+  const response = await fetch(
+    `${BACKEND_API_URL}/profiles/${profileId}/chats/${encodeURIComponent(chatId)}`,
+    { method: "DELETE" }
+  );
+  if (!response.ok) {
+    if (response.status === 404) return; // already removed
+    throw new Error(`Failed to delete chat: ${response.statusText}`);
+  }
+}
+

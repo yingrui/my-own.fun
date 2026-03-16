@@ -75,6 +75,34 @@ export class LangGraphAgent implements ChatSession {
     this.emit();
   }
 
+  /** Hydrate agent from persisted messages (e.g. loaded from backend). */
+  loadConversation(messages: SessionMessage[]) {
+    const cleanMessages = messages.map((m) => ({
+      ...m,
+      loading: false,
+      statusMessage: undefined,
+      reasoning: undefined,
+    }));
+    this.state = { messages: cleanMessages, generating: false };
+
+    this.messageHistory = cleanMessages
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .map((m) =>
+        m.role === "user"
+          ? new HumanMessage(m.content)
+          : new AIMessage(m.content)
+      );
+    this.messageHistory = this.trimHistory(this.messageHistory);
+
+    const maxId = cleanMessages.reduce((max, m) => {
+      const match = /^msg_(\d+)$/.exec(m.id);
+      return match ? Math.max(max, parseInt(match[1], 10)) : max;
+    }, 0);
+    this.messageCounter = maxId;
+
+    this.emit();
+  }
+
   async executeCommand(command: string, args: Record<string, unknown> = {}, userInput = ""): Promise<string> {
     const userMessage = userInput || `/${command}${userInput ? ` ${userInput}` : ""}`.trim();
     const tool = this.skills.flatMap((s) => s.getTools()).find((t) => t.name === command);
