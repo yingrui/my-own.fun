@@ -139,10 +139,24 @@ function blockToArtifact(b: RawBlock, msgId: string, i: number): Artifact | null
   return null;
 }
 
-function extractFromMessage(msg: SessionMessage): Artifact[] {
-  if (msg.role !== "assistant" || !msg.content?.trim()) return [];
+function toMessageText(content: unknown): string {
+  if (content == null) return "";
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    const textPart = content.find((c) => c && typeof c === "object" && (c as { type?: string }).type === "text");
+    return typeof (textPart as { text?: string })?.text === "string" ? (textPart as { text: string }).text : "";
+  }
+  if (typeof content === "object" && content !== null && "text" in content) {
+    return typeof (content as { text: unknown }).text === "string" ? (content as { text: string }).text : "";
+  }
+  return "";
+}
 
-  const blocks = parseCodeBlocks(msg.content);
+function extractFromMessage(msg: SessionMessage): Artifact[] {
+  const text = toMessageText(msg.content);
+  if (msg.role !== "assistant" || !text.trim()) return [];
+
+  const blocks = parseCodeBlocks(text);
   const groups = groupCombinedBlocks(blocks);
   const artifacts: Artifact[] = [];
 

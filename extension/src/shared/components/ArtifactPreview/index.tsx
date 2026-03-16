@@ -51,6 +51,7 @@ const ArtifactPreview: React.FC<ArtifactPreviewProps> = ({ artifact }) => {
   return (
     <div className={style.preview}>
       <iframe
+        key={artifact.id}
         ref={iframeRef}
         className={style.iframe}
         srcDoc={sanitizeArtifactHtml(artifact.content)}
