@@ -13,7 +13,7 @@ This skill enables the agent to interact with the currently open browser tab: re
 
 ### get_page_layout
 
-Get the current page's layout tree with xpaths for links, inputs, and buttons. Call this first when the user wants to interact with the page. Returns url, title, and a nested structure where each node has `xpath`, `text`, `links` (with xpath), and `inputs` (with xpath, type, value).
+Get the current page's layout tree with xpaths for links, inputs, and buttons. Returns YAML format (compact, saves tokens). Call this first when the user wants to interact with the page. Returns url, title, and a nested structure where each node has `xpath`, `text`, `links` (with xpath), and `inputs` (with xpath, type, value).
 
 ### get_page_content
 

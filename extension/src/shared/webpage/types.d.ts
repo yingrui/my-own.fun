@@ -27,8 +27,8 @@ interface Page {
 }
 
 interface LayoutOffset {
-  width: number;
-  height: number;
+  w: number;
+  h: number;
   x: number;
   y: number;
 }

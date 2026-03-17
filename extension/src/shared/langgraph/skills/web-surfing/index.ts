@@ -5,6 +5,7 @@
 import { tool } from "@langchain/core/tools";
 import type { StructuredToolInterface } from "@langchain/core/tools";
 import { z } from "zod";
+import { stringify as stringifyYaml } from "yaml";
 import {
   getPageLayout,
   getPageContent,
@@ -35,12 +36,12 @@ export const webSurfingSkill: Skill = {
         async () => {
           const data = await getPageLayout();
           if (!data) return "Could not get page layout. The extension may not be attached to the page.";
-          return JSON.stringify(data, null, 2);
+          return stringifyYaml(data);
         },
         {
           name: "get_page_layout",
           description:
-            "Get the current page's layout tree with xpaths for links, inputs, and buttons. Call this first when the user wants to interact with the page.",
+            "Get the current page's layout tree with xpaths for links, inputs, and buttons. Returns YAML format. Call this first when the user wants to interact with the page.",
           schema: z.object({}),
         },
       ) as StructuredToolInterface,

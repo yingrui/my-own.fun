@@ -22,6 +22,9 @@
   "dependencies": {
     "@ant-design/icons": "5.3.7",
     "@emotion/css": "^11.13.5",
+    "@langchain/core": "^0.3.40",
+    "@langchain/langgraph": "^0.2.0",
+    "@langchain/openai": "^0.3.0",
     "@uiw/react-md-editor": "4.0.4",
     "antd": "5.16.5",
     "bootstrap": "5.3.3",
@@ -33,11 +36,7 @@
     "liquidjs": "^10.20.3",
     "lodash": "4.17.21",
     "mermaid": "11.4.0",
-    "@langchain/core": "^0.3.40",
-    "@langchain/langgraph": "^0.2.0",
-    "@langchain/openai": "^0.3.0",
     "openai": "4.39.0",
-    "zod": "^3.23.0",
     "prop-types": "^15.8.1",
     "react": "18.2.0",
     "react-bootstrap": "2.10.2",
@@ -55,7 +54,9 @@
     "remark-mermaidjs": "4.1.1",
     "textarea-caret": "^3.1.0",
     "uuid": "11.0.3",
-    "webextension-polyfill": "0.10.0"
+    "webextension-polyfill": "0.10.0",
+    "yaml": "^2.8.2",
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@rollup/plugin-sucrase": "5.0.2",

@@ -15,10 +15,19 @@ function resolveByXpath(xpath: string): HTMLElement | null {
 }
 
 const addCommands = () => {
+  let visualizedTree: LayoutElement | null = null;
+
   const visualizeLayout = (tree: LayoutElement) => {
     tree.element.style.border = "1px solid red";
     for (const child of tree.children) {
       visualizeLayout(child);
+    }
+  };
+
+  const unvisualizeLayout = (tree: LayoutElement) => {
+    tree.element.style.border = "";
+    for (const child of tree.children) {
+      unvisualizeLayout(child);
     }
   };
 
@@ -29,9 +38,15 @@ const addCommands = () => {
         chrome.runtime.sendMessage({ type: "open_side_panel" });
       }
       if (event.ctrlKey && event.altKey && event.key === "Enter") {
-        // Show layout on screen when press ctrl+alt+enter
-        const page = new PageParser(document).parse();
-        visualizeLayout(page.layoutTree);
+        // Toggle layout visualization on screen when press ctrl+alt+enter
+        if (visualizedTree) {
+          unvisualizeLayout(visualizedTree);
+          visualizedTree = null;
+        } else {
+          const page = new PageParser(document).parse();
+          visualizeLayout(page.layoutTree);
+          visualizedTree = page.layoutTree;
+        }
       }
     });
 
@@ -54,7 +69,7 @@ const addCommands = () => {
       } else if (message.type === "get_page_layout") {
         try {
           const page = new PageParser(document).parse();
-          const layoutPojo = page.layoutTree?.toPojo();
+          const layoutPojo = page.layoutTree?.toPojoSlim();
           const data = { url: page.url, title: page.title, layout: layoutPojo };
           sendResponse({ success: true, data });
         } catch (err) {

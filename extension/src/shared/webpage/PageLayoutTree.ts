@@ -6,8 +6,8 @@ class PageLayoutTree {
 
   constructor(body: HTMLElement, depth: number = 4) {
     const offset = {
-      width: body.offsetWidth,
-      height: body.offsetHeight,
+      w: body.offsetWidth,
+      h: body.offsetHeight,
       x: body.offsetLeft,
       y: body.offsetTop,
     };

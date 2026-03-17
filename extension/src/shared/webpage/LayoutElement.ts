@@ -38,7 +38,7 @@ class LayoutElement {
   }
 
   visible(): boolean {
-    let isCurrentNodeVisible = this.offset.width > 0 && this.offset.height > 0;
+    let isCurrentNodeVisible = this.offset.w > 0 && this.offset.h > 0;
     // Check if any of its children is visible when itself is not visible
     if (!isCurrentNodeVisible && this.element.hasChildNodes()) {
       const child = this.element.children[0];
@@ -94,10 +94,27 @@ class LayoutElement {
     };
   }
 
+  toPojoSlim(): Record<string, unknown> {
+    const text = this.children.length > 0 ? "" : getText(this.element);
+    const links = this.children.length > 0 ? [] : getLinks(this.element);
+    const children = this.children.map((child) => child.toPojoSlim());
+    const inputs = this.children.length > 0 ? [] : getInputs(this.element);
+
+    const node: Record<string, unknown> = {
+      xpath: getXpath(this.element),
+      offset: this.offset,
+    };
+    if (children.length > 0) node.children = children;
+    if (links.length > 0) node.links = links;
+    if (text !== "") node.text = text;
+    if (inputs.length > 0) node.inputs = inputs;
+    return node;
+  }
+
   private isCurrentNodeWidthLessThanParent(): boolean {
     if (this.parent != null) {
       return (
-        this.offset.width < this.parent.offset.width &&
+        this.offset.w < this.parent.offset.w &&
         this.offset.x >= this.parent.offset.x
       );
     }
@@ -109,7 +126,7 @@ class LayoutElement {
     for (const child of this.children) {
       const isSamePosition = Math.abs(this.offset.y - child.offset.y) <= 2;
       const isSameHeight =
-        Math.abs(this.offset.height - child.offset.height) <= 2;
+        Math.abs(this.offset.h - child.offset.h) <= 2;
       isSameLine = isSameLine && isSamePosition && isSameHeight;
       if (!isSameLine) {
         return false;
@@ -131,13 +148,13 @@ class LayoutElement {
   }
 
   private isSignificantVisualBlock(): boolean {
-    const area = this.offset.width * this.offset.height;
+    const area = this.offset.w * this.offset.h;
     const areaThreshold = 153600; // 480 * 320 = 153,600;
     return area > areaThreshold;
   }
 
   private isHorizontalRect(): boolean {
-    return this.offset.width > this.offset.height;
+    return this.offset.w > this.offset.h;
   }
 
   private isAllChildrenAtSameColumn(): boolean {
@@ -145,13 +162,13 @@ class LayoutElement {
     for (let i = 0; i < this.children.length - 1; i++) {
       const child = this.children[i];
       const isSamePosition = Math.abs(this.offset.x - child.offset.x) <= 2;
-      const isSameWidth = Math.abs(this.offset.width - child.offset.width) <= 2;
+      const isSameWidth = Math.abs(this.offset.w - child.offset.w) <= 2;
       isSameLine = isSameLine && isSamePosition && isSameWidth;
       if (i > 0 && isSameLine) {
         const prevChild = this.children[i - 1];
         const isAdjacent =
           Math.abs(
-            prevChild.offset.y + prevChild.offset.height - child.offset.y,
+            prevChild.offset.y + prevChild.offset.h - child.offset.y,
           ) <= 1;
         isSameLine = isSameLine && isAdjacent;
       }
@@ -174,8 +191,8 @@ class LayoutElement {
           continue;
         }
         const offset = {
-          width: child.offsetWidth,
-          height: child.offsetHeight,
+          w: child.offsetWidth,
+          h: child.offsetHeight,
           x: child.offsetLeft,
           y: child.offsetTop,
         };
