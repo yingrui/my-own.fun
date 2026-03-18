@@ -155,7 +155,9 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
       if (agent.getState().generating) return;
 
       const toSave = messagesForSave(msgs);
-      const title = deriveTitle(msgs);
+      // Preserve existing title when updating; only derive for new chats
+      const existing = currentChatId ? conversations.find((c) => c.chatId === currentChatId) : null;
+      const title = existing?.title?.trim() || deriveTitle(msgs);
       const snapshot = JSON.stringify({ chatId: currentChatId, title, messages: toSave });
 
       // Skip save if content unchanged (e.g. after just loading a chat)
@@ -180,7 +182,7 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
         );
       }
     }, SAVE_DEBOUNCE_MS);
-  }, [agent, currentChatId, loadConversations]);
+  }, [agent, currentChatId, conversations, loadConversations]);
 
   useEffect(() => {
     if (messages.length > 0 && !generating) {
