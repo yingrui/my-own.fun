@@ -62,9 +62,9 @@ function SidePanel(props: Record<string, unknown>) {
   }
 
   return (
-    <>
+    <div style={{ paddingBottom: "16px", height: "100%" }}>
       <ChatConversation ref={chatRef} agent={agent} enableClearCommand={true} />
-    </>
+    </div>
   );
 }
 

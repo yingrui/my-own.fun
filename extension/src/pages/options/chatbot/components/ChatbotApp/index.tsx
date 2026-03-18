@@ -110,6 +110,7 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const [editingTitle, setEditingTitle] = useState("");
   const [expandedActionsChatId, setExpandedActionsChatId] = useState<string | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedRef = useRef<{ chatId: string | null; snapshot: string } | null>(null);
 
   const agent = useMemo(() => new AgentFactory().create(config), [config]);
   const { artifacts, partialArtifact, hasArtifactContent, artifactsByMessageId } = useArtifacts(messages);
@@ -155,15 +156,23 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
 
       const toSave = messagesForSave(msgs);
       const title = deriveTitle(msgs);
+      const snapshot = JSON.stringify({ chatId: currentChatId, title, messages: toSave });
+
+      // Skip save if content unchanged (e.g. after just loading a chat)
+      if (lastSavedRef.current?.chatId === currentChatId && lastSavedRef.current?.snapshot === snapshot) {
+        return;
+      }
 
       try {
+        let savedChatId = currentChatId;
         if (currentChatId) {
           await updateChatConversation(currentChatId, { title, messages: toSave });
         } else {
-          const chatId = uuidv4();
-          await createChatConversation(chatId, title, toSave);
-          setCurrentChatId(chatId);
+          savedChatId = uuidv4();
+          await createChatConversation(savedChatId, title, toSave);
+          setCurrentChatId(savedChatId);
         }
+        lastSavedRef.current = { chatId: savedChatId, snapshot };
         await loadConversations();
       } catch (err) {
         antdMessage.error(
@@ -196,6 +205,13 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
         if (!chat) return;
         agent.loadConversation?.(chat.messages as SessionMessage[]);
         setCurrentChatId(chatId);
+        // Mark as already saved so we don't re-save on load (which would update updatedAt)
+        const msgs = messagesForSave(chat.messages as SessionMessage[]);
+        const title = chat.title || deriveTitle(chat.messages as SessionMessage[]);
+        lastSavedRef.current = {
+          chatId,
+          snapshot: JSON.stringify({ chatId, title, messages: msgs }),
+        };
       } catch (err) {
         antdMessage.error(
           intl.get("chat_load_error").d("Failed to load conversation.")
