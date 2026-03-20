@@ -12,3 +12,5 @@ paddlex[ocr]==3.4.2
 openai>=1.0.0
 # For paddleocr vl model, numpy version should less than 2.4
 numpy==2.3.5
+# For pptx to images (requires LibreOffice and poppler-utils)
+pptxtoimages>=0.1.14

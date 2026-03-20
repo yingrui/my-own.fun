@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 # Supported file extensions for document extraction
-ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".pdf"}
+ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".pdf", ".pptx", ".ppt"}
 
 
 def _is_allowed_file(filename: str) -> bool:
@@ -34,7 +34,7 @@ def _is_allowed_file(filename: str) -> bool:
 @router.post("/extract")
 async def extract_document_content(file: UploadFile = File(...)):
     """
-    Extract structured content from an uploaded document (image or PDF)
+    Extract structured content from an uploaded document (image, PDF, or pptx/ppt)
     using PaddleOCR doc_parser.
 
     Returns layout detection, parsed text blocks, and markdown representation.
@@ -55,8 +55,6 @@ async def extract_document_content(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Empty file uploaded")
 
     suffix = Path(file.filename or "image.png").suffix.lower()
-    if suffix == ".pdf":
-        suffix = ".pdf"
 
     try:
         with tempfile.NamedTemporaryFile(

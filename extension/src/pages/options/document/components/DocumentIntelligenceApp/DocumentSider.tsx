@@ -51,7 +51,7 @@ const DocumentSider: React.FC<DocumentSiderProps> = ({
     <input
       ref={fileInputRef}
       type="file"
-      accept=".png,.jpg,.jpeg,.bmp,.gif,.webp,.pdf"
+      accept=".png,.jpg,.jpeg,.bmp,.gif,.webp,.pdf,.pptx,.ppt"
       onChange={onFileSelect}
       style={{ display: "none" }}
     />

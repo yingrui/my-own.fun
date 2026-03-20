@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
 from typing import Any, Optional
 
@@ -118,6 +119,28 @@ def _get_paddle_ocr():
     return _paddle_ocr_instance
 
 
+def _pptx_or_ppt_to_images(file_path: str) -> tuple[list[str], tempfile.TemporaryDirectory]:
+    """
+    Convert pptx/ppt to PNG images using pptxtoimages (LibreOffice + pdf2image).
+    Returns (sorted list of image paths, temp_dir_handle). Caller must keep
+    temp_dir_handle alive until ocr.predict completes, then cleanup.
+    """
+    from pptxtoimages.tools import PPTXToImageConverter
+
+    tmp = tempfile.TemporaryDirectory(prefix="doc_extract_pptx_")
+    images_dir = Path(tmp.name) / "images"
+    temp_dir = Path(tmp.name) / "temp"
+    images_dir.mkdir(parents=True, exist_ok=True)
+    converter = PPTXToImageConverter(
+        str(file_path),
+        output_dir=str(images_dir),
+        temp_dir=str(temp_dir),
+    )
+    image_paths = converter.convert()
+    sorted_paths = sorted(str(p) for p in (Path(p) for p in image_paths)) if image_paths else []
+    return sorted_paths, tmp
+
+
 def _get_document_sha256(file_path: str) -> str:
     """Compute SHA256 hash of file content as cache key."""
     h = hashlib.sha256()
@@ -205,11 +228,11 @@ def _save_cached_result(sha256_hash: str, result: dict) -> None:
 
 def extract_document(file_path: str) -> dict:
     """
-    Extract structured content from a document (image or PDF) using PaddleOCR.
+    Extract structured content from a document (image, PDF, or pptx/ppt) using PaddleOCR.
     Uses SHA256 of file content as cache key. Returns cached result when available.
 
     Args:
-        file_path: Path to the image or PDF file.
+        file_path: Path to the image, PDF, or PowerPoint (pptx/ppt) file.
 
     Returns:
         Dict with parsing results: layout, blocks, text content.
@@ -228,13 +251,35 @@ def extract_document(file_path: str) -> dict:
         return cached
 
     ocr = _get_paddle_ocr()
-    pages_res = list(ocr.predict(input=file_path))
+    pptx_tmp: Optional[tempfile.TemporaryDirectory] = None
+
+    try:
+        if path.suffix.lower() in (".pptx", ".ppt"):
+            image_paths, pptx_tmp = _pptx_or_ppt_to_images(file_path)
+            if not image_paths:
+                return {
+                    "file_hash": sha256_hash,
+                    "parsing_res_list": [],
+                    "layout_det_res": {},
+                    "markdown": "",
+                }
+            predict_input: str | list[str] = image_paths
+        else:
+            predict_input = file_path
+
+        pages_res = list(ocr.predict(input=predict_input))
+    finally:
+        if pptx_tmp is not None:
+            try:
+                pptx_tmp.cleanup()
+            except Exception:
+                pass
 
     if not pages_res:
         return {"parsing_res_list": [], "layout_det_res": {}, "markdown": ""}
 
-    # For multi-page PDFs: merge tables, relevel titles, concatenate pages
-    if len(pages_res) > 1 and path.suffix.lower() == ".pdf":
+    # For multi-page PDFs and pptx/ppt: merge tables, relevel titles, concatenate pages
+    if len(pages_res) > 1 and path.suffix.lower() in (".pdf", ".pptx", ".ppt"):
         pages_res = list(
             ocr.restructure_pages(
                 pages_res,
