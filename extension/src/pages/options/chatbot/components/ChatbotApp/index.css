@@ -4,11 +4,11 @@
 }
 
 .chatbot-sider-content {
+  height: 100%;
   padding: 20px 10px;
 }
 
 .chatbot-conversations-list {
-  max-height: 280px;
   overflow-y: auto;
   margin-top: 8px;
 }

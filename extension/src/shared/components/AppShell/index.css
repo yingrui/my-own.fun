@@ -30,3 +30,9 @@
   background: var(--gm-color-surface);
   min-width: 0;
 }
+
+.ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
