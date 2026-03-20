@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Microphone Permission</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 24px;
+        text-align: center;
+      }
+      .status { margin: 16px 0; color: #666; }
+      .success { color: #52c41a; }
+      .error { color: #ff4d4f; }
+      .hint { font-size: 14px; color: #999; margin-top: 16px; max-width: 320px; }
+      .btn {
+        margin-top: 24px;
+        padding: 12px 24px;
+        font-size: 16px;
+        background: #1677ff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .btn:hover { background: #4096ff; }
+      .btn:disabled { background: #ccc; cursor: not-allowed; }
+      .btn-secondary { background: #e0e0e0; color: #333; margin-left: 12px; }
+      .btn-secondary:hover { background: #d0d0d0; }
+      .icon-hint { font-size: 12px; color: #999; margin-top: 24px; }
+    </style>
+  </head>
+  <body>
+    <h2>Microphone Permission</h2>
+    <p class="status" id="status">Click the button below to enable voice input in the chatbot.</p>
+    <p class="hint" id="hint">A browser prompt will appear—choose "Allow" to enable voice input.</p>
+    <div>
+      <button class="btn" id="btn">Allow Microphone Access</button>
+      <button class="btn btn-secondary" id="closeBtn">Close</button>
+    </div>
+    <p class="icon-hint">Tip: If no prompt appears, go to chrome://extensions → this extension → Details → Site settings → set Microphone to Allow.</p>
+    <script>
+      (function() {
+        const status = document.getElementById('status');
+        const hint = document.getElementById('hint');
+        const btn = document.getElementById('btn');
+        const closeBtn = document.getElementById('closeBtn');
+        closeBtn.addEventListener('click', function() {
+          try { window.parent.postMessage('myfun-mic-permission-close', '*'); } catch(e) {}
+        });
+        function requestPermission() {
+          status.textContent = 'Requesting... A prompt should appear.';
+          btn.disabled = true;
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+              stream.getTracks().forEach(function(track) { track.stop(); });
+              status.textContent = 'Microphone access granted!';
+              status.className = 'status success';
+              hint.textContent = 'Click Close, then try the mic in the side panel.';
+            })
+            .catch(function(err) {
+              status.textContent = 'Permission denied: ' + (err.message || err.name);
+              status.className = 'status error';
+              hint.textContent = 'You can try again, or check the address bar for a blocked-permission icon.';
+              btn.disabled = false;
+              btn.textContent = 'Try Again';
+            });
+        }
+        btn.addEventListener('click', requestPermission);
+      })();
+    </script>
+  </body>
+</html>

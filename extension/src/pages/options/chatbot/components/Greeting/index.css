@@ -37,3 +37,40 @@
 .chatbot-input-area {
   width: 480px;
 }
+
+.chatbot-input-area-with-voice {
+  position: relative;
+}
+
+.chatbot-voice-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--ant-color-text-secondary);
+  background: var(--ant-color-bg-container);
+  transition: color 0.2s, background 0.2s;
+  z-index: 1;
+}
+
+.chatbot-voice-btn:hover {
+  color: var(--ant-color-primary);
+  background: var(--ant-color-primary-bg);
+}
+
+.chatbot-voice-btn-active {
+  color: var(--ant-color-error);
+  background: var(--ant-color-error-bg);
+}
+
+.chatbot-voice-btn-active:hover {
+  color: var(--ant-color-error-hover);
+  background: var(--ant-color-error-bg-hover);
+}

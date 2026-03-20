@@ -26,6 +26,8 @@
   "chat_edit_title": "编辑标题",
   "chat_load_error": "加载对话失败。",
   "chat_new": "新建对话",
+  "chat_voice_start": "语音输入",
+  "chat_voice_stop": "停止聆听",
   "chat_none": "暂无已保存的对话",
   "chat_save_error": "保存失败，请检查后端连接。",
   "chat_saved": "已保存的对话",

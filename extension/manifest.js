@@ -24,6 +24,7 @@ const manifest = {
     "sidePanel",
     "scripting",
     "activeTab",
+    "tabs",
     "contextMenus",
     "history",
   ],
@@ -58,6 +59,10 @@ const manifest = {
     {
       resources: ["assets/js/*.js", "assets/css/*.css", "icons/*.png"],
       matches: ["*://*/*"],
+    },
+    {
+      resources: ["src/pages/permission/index.html"],
+      matches: ["<all_urls>"],
     },
   ],
 };

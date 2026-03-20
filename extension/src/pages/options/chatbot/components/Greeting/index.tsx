@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Input } from "antd";
+import { Input, Tooltip, message as antdMessage } from "antd";
+import { AudioOutlined, StopOutlined } from "@ant-design/icons";
+import { useSpeechRecognition } from "@src/shared/hooks/useSpeechRecognition";
 import "./index.css";
 import intl from "react-intl-universal";
 import type { ChatSession } from "@src/shared/langgraph/runtime/types";
@@ -18,10 +20,26 @@ const Greeting: React.FC<GreetingProps> = ({
   const [text, setText] = useState<string>("");
   const inputMethodRef = useRef<boolean>(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const {
+    isListening,
+    transcript,
+    interimTranscript,
+    startListening,
+    stopListening,
+    supported: speechSupported,
+  } = useSpeechRecognition({
+    onError: (msg) => antdMessage.warning(msg),
+  });
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (isListening) {
+      setText((transcript + interimTranscript).trim());
+    }
+  }, [isListening, transcript, interimTranscript]);
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -49,10 +67,11 @@ const Greeting: React.FC<GreetingProps> = ({
         </div>
       </div>
       <div className={"chatbot-input-first-page"}>
-        <div className={"chatbot-input-area"}>
+        <div className={"chatbot-input-area chatbot-input-area-with-voice"}>
           <Input.TextArea
             ref={inputRef}
             className={"chatbot-input"}
+            style={{ paddingRight: 48 }}
             onKeyDown={onKeyDown}
             onKeyUp={onKeyUp}
             value={text}
@@ -61,8 +80,34 @@ const Greeting: React.FC<GreetingProps> = ({
               .d("Type your message, press Enter to send.")}
             onChange={(e) => setText(e.target.value)}
             autoSize={{ minRows: 3, maxRows: 5 }}
-            allowClear
           />
+          {speechSupported && (
+            <Tooltip
+              title={
+                isListening
+                  ? intl.get("chat_voice_stop").d("Stop listening")
+                  : intl.get("chat_voice_start").d("Talk to type")
+              }
+            >
+              <span
+                className={`chatbot-voice-btn ${isListening ? "chatbot-voice-btn-active" : ""}`}
+                onClick={() => {
+                  if (isListening) {
+                    stopListening();
+                  } else {
+                    setText("");
+                    startListening();
+                  }
+                }}
+              >
+                {isListening ? (
+                  <StopOutlined style={{ fontSize: 18 }} />
+                ) : (
+                  <AudioOutlined style={{ fontSize: 18 }} />
+                )}
+              </span>
+            </Tooltip>
+          )}
         </div>
       </div>
     </>

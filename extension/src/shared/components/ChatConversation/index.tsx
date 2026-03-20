@@ -1,9 +1,11 @@
 import SensitiveTopicError from "@src/shared/agents/core/errors/SensitiveTopicError";
 import Message from "@src/shared/components/Message";
 import { useScrollAnchor } from "@src/shared/hooks/use-scroll-anchor";
+import { useSpeechRecognition } from "@src/shared/hooks/useSpeechRecognition";
 import type { Artifact } from "@src/shared/artifacts/types";
 import type { ChatSession, SessionMessage } from "@src/shared/langgraph/runtime/types";
-import { Input, message as antdMessage } from "antd";
+import { Input, message as antdMessage, Tooltip } from "antd";
+import { AudioOutlined, StopOutlined } from "@ant-design/icons";
 import {
   forwardRef,
   useEffect,
@@ -36,6 +38,16 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
     const [generating, setGenerating] = useState<boolean>();
     const { scrollRef, scrollToBottom, messagesRef, handleScroll } = useScrollAnchor();
     const inputMethodRef = useRef<boolean>(false);
+    const {
+      isListening,
+      transcript,
+      interimTranscript,
+      startListening,
+      stopListening,
+      supported: speechSupported,
+    } = useSpeechRecognition({
+      onError: (msg) => antdMessage.warning(msg),
+    });
     const [messages, setMessages] = useState<SessionMessage[]>(
       agent.getState().messages,
     );
@@ -56,6 +68,13 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
         scrollToBottom("auto");
       }
     }, [messages, generating, scrollToBottom]);
+
+    // Sync speech transcript to input while listening
+    useEffect(() => {
+      if (isListening) {
+        setText((transcript + interimTranscript).trim());
+      }
+    }, [isListening, transcript, interimTranscript]);
 
     async function handleSubmit() {
       if (generating) {
@@ -169,18 +188,49 @@ const ChatConversation = forwardRef<ChatConversationRef, ChatConversationProps>(
           </div>
 
           <div className={style.form}>
-            <Input.TextArea
-              onKeyDown={onKeyDown}
-              onKeyUp={onKeyUp}
-              value={text}
-              disabled={generating}
-              readOnly={generating}
-              placeholder={intl
-                .get("placeholder_side_panel_input")
-                .d("Type your message, press Enter to send.")}
-              onChange={(e) => setText(e.target.value)}
-              autoSize={{ minRows: 2, maxRows: 4 }}
-            />
+            <div className={style.inputWrapper}>
+              <Input.TextArea
+                onKeyDown={onKeyDown}
+                onKeyUp={onKeyUp}
+                value={text}
+                disabled={generating}
+                readOnly={generating}
+                placeholder={intl
+                  .get("placeholder_side_panel_input")
+                  .d("Type your message, press Enter to send.")}
+                onChange={(e) => setText(e.target.value)}
+                autoSize={{ minRows: 2, maxRows: 4 }}
+                style={{ paddingRight: 48 }}
+              />
+              {speechSupported && (
+                <Tooltip
+                  title={
+                    isListening
+                      ? intl.get("chat_voice_stop").d("Stop listening")
+                      : intl.get("chat_voice_start").d("Talk to type")
+                  }
+                >
+                  <span
+                    className={`${style.voiceBtn} ${isListening ? style.voiceBtnActive : ""}`}
+                    onClick={() => {
+                      if (generating) return;
+                      if (isListening) {
+                        stopListening();
+                      } else {
+                        setText("");
+                        startListening();
+                      }
+                    }}
+                  >
+                    {isListening ? (
+                      <StopOutlined style={{ fontSize: 16 }} />
+                    ) : (
+                      <AudioOutlined style={{ fontSize: 16 }} />
+                    )}
+                  </span>
+                </Tooltip>
+              )}
+            </div>
           </div>
         </div>
       </>

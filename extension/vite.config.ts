@@ -42,6 +42,7 @@ export default defineConfig({
         "src/pages/popup": resolve(pagesDir, "popup", "index.html"),
         "src/pages/sidepanel": resolve(pagesDir, "sidepanel", "index.html"),
         "src/pages/options": resolve(pagesDir, "options", "index.html"),
+        "src/pages/permission": resolve(pagesDir, "permission", "index.html"),
       },
       output: {
         entryFileNames: "[name]/index.js",
