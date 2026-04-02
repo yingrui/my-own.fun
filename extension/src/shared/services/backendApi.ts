@@ -357,6 +357,130 @@ export async function removeDocumentFromLibrary(
 }
 
 // ---------------------------------------------------------------------------
+// Agent tools — filesystem, terminal, python execution
+// ---------------------------------------------------------------------------
+
+const TOOLS_BASE = `${BACKEND_API_URL}/tools`;
+
+/** List directory contents relative to the agent workspace. */
+export async function toolsListDirectory(path = "."): Promise<{
+  path: string;
+  entries: Array<{ name: string; is_dir: boolean; size: number }>;
+}> {
+  const response = await fetch(
+    `${TOOLS_BASE}/filesystem/list?path=${encodeURIComponent(path)}`
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(err.detail || `List failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/** Read a file from the agent workspace. */
+export async function toolsReadFile(path: string): Promise<{
+  path: string;
+  content: string;
+  size: number;
+}> {
+  const response = await fetch(
+    `${TOOLS_BASE}/filesystem/read?path=${encodeURIComponent(path)}`
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(err.detail || `Read failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/** Write a file to the agent workspace. */
+export async function toolsWriteFile(
+  path: string,
+  content: string,
+  createDirs = true
+): Promise<{ path: string; size: number }> {
+  const response = await fetch(`${TOOLS_BASE}/filesystem/write`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path, content, create_dirs: createDirs }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(err.detail || `Write failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/** Build a direct URL to serve a workspace file (for images, downloads). */
+export function toolsFileServeUrl(path: string): string {
+  return `${TOOLS_BASE}/filesystem/serve/${encodeURIComponent(path)}`;
+}
+
+/** Delete a file from the agent workspace. */
+export async function toolsDeleteFile(path: string): Promise<{ deleted: string }> {
+  const response = await fetch(
+    `${TOOLS_BASE}/filesystem/delete?path=${encodeURIComponent(path)}`,
+    { method: "DELETE" }
+  );
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(err.detail || `Delete failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/** Execute a shell command in the agent workspace. */
+export async function toolsExecuteCommand(
+  command: string,
+  options: { cwd?: string; timeout?: number } = {}
+): Promise<{
+  stdout: string;
+  stderr: string;
+  exit_code: number;
+  elapsed_ms: number;
+  timed_out: boolean;
+}> {
+  const response = await fetch(`${TOOLS_BASE}/terminal/execute`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ command, cwd: options.cwd, timeout: options.timeout }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(err.detail || `Execute failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+/** Execute a Python script in the agent workspace. */
+export async function toolsExecutePython(
+  code: string,
+  options: { timeout?: number; saveAs?: string } = {}
+): Promise<{
+  stdout: string;
+  stderr: string;
+  exit_code: number;
+  elapsed_ms: number;
+  timed_out: boolean;
+  script_path: string | null;
+}> {
+  const response = await fetch(`${TOOLS_BASE}/python/execute`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      code,
+      timeout: options.timeout,
+      save_as: options.saveAs,
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(err.detail || `Python execution failed: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+// ---------------------------------------------------------------------------
 // Chat conversations
 // ---------------------------------------------------------------------------
 

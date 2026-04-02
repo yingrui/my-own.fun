@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import chats, document_library, documents, profiles, settings
+from app.api.v1 import chats, document_library, documents, filesystem, profiles, python_executor, settings, terminal
 from app.config import settings as app_settings
 import logging
 
@@ -30,6 +30,11 @@ app.include_router(settings.router, prefix="/api/v1")
 app.include_router(chats.router, prefix="/api/v1")
 app.include_router(document_library.router, prefix="/api/v1")
 app.include_router(documents.router, prefix="/api/v1")
+
+# Agent tool routers (super-agent capabilities)
+app.include_router(filesystem.router, prefix="/api/v1")
+app.include_router(terminal.router, prefix="/api/v1")
+app.include_router(python_executor.router, prefix="/api/v1")
 
 
 @app.on_event("startup")

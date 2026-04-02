@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, Input, Layout, List, Modal, Tooltip, Typography } from "antd";
-import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Input, Layout, List, Modal, Segmented, Tooltip, Typography } from "antd";
+import { CheckOutlined, CloseOutlined, DeleteOutlined, EditOutlined, FolderOpenOutlined, PlusOutlined } from "@ant-design/icons";
 import type { GluonConfigure } from "@src/shared/storages/gluonConfig";
 import type { SessionMessage } from "@src/shared/langgraph/runtime/types";
 import ChatWindow from "@pages/options/chatbot/components/ChatWindow";
 import ArtifactPanel from "@src/shared/components/ArtifactPanel";
+import WorkspacePanel from "@src/shared/components/WorkspacePanel";
 import { useArtifacts } from "@src/shared/artifacts";
 import {
   type ChatConversationRecord,
@@ -12,6 +13,8 @@ import {
   deleteChatConversation,
   getChatConversation,
   listChatConversations,
+  toolsExecuteCommand,
+  toolsExecutePython,
   updateChatConversation,
 } from "@src/shared/services/backendApi";
 import "./index.css";
@@ -20,6 +23,9 @@ import intl from "react-intl-universal";
 import AppShell from "@src/shared/components/AppShell";
 import { v4 as uuidv4 } from "uuid";
 import { message as antdMessage } from "antd";
+import { CodeExecutionContext, type CodeExecutionContextValue } from "@src/shared/hooks/useCodeExecution";
+
+type RightPanelTab = "artifacts" | "workspace";
 
 const SAVE_DEBOUNCE_MS = 2000;
 const TITLE_MAX_LEN = 50;
@@ -109,15 +115,26 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [expandedActionsChatId, setExpandedActionsChatId] = useState<string | null>(null);
+  const [rightPanelTab, setRightPanelTab] = useState<RightPanelTab>("artifacts");
+  const [workspaceOpened, setWorkspaceOpened] = useState(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRef = useRef<{ chatId: string | null; snapshot: string } | null>(null);
 
   const agent = useMemo(() => new AgentFactory().create(config), [config]);
   const { artifacts, partialArtifact, hasArtifactContent, artifactsByMessageId } = useArtifacts(messages);
+  const showRightPanel = hasArtifactContent || workspaceOpened;
   const groupedConversations = useMemo(
     () => groupConversationsByDate(conversations),
     [conversations]
   );
+
+  const codeExecutionCtx = useMemo<CodeExecutionContextValue | null>(() => {
+    if (!config.enableSuperAgent) return null;
+    return {
+      executePython: (code) => toolsExecutePython(code),
+      executeShell: (command) => toolsExecuteCommand(command),
+    };
+  }, [config.enableSuperAgent]);
 
   useEffect(() => {
     const state = agent.getState();
@@ -281,11 +298,30 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
     [editingTitle]
   );
 
-  return (
+  const handleToggleWorkspace = useCallback(() => {
+    const opening = !workspaceOpened;
+    setWorkspaceOpened(opening);
+    if (opening) setRightPanelTab("workspace");
+    else if (!hasArtifactContent) setRightPanelTab("artifacts");
+  }, [workspaceOpened, hasArtifactContent]);
+
+  const tree = (
     <AppShell
       siderId="chatbot-left-sider"
       collapsed={collapsed}
       onToggleCollapsed={() => setCollapsed(!collapsed)}
+      siderActions={
+        config.enableSuperAgent ? (
+          <Tooltip title={intl.get("workspace_tab").d("Workspace")} placement="right">
+            <Button
+              type="text"
+              icon={<FolderOpenOutlined style={workspaceOpened ? { color: "var(--ant-color-primary)" } : undefined} />}
+              onClick={handleToggleWorkspace}
+              className="app-shell-toggle"
+            />
+          </Tooltip>
+        ) : undefined
+      }
       sider={
         collapsed ? null : (
           <div className="chatbot-sider-content">
@@ -294,10 +330,21 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
               icon={<PlusOutlined />}
               block
               onClick={handleNewChat}
-              style={{ marginBottom: 12 }}
+              style={{ marginBottom: 8 }}
             >
               {intl.get("chat_new").d("New chat")}
             </Button>
+            {config.enableSuperAgent && (
+              <Button
+                type="dashed"
+                icon={<FolderOpenOutlined style={workspaceOpened ? { color: "var(--ant-color-primary)" } : undefined} />}
+                block
+                onClick={handleToggleWorkspace}
+                style={{ marginBottom: 12 }}
+              >
+                {intl.get("workspace_tab").d("Workspace")}
+              </Button>
+            )}
             <div className="chatbot-conversations-list">
               <Typography.Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 8 }}>
                 {intl.get("chat_saved").d("Saved conversations")}
@@ -416,28 +463,75 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
         )
       }
       content={
-        <Layout className={`chatbot-main${hasArtifactContent ? " chatbot-main--with-artifacts" : ""}`}>
+        <Layout className={`chatbot-main${showRightPanel ? " chatbot-main--with-artifacts" : ""}`}>
           <Layout className={"chatbot-conversation"}>
             <ChatWindow
               config={config}
               agent={agent}
               messages={messages}
               artifactsByMessageId={artifactsByMessageId}
-              onArtifactClick={setSelectedArtifactId}
+              onArtifactClick={(id) => {
+                setSelectedArtifactId(id);
+                setRightPanelTab("artifacts");
+              }}
             />
           </Layout>
-          {hasArtifactContent && (
+          {showRightPanel && (
             <div className={"chatbot-artifact-panel"}>
-              <ArtifactPanel
-                artifacts={artifacts}
-                partialArtifact={partialArtifact}
-                selectedArtifactId={selectedArtifactId}
-              />
+              {config.enableSuperAgent ? (
+                <>
+                  <div className="chatbot-right-panel-tabs">
+                    <Segmented
+                      size="small"
+                      value={rightPanelTab}
+                      onChange={(val) => setRightPanelTab(val as RightPanelTab)}
+                      options={[
+                        ...(hasArtifactContent
+                          ? [{ value: "artifacts" as const, label: intl.get("artifacts_tab").d("Artifacts") }]
+                          : []),
+                        { value: "workspace" as const, label: intl.get("workspace_tab").d("Workspace") },
+                      ]}
+                    />
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<CloseOutlined />}
+                      onClick={() => {
+                        setWorkspaceOpened(false);
+                        if (!hasArtifactContent) setRightPanelTab("artifacts");
+                      }}
+                      className="chatbot-right-panel-close"
+                    />
+                  </div>
+                  {rightPanelTab === "artifacts" && hasArtifactContent ? (
+                    <ArtifactPanel
+                      artifacts={artifacts}
+                      partialArtifact={partialArtifact}
+                      selectedArtifactId={selectedArtifactId}
+                    />
+                  ) : (
+                    <WorkspacePanel />
+                  )}
+                </>
+              ) : (
+                <ArtifactPanel
+                  artifacts={artifacts}
+                  partialArtifact={partialArtifact}
+                  selectedArtifactId={selectedArtifactId}
+                />
+              )}
             </div>
           )}
         </Layout>
       }
     />
+  );
+
+  if (!codeExecutionCtx) return tree;
+  return (
+    <CodeExecutionContext.Provider value={codeExecutionCtx}>
+      {tree}
+    </CodeExecutionContext.Provider>
   );
 };
 

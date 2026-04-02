@@ -92,6 +92,15 @@ const FeatureToggles: React.FC<FeatureTogglesProps> = ({
             >
               <Switch />
             </Form.Item>
+            {config.enableOptionsAppChatbot && (
+              <Form.Item
+                label={intl.get("enableSuperAgent").d("Super Agent")}
+                name="enableSuperAgent"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            )}
             <Form.Item label={null}>
               <Button key="create" type="primary" htmlType="submit">
                 {intl.get("save").d("Save")}

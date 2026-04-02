@@ -8,6 +8,7 @@ const { Sider } = Layout;
 interface AppShellProps {
   siderId?: string;
   sider?: React.ReactNode;
+  siderActions?: React.ReactNode;
   content: React.ReactNode;
   collapsed: boolean;
   onToggleCollapsed: () => void;
@@ -18,6 +19,7 @@ interface AppShellProps {
 const AppShell: React.FC<AppShellProps> = ({
   siderId,
   sider,
+  siderActions,
   content,
   collapsed,
   onToggleCollapsed,
@@ -43,6 +45,7 @@ const AppShell: React.FC<AppShellProps> = ({
             className="app-shell-toggle"
           />
         </div>
+        {collapsed && siderActions}
         {sider}
       </Sider>
       <Layout className="app-shell-main">{content}</Layout>

@@ -1,20 +1,86 @@
 .block {
   position: relative;
-  margin:  10px 0;
+  margin: 10px 0;
 
   & > div {
-    padding: 20px 0  !important;
-    margin: 0  !important;
+    padding: 20px 0 !important;
+    margin: 0 !important;
   }
 
   code {
     overflow-wrap: anywhere !important;
   }
 
-  .copy {
+  .actions {
     position: absolute;
     right: 5px;
     top: 5px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .actionBtn {
     font-size: 13px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .run {
+    color: #52c41a;
+    font-size: 14px;
+
+    &.running {
+      cursor: default;
+      opacity: 0.8;
+    }
+  }
+
+  .executionResult {
+    border-top: 1px solid #e8e8e8;
+    padding: 8px 12px;
+    font-size: 12px;
+    background: #fafafa;
+    border-radius: 0 0 6px 6px;
+  }
+
+  .executionHeader {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #666;
+    margin-bottom: 4px;
+    font-family: monospace;
+  }
+
+  .successIcon {
+    color: #52c41a;
+  }
+
+  .errorIcon {
+    color: #ff4d4f;
+  }
+
+  .executionOutput {
+    margin: 4px 0 0;
+    padding: 6px 8px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 300px;
+    overflow-y: auto;
+
+    &.stderr {
+      background: #fff2f0;
+      color: #cf1322;
+    }
   }
 }

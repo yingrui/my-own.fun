@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8100
     api_reload: bool = True
+
+    # Agent workspace — sandbox root for filesystem / terminal / python tools
+    agent_workspace_root: str = "~/agent-workspace"
     
     class Config:
         env_file = ".env"

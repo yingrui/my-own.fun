@@ -54,6 +54,7 @@ export type GluonConfigure = {
   enableOptionsAppSearch: boolean;
   enableOptionsAppChatbot: boolean;
   enableWriting: boolean;
+  enableSuperAgent: boolean;
 };
 
 const DEFAULT_PROVIDER_ID = "default";
@@ -113,6 +114,7 @@ export const DEFAULT_GM_CONFIG_VALUE: GluonConfigure = {
   enableOptionsAppSearch: true,
   enableOptionsAppChatbot: false,
   enableWriting: false,
+  enableSuperAgent: true,
 };
 
 /**

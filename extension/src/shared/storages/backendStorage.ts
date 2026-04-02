@@ -36,6 +36,7 @@ const SETTINGS_CATEGORY_MAP: Record<string, string> = {
   enableOptionsAppSearch: "Features",
   enableOptionsAppChatbot: "Features",
   enableWriting: "Features",
+  enableSuperAgent: "Features",
   // BA Copilot
   baCopilotKnowledgeApi: "BA Copilot",
   baCopilotApi: "BA Copilot",
@@ -48,7 +49,7 @@ const SETTINGS_CATEGORY_MAP: Record<string, string> = {
 const BOOLEAN_KEYS = new Set([
   "enableFloatingBall", "enableReflection", "enableMultimodal", "enableChainOfThoughts",
   "enableSearch", "enableOptionsAppSearch", "enableOptionsAppChatbot",
-  "enableWriting",
+  "enableWriting", "enableSuperAgent",
 ]);
 
 function normalizeBackendSettings<D extends Record<string, any>>(raw: Record<string, any>, fallback: D): D {
