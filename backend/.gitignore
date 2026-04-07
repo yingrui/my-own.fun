@@ -30,6 +30,9 @@ test.py
 # Temporary files
 output/
 
+# Agent workspace
+~/
+
 # Distribution
 dist/
 build/

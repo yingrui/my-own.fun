@@ -131,7 +131,7 @@ const ChatbotApp: React.FC<ChatbotAppProps> = ({ config }) => {
   const codeExecutionCtx = useMemo<CodeExecutionContextValue | null>(() => {
     if (!config.enableSuperAgent) return null;
     return {
-      executePython: (code) => toolsExecutePython(code),
+      executePython: (code) => toolsExecutePython({ code }),
       executeShell: (command) => toolsExecuteCommand(command),
     };
   }, [config.enableSuperAgent]);

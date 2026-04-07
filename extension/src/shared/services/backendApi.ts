@@ -452,10 +452,13 @@ export async function toolsExecuteCommand(
   return response.json();
 }
 
-/** Execute a Python script in the agent workspace. */
+/** Run inline Python (temp file) or an existing workspace script (use write_file first to persist). */
+export type ToolsExecutePythonInput =
+  | { code: string; timeout?: number }
+  | { scriptPath: string; timeout?: number };
+
 export async function toolsExecutePython(
-  code: string,
-  options: { timeout?: number; saveAs?: string } = {}
+  input: ToolsExecutePythonInput
 ): Promise<{
   stdout: string;
   stderr: string;
@@ -464,14 +467,14 @@ export async function toolsExecutePython(
   timed_out: boolean;
   script_path: string | null;
 }> {
+  const body =
+    "code" in input
+      ? { code: input.code, timeout: input.timeout }
+      : { script_path: input.scriptPath, timeout: input.timeout };
   const response = await fetch(`${TOOLS_BASE}/python/execute`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      code,
-      timeout: options.timeout,
-      save_as: options.saveAs,
-    }),
+    body: JSON.stringify(body),
   });
   if (!response.ok) {
     const err = await response.json().catch(() => ({ detail: response.statusText }));

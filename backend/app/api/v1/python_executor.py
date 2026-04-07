@@ -1,8 +1,9 @@
 """
-Python execution API — lets the super-agent generate and run Python scripts.
+Python execution API — run inline code (temp file) or an existing workspace script.
 
-Scripts are written to a temp file inside the workspace and executed via
-a subprocess so the FastAPI event-loop is never blocked.
+Inline ``code`` is written to a temporary ``.py`` under the workspace, executed, then
+removed. Persisted scripts should be created with the filesystem API, then run via
+``script_path``.
 """
 
 import asyncio
@@ -14,7 +15,7 @@ from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from app.config import settings
 
@@ -37,9 +38,19 @@ def _workspace_root() -> Path:
 
 
 class ExecutePythonRequest(BaseModel):
-    code: str
+    """Exactly one of ``code`` (inline snippet) or ``script_path`` (workspace-relative file)."""
+
+    code: Optional[str] = None
+    script_path: Optional[str] = None
     timeout: Optional[int] = None
-    save_as: Optional[str] = None
+
+    @model_validator(mode="after")
+    def exactly_one_source(self) -> "ExecutePythonRequest":
+        has_code = self.code is not None and self.code.strip() != ""
+        has_path = self.script_path is not None and self.script_path.strip() != ""
+        if has_code == has_path:
+            raise ValueError("Provide exactly one of code or script_path")
+        return self
 
 
 class ExecutePythonResponse(BaseModel):
@@ -54,42 +65,49 @@ class ExecutePythonResponse(BaseModel):
 @router.post("/execute", response_model=ExecutePythonResponse)
 async def execute_python(req: ExecutePythonRequest):
     """
-    Execute a Python script inside the workspace.
+    Execute Python inside the workspace.
 
-    * ``code`` — the Python source code to run.
+    * ``code`` — inline source (written to a temp ``.py`` under the workspace, then removed).
+    * ``script_path`` — run an existing file (use ``write_file`` first to persist scripts).
     * ``timeout`` — max seconds (default 30, max 120).
-    * ``save_as`` — optional filename to persist the script inside the workspace.
     """
-    if not req.code.strip():
-        raise HTTPException(status_code=400, detail="Empty code")
-
     workspace = _workspace_root()
     timeout = min(req.timeout or DEFAULT_TIMEOUT_SECONDS, MAX_TIMEOUT_SECONDS)
 
-    if req.save_as:
-        target = (workspace / req.save_as).resolve()
+    saved_rel: Optional[str] = None
+    tmp_path: Optional[str] = None
+
+    if req.script_path is not None and req.script_path.strip():
+        target = (workspace / req.script_path.strip()).resolve()
         if not str(target).startswith(str(workspace)):
-            raise HTTPException(status_code=403, detail="save_as path escapes workspace")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(req.code, encoding="utf-8")
+            raise HTTPException(status_code=403, detail="script_path escapes workspace")
+        if not target.is_file():
+            raise HTTPException(
+                status_code=404, detail=f"Script not found: {req.script_path.strip()}"
+            )
         script_path = str(target)
         saved_rel = str(target.relative_to(workspace))
     else:
         tmp = tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", dir=str(workspace),
-            delete=False, encoding="utf-8",
+            mode="w",
+            suffix=".py",
+            dir=str(workspace),
+            delete=False,
+            encoding="utf-8",
         )
-        tmp.write(req.code)
+        tmp.write(req.code or "")
         tmp.close()
         script_path = tmp.name
-        saved_rel = None
+        tmp_path = script_path
 
     timed_out = False
     start = time.monotonic()
+    proc: Optional[asyncio.subprocess.Process] = None
 
     try:
         proc = await asyncio.create_subprocess_exec(
-            "python3", script_path,
+            "python3",
+            script_path,
             cwd=str(workspace),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
@@ -115,9 +133,9 @@ async def execute_python(req: ExecutePythonRequest):
             elapsed_ms=elapsed,
         )
     finally:
-        if not req.save_as:
+        if tmp_path:
             try:
-                Path(script_path).unlink(missing_ok=True)
+                Path(tmp_path).unlink(missing_ok=True)
             except Exception:
                 pass
 

@@ -95,6 +95,9 @@ const TOOL_STATUS_LABELS: Record<string, string> = {
   get_page_layout: "Reading page layout...",
   research: "Researching...",
   summary: "Summarizing...",
+  execute_python: "Running Python...",
+  run_python_file: "Running Python script...",
+  run_command: "Running command...",
 };
 
 function inferStatusMessage(runMessages: BaseMessage[]): string | undefined {

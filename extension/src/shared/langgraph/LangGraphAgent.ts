@@ -4,6 +4,7 @@ import { createChatModel } from "@src/shared/langgraph/ModelAdapter";
 import { buildAgentGraph } from "@src/shared/langgraph/agentGraph";
 import { type Skill, resetResearchSession } from "@src/shared/langgraph/skills";
 import { StreamContext } from "@src/shared/langgraph/StreamContext";
+import { sanitizeOpenAIToolSequences } from "@src/shared/langgraph/sanitizeToolMessages";
 import type {
   ChatSession,
   SessionMessage,
@@ -165,7 +166,9 @@ export class LangGraphAgent implements ChatSession {
       getSystemPrompt: systemPromptOverride ?? this.getSystemPrompt,
     });
 
-    const messages = this.trimHistory([...this.messageHistory, new HumanMessage(userInput)]);
+    const messages = sanitizeOpenAIToolSequences(
+      this.trimHistory([...this.messageHistory, new HumanMessage(userInput)])
+    );
     const ctx = new StreamContext(messages.length);
 
     try {

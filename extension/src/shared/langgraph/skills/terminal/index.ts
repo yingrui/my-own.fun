@@ -3,10 +3,29 @@
  */
 
 import { tool } from "@langchain/core/tools";
-import { z } from "zod";
+import type { JSONSchema } from "@langchain/core/utils/json_schema";
 import { toolsExecuteCommand } from "@src/shared/services/backendApi";
 import type { Skill } from "../types";
 import instructions from "./SKILL.md?raw";
+
+/** Explicit schema so OpenAI/DeepSeek only require `command` (Zod optional was emitted as required). */
+const runCommandSchema: JSONSchema = {
+  type: "object",
+  properties: {
+    command: { type: "string", description: "The shell command to execute" },
+    cwd: {
+      type: "string",
+      description:
+        "Optional. Working directory relative to agent workspace root. Omit for workspace root.",
+    },
+    timeout: {
+      type: "number",
+      description: "Optional. Timeout in seconds (default: 30, max: 120).",
+    },
+  },
+  required: ["command"],
+  additionalProperties: false,
+};
 
 export const terminalSkill: Skill = {
   id: "terminal",
@@ -18,15 +37,8 @@ export const terminalSkill: Skill = {
   getTools() {
     return [
       tool(
-        async ({
-          command,
-          cwd,
-          timeout,
-        }: {
-          command: string;
-          cwd?: string;
-          timeout?: number;
-        }) => {
+        async (input: { command: string; cwd?: string; timeout?: number }) => {
+          const { command, cwd, timeout } = input;
           try {
             const result = await toolsExecuteCommand(command, { cwd, timeout });
             const parts: string[] = [];
@@ -44,17 +56,7 @@ export const terminalSkill: Skill = {
           name: "run_command",
           description:
             "Execute a shell command in the agent workspace. Returns stdout, stderr, and exit code. Use for git operations, package management, file manipulation, and other CLI tasks.",
-          schema: z.object({
-            command: z.string().describe("The shell command to execute"),
-            cwd: z
-              .string()
-              .optional()
-              .describe("Working directory relative to workspace root (default: root)"),
-            timeout: z
-              .number()
-              .optional()
-              .describe("Timeout in seconds (default: 30, max: 120)"),
-          }),
+          schema: runCommandSchema,
         },
       ),
     ];

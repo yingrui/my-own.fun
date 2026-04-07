@@ -17,4 +17,5 @@ You have access to the host file system through a sandboxed **agent workspace** 
 - Use `list_directory` first to explore before reading or writing.
 - Prefer writing small, focused files. Large binary files are not supported.
 - When creating scripts or data files, always use `write_file` to persist them so they can be referenced later.
+- For runnable Python: save with `write_file`, then run it with `run_python_file` (do not duplicate the source into `execute_python` when you already saved the file).
 - If the user asks to "save" something, use `write_file`.
